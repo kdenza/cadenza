@@ -1,0 +1,27 @@
+{
+  "cdz-button": {
+    "color": {
+      "background": {
+        "default": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+        "hover": { "$value": "{color.action.primary.background.hover}", "$type": "color" },
+        "active": { "$value": "{color.action.primary.background.active}", "$type": "color" },
+        "disabled": { "$value": "{color.action.primary.background.disabled}", "$type": "color" }
+      },
+      "text": {
+        "default": { "$value": "{color.action.primary.text.default}", "$type": "color" },
+        "disabled": { "$value": "{color.action.primary.text.disabled}", "$type": "color" }
+      },
+      "focus-ring": { "$value": "{color.focus.ring}", "$type": "color" }
+    },
+    "spacing": {
+      "padding-inline": { "$value": "{spacing.4}", "$type": "dimension" },
+      "padding-block": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "typography": {
+      "font-family": { "$value": "{typography.button.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.button.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.button.font-weight}", "$type": "fontWeight" }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" }
+  }
+}

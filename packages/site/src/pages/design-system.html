@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Cadenza — Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@600&family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main>
+      <nav><a href="./index.html">← Volver al sitio</a></nav>
+      <h1>Design System</h1>
+      <p>Componentes en producción real (dogfooding), no mockups.</p>
+
+      <section>
+        <h2>cdz-button</h2>
+        <p>Estados: default, hover (interactivo), focus-visible (tab) y disabled.</p>
+        <div class="button-row">
+          <cdz-button>Default</cdz-button>
+          <cdz-button disabled>Disabled</cdz-button>
+        </div>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-input</h2>
+        <p>Estados: default, con helper text, required, error y disabled.</p>
+        <cdz-input label="Nombre" placeholder="Tu nombre"></cdz-input>
+        <cdz-input
+          label="Correo"
+          type="email"
+          helper-text="Nunca lo compartimos con terceros."
+        ></cdz-input>
+        <cdz-input label="Mensaje" required></cdz-input>
+        <cdz-input
+          label="Cupón"
+          value="EXPIRADO10"
+          error-message="Este cupón ya venció."
+        ></cdz-input>
+        <cdz-input label="No editable" value="valor fijo" disabled></cdz-input>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-checkbox</h2>
+        <p>Estados: default, checked, indeterminate, error y disabled.</p>
+        <cdz-checkbox label="Recibir novedades"></cdz-checkbox>
+        <cdz-checkbox label="Guardar mis datos" checked></cdz-checkbox>
+        <cdz-checkbox label="Seleccionar todo" indeterminate></cdz-checkbox>
+        <cdz-checkbox
+          label="Acepto los términos"
+          required
+          error-message="Debes aceptar para continuar."
+        ></cdz-checkbox>
+        <cdz-checkbox label="No editable" checked disabled></cdz-checkbox>
+      </section>
+    </main>
+    <script type="module" src="../main.ts"></script>
+  </body>
+</html>

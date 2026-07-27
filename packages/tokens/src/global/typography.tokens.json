@@ -1,0 +1,24 @@
+{
+  "font": {
+    "family": {
+      "base": {
+        "$value": "'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+        "$type": "fontFamily"
+      },
+      "display": {
+        "$value": "'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+        "$type": "fontFamily"
+      }
+    },
+    "size": {
+      "3": { "$value": "0.875rem", "$type": "dimension" },
+      "4": { "$value": "1rem", "$type": "dimension" },
+      "7": { "$value": "2rem", "$type": "dimension" }
+    },
+    "weight": {
+      "regular": { "$value": "400", "$type": "fontWeight" },
+      "medium": { "$value": "500", "$type": "fontWeight" },
+      "semibold": { "$value": "600", "$type": "fontWeight" }
+    }
+  }
+}

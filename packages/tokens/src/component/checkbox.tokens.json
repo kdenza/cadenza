@@ -1,0 +1,42 @@
+{
+  "cdz-checkbox": {
+    "color": {
+      "border": {
+        "default": { "$value": "{color.form.border.default}", "$type": "color" },
+        "checked": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+        "error": { "$value": "{color.form.border.error}", "$type": "color" },
+        "disabled": { "$value": "{color.form.border.disabled}", "$type": "color" }
+      },
+      "background": {
+        "checked": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+        "disabled": { "$value": "{color.form.background.disabled}", "$type": "color" }
+      },
+      "mark": { "$value": "{color.action.primary.text.default}", "$type": "color" },
+      "focus-ring": { "$value": "{color.focus.ring}", "$type": "color" },
+      "text": {
+        "label": { "$value": "{color.text.body}", "$type": "color" },
+        "helper": { "$value": "{color.form.text.helper}", "$type": "color" },
+        "error": { "$value": "{color.form.text.error}", "$type": "color" },
+        "disabled": { "$value": "{color.form.text.disabled}", "$type": "color" }
+      }
+    },
+    "size": { "$value": "{spacing.4}", "$type": "dimension" },
+    "spacing": {
+      "gap": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "typography": {
+      "label": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      },
+      "caption": {
+        "font-family": { "$value": "{typography.caption.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.caption.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.caption.font-weight}", "$type": "fontWeight" }
+      }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" },
+    "border-width": { "$value": "1px", "$type": "dimension" }
+  }
+}

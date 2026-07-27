@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    // Lit's reactive properties rely on prototype accessors installed by
+    // `static properties`. With `useDefineForClassFields: true` (the default
+    // for target >= ES2022), TS emits class fields via Object.defineProperty,
+    // which shadows those accessors on the instance and silently breaks
+    // reactivity. Keeping this false makes TS emit plain constructor
+    // assignments instead, so `this.disabled = ...` goes through Lit's setter.
+    "useDefineForClassFields": false
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "dist"]
+}

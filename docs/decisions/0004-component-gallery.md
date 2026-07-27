@@ -1,0 +1,119 @@
+# ADR-0004: Component gallery — custom-elements-manifest + axe-core instead of Storybook
+
+**Status:** Accepted
+**Date:** 2026-07-22
+**Deciders:** Cadenza design system owner (UX Engineer)
+
+## Context
+
+Two atoms in, the manual `design-system.html` section-per-component
+approach (ADR-0003) was starting to show its limits: every new state to
+demo means hand-writing another `<cdz-button ...>` line, and there's no
+way to explore states interactively without editing HTML and reloading.
+The obvious industry-standard answer is Storybook — but this project has
+been deliberately lightweight throughout (vanilla site, no framework,
+Vite as the only build tool), and the explicit ask was a design system
+that's "liviano, fácil de instalar y compartir entre proyectos, fácil de
+implementar y mantener." Two real constraints ruled out the more standard
+options before it came down to taste:
+
+- **Histoire** requires Vite 7, which requires Node ≥20.19/22.12 — this
+  environment runs Node 18.19.1, the same constraint that's shaped tool
+  choices since ADR-0001. Ruled out outright, and it's still in beta besides.
+- **Storybook** itself would actually work (`@storybook/web-components-vite`
+  accepts Vite 5/6/7/8 as a peer, so it runs on the existing Vite 6.4.3 —
+  no Node conflict there), but it's by far the heaviest dependency
+  footprint anything in this monorepo would take on, with its own
+  bundler wrapper, manager UI, and addon ecosystem to configure and keep
+  updated.
+
+## Decision
+
+Built a small bespoke gallery instead of adopting either, out of two
+already-mature, narrowly-scoped libraries rather than a docs framework:
+
+- **`@custom-elements-manifest/analyzer`** statically analyzes
+  `@cadenza/components`' source and emits `custom-elements.json` — tag
+  names, properties (with attribute mapping and `reflects`), events, and
+  the JSDoc class description already written for each component's ARIA
+  pattern. Verified it correctly reads this project's decorator-free Lit
+  style (`static properties` + `declare` fields, not `@property()`) — the
+  `--litelement` flag handles that pattern natively, not just decorators.
+- **`axe-core`**, used directly (not through a test-runner wrapper) —
+  `axe.run(element)` against a live component instance, on demand, from a
+  button per component.
+- **New package `@cadenza/gallery`**: reads the manifest, and for every
+  `customElement: true` declaration, renders a live instance plus an
+  auto-generated controls panel (one control per public field) and an
+  a11y-check button. No new UI framework — plain DOM APIs
+  (`createElement`/`addEventListener`), consistent with `@cadenza/site`.
+- Config: `packages/components/custom-elements-manifest.config.mjs`
+  restricts analysis to `src/**/*.ts`, excluding `dist/`, `*.test.ts`, and
+  `*.styles.ts` — without it, the analyzer also walked compiled `dist/`
+  output and produced duplicate declarations plus noise from
+  non-component style modules.
+- The manifest is a generated artifact (`.gitignore`d, like `dist/`),
+  regenerated via `pnpm --filter @cadenza/components analyze`, wired into
+  both the root `build` script and a new `pnpm gallery` convenience script.
+
+## Trade-off, stated plainly
+
+The analyzer captures a property's TypeScript type as the **type alias
+name as written** (e.g. `"CdzButtonType"`), not its expanded union members
+— it doesn't resolve types, only reads the annotation. So the gallery
+can't automatically know `type` on `<cdz-button>` means `'button' |
+'submit' | 'reset'`; that has to be told to it. Solved with a small,
+manually-maintained `ENUM_HINTS` map in `gallery/src/main.ts` (one entry
+per enum-like prop, per component) — everything not listed still gets a
+usable plain text input, just without a dropdown. This is real, ongoing
+manual work Storybook's type-aware controls addon would have done
+automatically. Accepted because it's the one honest cost of the whole
+approach, and it stays small: one line per enum-like property, not a
+system to maintain.
+
+## Consequences
+
+- **Easier:** adding atom #3 needs zero gallery code — the manifest picks
+  it up automatically the next time `analyze` runs, and it gets a live
+  preview and boolean/string controls for free. Only enum-like props need
+  the one-line `ENUM_HINTS` addition.
+- **Easier to share across projects:** the gallery only assumes "a
+  `custom-elements.json` exists and the tags it names are registered" —
+  nothing about it is Cadenza-specific except the `ENUM_HINTS`/
+  `SLOT_CONTENT` maps. Dropping it into a different Lit-based project
+  means pointing it at a different manifest, not rewriting it.
+- **Easier to install:** the gallery's own dependency footprint is exactly
+  two runtime packages (`axe-core`, plus `@cadenza/components` itself) and
+  Vite/TypeScript as dev tooling it already needed anyway — nothing
+  Storybook-scale to `pnpm install`.
+- **Harder / accepted cost:** no addon ecosystem, no autogenerated docs
+  site, no visual regression tooling, no deep-linking to a specific
+  story/state — this is a live component inspector with a11y checks, not
+  a full documentation platform. If Cadenza ever needs those things,
+  Storybook is still the answer; this ADR doesn't rule it out later, it
+  just says it wasn't the right cost for two atoms.
+- **To revisit:** JSDoc class descriptions render as plain `textContent`
+  in the gallery, so the literal markdown (backticks, asterisks) from the
+  source comments shows up unrendered. Fine for now; worth a minimal
+  markdown-to-text pass (or just `<code>`/`<em>` swapping) once the
+  descriptions are being read by someone other than us.
+- **To revisit:** no `@slot`/`@fires` JSDoc tags are written yet, so slot
+  content per component is a hardcoded `SLOT_CONTENT` map rather than
+  read from the manifest. Adding proper CEM-recognized JSDoc tags
+  (`@slot`, `@fires`) to component source would let the gallery read
+  that too instead of hardcoding it — worth doing whenever a component
+  has a slot that isn't just "some text."
+
+## Action Items
+
+1. [x] `@custom-elements-manifest/analyzer` configured, scoped to `src/`,
+   verified against both existing components.
+2. [x] `@cadenza/gallery` package: manifest-driven rendering, live
+   controls, `axe-core` on-demand auditing.
+3. [x] Verified end-to-end: toggling a control updates the live element
+   (confirmed via both the DOM and a screenshot), and the a11y check
+   correctly reports both a clean pass and a real, deliberately-triggered
+   violation (cleared a required label → "Form elements must have
+   labels", critical).
+4. [ ] Add `@slot` / `@fires` JSDoc tags to components as they gain real
+   slots/custom events, so the gallery can stop hardcoding them.

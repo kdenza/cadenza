@@ -1,0 +1,57 @@
+/* Uses semantic tokens directly (not just the component-scoped ones) to
+   show the site itself dogfooding @cadenza/tokens, not only components.
+   --color-page-background and --color-text-body flip between the light
+   and dark values automatically — see @cadenza/components' tokens.css. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-family-base, 'Source Sans 3', system-ui, sans-serif);
+  background: var(--color-page-background, #faf4f6);
+  color: var(--color-text-body, #2c2230);
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--spacing-4, 1rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+h1 {
+  font-family: var(--typography-heading-font-family, 'Figtree', system-ui, sans-serif);
+  font-size: var(--typography-heading-font-size, 2rem);
+  font-weight: var(--typography-heading-font-weight, 600);
+  margin: 0;
+}
+
+/* Gives the reserved rose accent a concrete, decorative-only job: it
+   never carries text, so it doesn't need to clear a contrast ratio. */
+h1::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-accent-decorative, #c96a85);
+  margin-top: 8px;
+}
+
+.button-row {
+  display: flex;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+.input-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 1rem);
+  width: 100%;
+  max-width: 320px;
+}
+
+nav a {
+  color: var(--color-action-primary-background-default, #7a5197);
+}
