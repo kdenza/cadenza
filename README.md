@@ -28,9 +28,10 @@ otro proyecto, ver [docs/publishing.md](docs/publishing.md).
 
 ## Estado
 
-Tres átomos (`<cdz-button>`, `<cdz-input>`, `<cdz-checkbox>`) validando la
-arquitectura de tokens en tres capas (global → semántica → componente) y
-el patrón de documentación/ARIA por componente. Migrado de pnpm a npm;
-`@kdenza/tokens` y `@kdenza/components` listos para su primera
-publicación en GitHub Packages. Ver [docs/decisions](docs/decisions) para
+Cuatro átomos (`<cdz-button>`, `<cdz-input>`, `<cdz-checkbox>`,
+`<cdz-radio>`) validando la arquitectura de tokens en tres capas (global →
+semántica → componente) y el patrón de documentación/ARIA por componente.
+Migrado de pnpm a npm; `@kdenza/tokens` y `@kdenza/components` en `0.1.0`,
+listos para su primera publicación en GitHub Packages (pendiente de un
+entorno con terminal propia). Ver [docs/decisions](docs/decisions) para
 el registro de decisiones de arquitectura.

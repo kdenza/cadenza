@@ -55,7 +55,8 @@ const SLOT_CONTENT: Record<string, string> = {
 // clearing it via the control to see the warning on demand.
 const DEFAULT_PROP_OVERRIDES: Record<string, Record<string, unknown>> = {
   'cdz-input': { label: 'Nombre de ejemplo' },
-  'cdz-checkbox': { label: 'Acepto los términos' }
+  'cdz-checkbox': { label: 'Acepto los términos' },
+  'cdz-radio': { label: 'Opción de ejemplo' }
 };
 
 function parseDefault(raw: string | undefined): unknown {

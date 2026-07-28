@@ -98,11 +98,16 @@ ahí antes de asumir el porqué de algo no obvio:
   en vez de Storybook/Histoire.
 - **0005** — `cdz-checkbox`: `indeterminate` imperativo, cero tokens nuevos.
 - **0006** — pnpm → npm, y publicar `@kdenza/tokens`/`@kdenza/components`
-  vía GitHub Packages bajo la organización `cadenza`.
+  vía GitHub Packages bajo la organización `kdenza` (`cadenza` ya estaba
+  tomado).
+- **0007** — `cdz-radio`: la agrupación nativa de radios no cruza shadow
+  roots — limitación real, documentada y verificada con test, no un bug.
+  La coordinación real queda para una futura molécula `cdz-radio-group`.
 
 ## Estado actual
 
-3 átomos completos: `cdz-button`, `cdz-input`, `cdz-checkbox`. Migrado a
-npm; `@kdenza/tokens` y `@kdenza/components` listos para publicarse en
-`0.1.0` en cuanto exista la organización `cadenza` en GitHub (pendiente,
-paso manual de la dueña del proyecto). Ver [README.md](README.md).
+4 átomos completos: `cdz-button`, `cdz-input`, `cdz-checkbox`, `cdz-radio`.
+Migrado a npm; `@kdenza/tokens` y `@kdenza/components` en `0.1.0`, listos
+para publicar en GitHub Packages — el primer `npm publish` real quedó
+pendiente (necesita terminal propia para el token, ver
+`docs/publishing.md`). Ver [README.md](README.md).

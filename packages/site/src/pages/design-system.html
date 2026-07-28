@@ -58,6 +58,27 @@
         ></cdz-checkbox>
         <cdz-checkbox label="No editable" checked disabled></cdz-checkbox>
       </section>
+
+      <section class="input-stack">
+        <h2>cdz-radio</h2>
+        <p>Estados: default, checked, error y disabled.</p>
+        <cdz-radio label="Opción sin marcar"></cdz-radio>
+        <cdz-radio label="Opción marcada" checked></cdz-radio>
+        <cdz-radio label="Elegí una opción" error-message="Este campo es obligatorio."></cdz-radio>
+        <cdz-radio label="No editable" checked disabled></cdz-radio>
+
+        <p>
+          <strong>Demostración honesta de una limitación real:</strong> estos
+          dos comparten <code>name="plan"</code> pero marcar uno no
+          desmarca al otro — cada <code>&lt;cdz-radio&gt;</code> vive en su
+          propio shadow root, y la agrupación nativa de radios no cruza esa
+          frontera. La coordinación real (exclusión mutua, flechas del
+          teclado) es trabajo de una futura molécula
+          <code>cdz-radio-group</code>, no de este átomo.
+        </p>
+        <cdz-radio label="Plan mensual" name="plan" checked></cdz-radio>
+        <cdz-radio label="Plan anual" name="plan"></cdz-radio>
+      </section>
     </main>
     <script type="module" src="../main.ts"></script>
   </body>
