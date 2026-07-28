@@ -1,16 +1,25 @@
 {
-  "name": "@cadenza/tokens",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@kdenza/tokens",
+  "version": "0.1.0",
   "description": "Cadenza design tokens (W3C DTCG) built with Style Dictionary",
   "type": "module",
   "main": "dist/css/tokens-light.css",
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kdenza/cadenza.git",
+    "directory": "packages/tokens"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "license": "UNLICENSED",
   "scripts": {
     "build": "node style-dictionary.config.js",
-    "watch": "node --watch-path=src style-dictionary.config.js"
+    "watch": "node --watch-path=src style-dictionary.config.js",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "style-dictionary": "^4.4.0"

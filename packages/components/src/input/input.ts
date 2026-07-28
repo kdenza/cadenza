@@ -70,7 +70,7 @@ export class CdzInput extends LitElement {
    * labelless input isn't just impolite, it's a hard accessibility
    * failure (axe-core flags it `critical`: "Form elements must have
    * labels" — exactly what surfaced while testing this component in
-   * @cadenza/gallery). `console.error` rather than an exception: a
+   * @kdenza/gallery). `console.error` rather than an exception: a
    * misused prop shouldn't be able to take down the rest of the page,
    * but it should be impossible to miss in devtools. Runs on every
    * update, not just the first, so clearing an initially-valid label

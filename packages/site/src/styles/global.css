@@ -1,7 +1,7 @@
 /* Uses semantic tokens directly (not just the component-scoped ones) to
-   show the site itself dogfooding @cadenza/tokens, not only components.
+   show the site itself dogfooding @kdenza/tokens, not only components.
    --color-page-background and --color-text-body flip between the light
-   and dark values automatically — see @cadenza/components' tokens.css. */
+   and dark values automatically — see @kdenza/components' tokens.css. */
 body {
   margin: 0;
   min-height: 100vh;

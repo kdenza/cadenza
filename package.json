@@ -4,15 +4,25 @@
   "private": true,
   "description": "Cadenza design system + portfolio — walking skeleton",
   "engines": {
-    "node": ">=18.12"
+    "node": ">=18.18.0",
+    "npm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.15.9",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build": "pnpm --filter @cadenza/tokens build && pnpm --filter @cadenza/components build && pnpm --filter @cadenza/components analyze && pnpm --filter @cadenza/site build",
-    "dev": "pnpm --filter @cadenza/site dev",
-    "gallery": "pnpm --filter @cadenza/components analyze && pnpm --filter @cadenza/gallery dev",
-    "test": "pnpm --filter @cadenza/components test",
-    "tokens:build": "pnpm --filter @cadenza/tokens build",
-    "tokens:watch": "pnpm --filter @cadenza/tokens watch"
+    "build": "npm run build -w @kdenza/tokens && npm run build -w @kdenza/components && npm run analyze -w @kdenza/components && npm run build -w @kdenza/site",
+    "dev": "npm run dev -w @kdenza/site",
+    "gallery": "npm run analyze -w @kdenza/components && npm run dev -w @kdenza/gallery",
+    "test": "npm test -w @kdenza/components",
+    "tokens:build": "npm run build -w @kdenza/tokens",
+    "tokens:watch": "npm run watch -w @kdenza/tokens"
+  },
+  "allowScripts": {
+    "@bundled-es-modules/glob@10.4.2": true,
+    "esbuild@0.27.7": true,
+    "esbuild@0.25.12": true,
+    "rs-module-lexer@2.8.0": true,
+    "style-dictionary@4.4.0": true
   }
 }

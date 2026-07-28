@@ -1,22 +1,32 @@
 {
-  "name": "@cadenza/components",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@kdenza/components",
+  "version": "0.1.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "custom-elements.json"
   ],
   "customElements": "custom-elements.json",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kdenza/cadenza.git",
+    "directory": "packages/components"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "license": "UNLICENSED",
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && cp -r src/styles dist/styles",
     "analyze": "cem analyze",
     "test": "web-test-runner",
-    "test:watch": "web-test-runner --watch"
+    "test:watch": "web-test-runner --watch",
+    "prepublishOnly": "npm run build && npm run analyze"
   },
   "dependencies": {
-    "@cadenza/tokens": "workspace:*",
+    "@kdenza/tokens": "^0.1.0",
     "lit": "^3.3.3"
   },
   "devDependencies": {

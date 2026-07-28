@@ -2,7 +2,7 @@ import { css } from 'lit';
 
 // Every custom property has a static fallback so `<cdz-button>` still renders
 // a legible, on-brand button even if the consuming page hasn't loaded
-// @cadenza/tokens' generated CSS yet (or is missing it entirely).
+// @kdenza/tokens' generated CSS yet (or is missing it entirely).
 export const buttonStyles = css`
   :host {
     display: inline-block;

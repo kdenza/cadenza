@@ -1,5 +1,5 @@
 {
-  "name": "@cadenza/gallery",
+  "name": "@kdenza/gallery",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@cadenza/components": "workspace:*",
+    "@kdenza/components": "*",
     "axe-core": "^4.12.1"
   },
   "devDependencies": {
