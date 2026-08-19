@@ -147,5 +147,78 @@ account name.
    already taken) and transferred the repo — now
    `github.com/kdenza/cadenza`. Every `@cadenza/*` reference in active
    code/config renamed to `@kdenza/*` to match.
-5. [ ] First real `npm publish` of both packages, once a
-   `write:packages`-scoped token exists.
+5. [ ] First real `npm publish` of both packages — see the amendment
+   below for the corrected target registry.
+
+---
+
+## Amendment (2026-08-06): moved to the public npm registry
+
+The GitHub Packages half of this ADR is **superseded**. The pnpm → npm
+migration and the `@kdenza` scope stand unchanged.
+
+### What was wrong with the original reasoning
+
+The decision above justified GitHub Packages as keeping the packages under
+the same access control as the repo. That is true, and it turned out to be
+the wrong thing to optimise for, because of a property of GitHub Packages
+that this ADR never checked:
+
+**GitHub Packages requires authentication to install npm packages, even
+public ones.** A consumer needs a Personal Access Token with
+`read:packages` and their own `.npmrc` before `npm install` will work.
+(This is specific to its npm registry; its container registry does allow
+anonymous pulls, which is part of why the limitation is easy to miss.)
+
+For internal distribution that is a fair trade. For a design system whose
+entire purpose is to be the case study of a portfolio, it inverts the
+goal: the claim being demonstrated is "another team can consume this," and
+the registry made verifying that claim cost a token and a config file.
+Nobody does that to look at a demo.
+
+The original ADR listed "any other personal project can now depend on
+`@kdenza/components` the same way it would depend on any real npm package"
+as the payoff. That was not actually true under GitHub Packages — it needs
+setup that a real npm package does not.
+
+### A latent bug found while making the change
+
+The root `.npmrc` mapped `@cadenza:registry=...`, not `@kdenza`. Action
+item 4 renamed every package from `@cadenza/*` to `@kdenza/*` but missed
+this file and `docs/publishing.md`, so the scope mapping pointed at a
+scope that no longer existed anywhere.
+
+It never surfaced because `publishConfig.registry` in each `package.json`
+overrides the registry for publishing, and inside the workspace both
+packages resolve through symlinks rather than the network. It would have
+failed the first time an *external* project followed the documented
+`.npmrc` recipe. Worth noting as a pattern: a rename that touches
+"active code/config" is not done until the config that only runs in
+someone else's project is checked too.
+
+### What changed
+
+- Both packages: `publishConfig.registry` → `publishConfig.access:
+  "public"`. Scoped packages default to *restricted*, which fails without
+  a paid plan, so this has to be explicit — as config rather than a
+  `--access public` flag, because a flag only has to be forgotten once.
+- `license` `"UNLICENSED"` → `"MIT"`, with a real `LICENSE` at the root.
+  The original said UNLICENSED was "the correct signal for not licensed
+  for reuse yet, not a permanent choice" — publishing publicly is the
+  moment that choice comes due.
+- Root `.npmrc` deleted. The public registry is npm's default; no scope
+  mapping and no token file are needed.
+- `docs/publishing.md` rewritten, including the prerequisite the original
+  never had: **the `@kdenza` scope has to be owned on npm** (a matching
+  username, or a free organisation). If it is taken, the packages need a
+  new name — the same failure mode as `cadenza` on GitHub, which is worth
+  checking *before* the first publish rather than during it.
+
+### Consequences
+
+- **Irreversible in a way the old choice wasn't.** A published version on
+  the public registry cannot be truly unpublished after 72 hours, and the
+  name is claimed permanently. That is the cost of removing the install
+  friction, and it is the right trade here.
+- **The repo can still be private.** Publishing a package does not publish
+  the source; `files: ["dist"]` already limits the tarball to build output.

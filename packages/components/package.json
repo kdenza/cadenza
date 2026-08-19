@@ -1,6 +1,7 @@
 {
   "name": "@kdenza/components",
   "version": "0.1.0",
+  "description": "Web Components accesibles construidos con Lit, con tokens de diseño DTCG y modo claro/oscuro",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,9 +16,10 @@
     "directory": "packages/components"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "Mónica Castillo (https://github.com/moni-kyrah)",
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && cp -r src/styles dist/styles",
     "analyze": "cem analyze",

@@ -1,68 +1,114 @@
 # Publicar y consumir los paquetes de Cadenza
 
-`@kdenza/tokens` y `@kdenza/components` se publican a **GitHub Packages**
-(el registry de npm de GitHub), bajo el scope `@cadenza`, ligado a la
-organización `cadenza` en GitHub. `@kdenza/site` y `@kdenza/gallery` son
-privados — nunca se publican, solo existen dentro de este monorepo.
+`@kdenza/tokens` y `@kdenza/components` se publican al **registry público
+de npm** (npmjs.com), bajo el scope `@kdenza`. `@kdenza/site` y
+`@kdenza/gallery` son privados — nunca se publican, solo existen dentro de
+este monorepo.
 
-## Publicar una nueva versión (desde este repo)
+La razón de que sea el registry público y no GitHub Packages está al final
+de este archivo, y en la enmienda de
+[ADR-0006](decisions/0006-npm-github-packages.md).
 
-Requiere un [Personal Access Token](https://github.com/settings/tokens) con
-scope `write:packages` (y `read:packages`, ya que instalar también requiere
-lectura). **El token nunca se pega en el chat con Claude ni se comitea** —
-solo vive como variable de entorno en tu propia terminal.
+## Antes de la primera publicación (una sola vez)
+
+1. Tener cuenta en [npmjs.com](https://www.npmjs.com/signup).
+2. **Ser dueña del scope `@kdenza`.** En npm un scope pertenece a un
+   usuario o a una organización, y solo se puede publicar bajo el propio.
+   Dos caminos:
+   - que el usuario de npm se llame `kdenza`, o
+   - crear una organización gratuita llamada `kdenza` (npmjs.com → *Add
+     an Organization*; el plan gratuito permite paquetes públicos
+     ilimitados).
+
+   Si `kdenza` ya está tomado en npm, hay que elegir otro scope y
+   renombrar los paquetes — es el mismo problema que ya pasó una vez con
+   `cadenza` en GitHub (ver ADR-0006).
+3. Autenticarse en la terminal:
+   ```bash
+   npm login
+   ```
+
+## Publicar una versión
 
 ```bash
-export NODE_AUTH_TOKEN=<tu-token>
+npm version patch -w @kdenza/tokens
+```
 
-# 1. Subir versión (elige uno, sigue semver)
-npm version patch -w @kdenza/tokens      # 0.1.0 -> 0.1.1
-npm version minor -w @kdenza/tokens      # 0.1.0 -> 0.2.0
-npm version major -w @kdenza/tokens      # 0.1.0 -> 1.0.0
+`patch` para arreglos, `minor` para API nueva compatible, `major` para
+cambios rompientes — semver normal.
 
-# 2. Publicar (prepublishOnly ya corre el build/analyze automáticamente)
+```bash
 npm publish -w @kdenza/tokens
+```
+
+`prepublishOnly` corre el build (y el `analyze` en components) solo,
+así que nunca se puede publicar un `dist/` viejo o ausente.
+
+Los paquetes con scope se publican como **privados por defecto**, lo que
+falla sin plan de pago. Por eso ambos llevan `publishConfig.access:
+"public"` en su `package.json`: sin eso haría falta `npm publish
+--access public` en cada publicación, y basta olvidarlo una vez.
+
+**Orden entre los dos paquetes:** `@kdenza/components` depende de
+`@kdenza/tokens`. Si se publican versiones nuevas de ambos, primero
+tokens; y si components necesita la versión nueva, actualizar esa
+referencia en `packages/components/package.json` antes de publicarlo.
+
+```bash
 npm publish -w @kdenza/components
 ```
 
-Si `@kdenza/components` depende de una versión nueva de `@kdenza/tokens`,
-actualiza esa referencia en `packages/components/package.json` antes de
-publicar components (ej. `"@kdenza/tokens": "^0.2.0"`).
+Para ver exactamente qué se va a subir, sin subir nada:
+
+```bash
+npm pack --dry-run -w @kdenza/components
+```
 
 ## Consumir desde otro proyecto
 
-En el **proyecto que lo va a usar** (no en este repo):
+Sin `.npmrc`, sin token, sin configuración:
 
-1. Crear un `.npmrc` en la raíz de ese proyecto:
-   ```
-   @cadenza:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-   ```
-2. Generar un Personal Access Token con scope `read:packages` (basta con
-   lectura, no hace falta `write:packages` para instalar) y exportarlo como
-   `NODE_AUTH_TOKEN` en esa terminal.
-3. Instalar normalmente:
-   ```bash
-   npm install @kdenza/components
-   ```
-   Esto trae `@kdenza/tokens` automáticamente como dependencia transitiva.
-4. Importar y usar:
-   ```js
-   import '@kdenza/components';
-   import '@kdenza/components/dist/styles/tokens.css';
-   ```
-   ```html
-   <cdz-button>Enviar</cdz-button>
-   ```
+```bash
+npm install @kdenza/components
+```
 
-En Angular específicamente, agregar `CUSTOM_ELEMENTS_SCHEMA` al módulo/
-componente donde se use cualquier `cdz-*`, ya que Angular no reconoce
-elementos custom por defecto.
+Eso trae `@kdenza/tokens` como dependencia transitiva. Después:
 
-## Por qué GitHub Packages y no el registry público de npm
+```js
+import '@kdenza/components';
+import '@kdenza/components/dist/styles/tokens.css';
+```
 
-Mantiene todo bajo el mismo control de acceso que el repo — mientras el
-repo/organización sea privado, los paquetes publicados también lo son, sin
-pagar por un registry privado aparte. Ver
-[docs/decisions/0006-npm-github-packages.md](decisions/0006-npm-github-packages.md)
-para el resto del razonamiento (por qué se dejó pnpm, por qué este scope).
+```html
+<cdz-button>Enviar</cdz-button>
+```
+
+En Angular hay que agregar `CUSTOM_ELEMENTS_SCHEMA` al módulo o componente
+donde se use cualquier `cdz-*`, porque Angular no reconoce elementos custom
+por defecto.
+
+## Por qué el registry público y no GitHub Packages
+
+Se empezó en GitHub Packages (ADR-0006), con el argumento de que mantenía
+los paquetes bajo el mismo control de acceso que el repo. El motivo por el
+que se cambió es concreto:
+
+**GitHub Packages exige autenticarse para instalar, incluso paquetes
+públicos.** Quien quisiera consumir Cadenza tendría que generar un
+Personal Access Token y escribir un `.npmrc` antes de poder correr `npm
+install`. Para distribución interna de una empresa eso es aceptable; para
+un sistema de diseño que además es el caso de estudio de un portafolio, es
+justo la fricción que anula el objetivo — nadie genera un token para
+mirar una demo.
+
+El registry público no tiene ese paso. El costo es que los paquetes son
+irreversiblemente públicos y necesitan una licencia real (MIT, ver
+`LICENSE` en la raíz), que era la dirección correcta para este proyecto de
+todos modos.
+
+## Nunca pegar un token en el chat
+
+Vale para `npm login`, para cualquier PAT de GitHub y para cualquier otra
+credencial: van en tu propia terminal, nunca en una conversación con
+Claude ni comiteadas al repo. Un token pegado en un chat hay que
+considerarlo comprometido y rotarlo.

@@ -13,9 +13,10 @@
     "directory": "packages/tokens"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "Mónica Castillo (https://github.com/moni-kyrah)",
   "scripts": {
     "build": "node style-dictionary.config.js",
     "watch": "node --watch-path=src style-dictionary.config.js",
