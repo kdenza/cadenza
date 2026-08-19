@@ -1,0 +1,5 @@
+{
+  "elevation": {
+    "raised": { "$value": "{shadow.raised}", "$type": "shadow" }
+  }
+}

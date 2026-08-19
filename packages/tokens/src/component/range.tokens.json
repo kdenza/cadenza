@@ -1,0 +1,51 @@
+{
+  "cdz-range": {
+    "color": {
+      "track": {
+        "default": { "$value": "{color.form.border.default}", "$type": "color" },
+        "disabled": { "$value": "{color.form.background.disabled}", "$type": "color" }
+      },
+      "fill": {
+        "default": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+        "disabled": { "$value": "{color.form.text.disabled}", "$type": "color" }
+      },
+      "thumb": {
+        "default": { "$value": "{color.action.primary.text.default}", "$type": "color" },
+        "disabled": { "$value": "{color.form.text.disabled}", "$type": "color" }
+      },
+      "focus-ring": { "$value": "{color.focus.ring}", "$type": "color" },
+      "error": { "$value": "{color.form.border.error}", "$type": "color" },
+      "text": {
+        "label": { "$value": "{color.text.body}", "$type": "color" },
+        "value": { "$value": "{color.text.body}", "$type": "color" },
+        "helper": { "$value": "{color.form.text.helper}", "$type": "color" },
+        "error": { "$value": "{color.form.text.error}", "$type": "color" },
+        "disabled": { "$value": "{color.form.text.disabled}", "$type": "color" }
+      }
+    },
+    "sizing": {
+      "track-height": { "$value": "0.375rem", "$type": "dimension" },
+      "thumb-size": { "$value": "1.25rem", "$type": "dimension" }
+    },
+    "spacing": {
+      "gap": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "typography": {
+      "label": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      },
+      "value": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      },
+      "caption": {
+        "font-family": { "$value": "{typography.caption.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.caption.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.caption.font-weight}", "$type": "fontWeight" }
+      }
+    }
+  }
+}

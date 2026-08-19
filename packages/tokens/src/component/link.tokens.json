@@ -1,0 +1,13 @@
+{
+  "cdz-link": {
+    "color": {
+      "default": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+      "hover": { "$value": "{color.action.primary.background.hover}", "$type": "color" },
+      "focus-ring": { "$value": "{color.focus.ring}", "$type": "color" }
+    },
+    "underline": {
+      "offset": { "$value": "0.15em", "$type": "dimension" },
+      "thickness": { "$value": "0.08em", "$type": "dimension" }
+    }
+  }
+}

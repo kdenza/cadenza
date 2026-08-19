@@ -100,3 +100,45 @@ h1 {
   margin: 0.5rem 0 0;
   padding-left: 1.2rem;
 }
+
+/* Icon contact sheet — see buildIconContactSheet() in main.ts for why
+   this view exists rather than judging icons at their real size. */
+.icon-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 1rem);
+}
+
+.icon-cell {
+  margin: 0;
+  text-align: center;
+  font-size: var(--typography-caption-font-size, 0.875rem);
+  color: var(--color-form-text-helper, #6e6169);
+}
+
+.icon-frame {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  /* currentColor drives the icon, so the frame sets the colour it takes. */
+  color: var(--color-text-body, #2c2230);
+}
+
+.icon-frame cdz-icon {
+  /* Overrides the lg token to fill the 96px audit frame: the point here
+     is inspecting geometry, not previewing a real-world size. */
+  --cdz-icon-sizing-lg: 96px;
+}
+
+/* The 20x20 live area, scaled to the 96px frame (96 / 24 * 20 = 80). */
+.live-area {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 1px solid var(--color-accent-decorative, #c96a85);
+  opacity: 0.5;
+  pointer-events: none;
+}

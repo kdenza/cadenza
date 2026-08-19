@@ -1,0 +1,48 @@
+{
+  "cdz-textarea": {
+    "color": {
+      "background": {
+        "default": { "$value": "{color.form.background.default}", "$type": "color" },
+        "disabled": { "$value": "{color.form.background.disabled}", "$type": "color" }
+      },
+      "border": {
+        "default": { "$value": "{color.form.border.default}", "$type": "color" },
+        "focus": { "$value": "{color.focus.ring}", "$type": "color" },
+        "error": { "$value": "{color.form.border.error}", "$type": "color" },
+        "disabled": { "$value": "{color.form.border.disabled}", "$type": "color" }
+      },
+      "text": {
+        "value": { "$value": "{color.text.body}", "$type": "color" },
+        "placeholder": { "$value": "{color.form.text.helper}", "$type": "color" },
+        "disabled": { "$value": "{color.form.text.disabled}", "$type": "color" },
+        "label": { "$value": "{color.text.body}", "$type": "color" },
+        "helper": { "$value": "{color.form.text.helper}", "$type": "color" },
+        "error": { "$value": "{color.form.text.error}", "$type": "color" }
+      }
+    },
+    "spacing": {
+      "padding-inline": { "$value": "{spacing.3}", "$type": "dimension" },
+      "padding-block": { "$value": "{spacing.2}", "$type": "dimension" },
+      "label-gap": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "typography": {
+      "value": {
+        "font-family": { "$value": "{typography.body.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.body.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.body.font-weight}", "$type": "fontWeight" }
+      },
+      "label": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      },
+      "caption": {
+        "font-family": { "$value": "{typography.caption.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.caption.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.caption.font-weight}", "$type": "fontWeight" }
+      }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" },
+    "border-width": { "$value": "1px", "$type": "dimension" }
+  }
+}

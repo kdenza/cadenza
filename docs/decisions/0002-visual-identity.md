@@ -183,3 +183,104 @@ summarized for the record:
    dedicated blue token, verified against both page backgrounds.
 6. [ ] Self-host Figtree/Source Sans 3 instead of Google Fonts before this
    site is meant to be fast or reliable in production.
+
+## Amendment (2026-07-27): manual light/dark override
+
+The original decision above covers OS-driven theming only — there was no
+way for a visitor (or the design-system owner, testing both modes) to
+override `prefers-color-scheme` short of changing an OS/browser setting.
+Added a manual toggle button to `design-system.html`/`index.html` that
+coexists with the zero-JS mechanism rather than replacing it.
+
+**Style Dictionary now builds four CSS files, not two:**
+`tokens-light.css`/`tokens-dark.css` (unchanged, still bare `:root`,
+still gated by the `@import ... (prefers-color-scheme: dark)` conditional
+on the dark file) plus two new ones, `tokens-dark-forced.css` and
+`tokens-light-forced.css`, generated from the same semantic color source
+files but with a `[data-theme="dark"]`/`[data-theme="light"]` attribute
+selector instead of `:root`. `style-dictionary.config.js`'s theme list
+gained a `selector` option threaded through to the `css/variables`
+format's `options.selector` to produce this.
+
+**Why an attribute selector, not more JS:** a `[data-theme="dark"]`
+selector has higher CSS specificity than a plain `:root` — even one
+sitting behind a media-query conditional import, since media queries
+don't add specificity. `@kdenza/components`' `tokens.css` imports both
+forced files *unconditionally* (no media-query gate): with no
+`data-theme` attribute present on `<html>`, neither selector matches
+anything, so the OS-preference path behaves exactly as before. The
+moment `main.ts` sets `data-theme` on `<html>`, the matching forced file's
+declarations win the cascade regardless of what `prefers-color-scheme`
+says. No JavaScript is involved in the override actually taking effect —
+only in deciding *which* attribute value to set and persisting that
+choice.
+
+**Anti-FOUC script, duplicated per page on purpose:** each HTML page's
+`<head>` has an inline, synchronous `<script>` (not a module — modules
+defer past first paint, which is exactly when this needs to run) that
+reads `localStorage.getItem('cdz-theme')` and sets `data-theme` on
+`document.documentElement` before any CSS paints, if a choice was
+previously stored. This has to live inline in every page rather than in
+`main.ts` or a shared import, or the first paint after a hard reload
+would flash the wrong theme before the deferred script ran. Caught a real
+bug from this: `index.html` was missed on the first pass (only
+`design-system.html` got the script initially), so a theme chosen on one
+page silently reverted when navigating to the other. Fixed by duplicating
+the identical script into both pages' `<head>`s and re-verified
+cross-page persistence.
+
+**`main.ts` owns the click behavior and label**, reading the *effective*
+theme (the `data-theme` override if present, else `prefers-color-scheme`)
+to decide what the next click should set and what the toggle button's
+label should say (`"Cambiar a modo oscuro"` / `"Cambiar a modo claro"`),
+and persists the choice to `localStorage` under the key `cdz-theme`.
+
+Verified: override wins over an opposing OS preference, survives a full
+reload with no flash, and now correctly survives navigating between
+`index.html` and `design-system.html`. Full test suite unaffected
+(57/57 passing) — this is a CSS-cascade and small-script addition, not a
+change to any component's own behavior.
+
+**To revisit:** the toggle button currently lives directly in
+`design-system.html`/`index.html`'s markup rather than as a reusable
+piece — fine for a two-page site, but if the site grows past a couple of
+pages, this (and the anti-FOUC script duplication) is the first thing
+worth extracting.
+
+### Caveat found later (2026-08-02): `transition` + `var()` and scripted theme flips
+
+Surfaced while running an accessibility audit, not by a user report.
+Setting `data-theme` **purely from script** does not repaint a property
+that (a) is declared with a `var()` whose value changes with the theme
+and (b) has a `transition` on it. Isolated in-browser:
+
+| Condition | Does the painted colour follow the token? |
+|---|---|
+| `transition` present | **No** — still stale after 1000 ms |
+| `transition` removed | Yes |
+| `transition` present + forced reflow | Yes |
+
+`<cdz-button>` is the case in the system today: it transitions
+`background-color` (which is tokenized) but not `color`. A scripted flip
+therefore updates the text colour immediately and leaves the background
+behind, producing colour pairs that exist in neither theme.
+
+**The product path is not affected**, verified by clicking the real
+toggle: `main.ts` rewrites the button's label right after switching, and
+that DOM write forces the style recalc that makes the repaint happen. So
+this is currently masked by an incidental side effect rather than
+handled.
+
+Two consequences worth carrying:
+
+- **Auditing/testing must not flip the theme by script alone.** Reload
+  with the choice already in `localStorage` instead — the anti-FOUC
+  inline script applies it before first paint, so no transition is ever
+  in flight. Every scripted-flip audit run produced impossible colour
+  pairs and, read naively, three phantom "violations".
+- **A consumer that switches theme without touching the DOM would hit
+  the real thing.** The fix that was verified to work is exposing the
+  duration as an inheritable custom property (custom properties do cross
+  into shadow roots, ordinary rules do not), so the page can zero it for
+  the duration of the flip. Not implemented yet — recorded here so the
+  next person doesn't rediscover it from scratch.

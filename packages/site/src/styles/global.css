@@ -52,6 +52,44 @@ h1::after {
   max-width: 320px;
 }
 
-nav a {
-  color: var(--color-action-primary-background-default, #7a5197);
+nav {
+  display: flex;
+  gap: var(--spacing-4, 1rem);
+  flex-wrap: wrap;
+}
+
+/* Los enlaces del sitio ahora son <cdz-link>, que trae su propio color,
+   subrayado permanente y anillo de foco (ADR-0015). La regla `nav a` que
+   vivía aquí quedó muerta al migrarlos: no podía alcanzar el <a> real,
+   que vive dentro del shadow root del componente. */
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2, 0.5rem);
+  align-items: center;
+}
+
+/* El divisor no trae margen propio a propósito (ADR-0021), así que el
+   espaciado lo pone el layout — exactamente lo que demuestran estas dos
+   clases. */
+.divider-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+  width: 100%;
+  max-width: 320px;
+}
+
+.divider-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3, 0.75rem);
+}
+
+.avatar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3, 0.75rem);
 }

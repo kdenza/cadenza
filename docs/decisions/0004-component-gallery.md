@@ -117,3 +117,30 @@ system to maintain.
    labels", critical).
 4. [ ] Add `@slot` / `@fires` JSDoc tags to components as they gain real
    slots/custom events, so the gallery can stop hardcoding them.
+
+## Amendment (2026-07-29): a dev-only link from the site, not a shared deploy
+
+The site (`@kdenza/site`) and the gallery are still two independent Vite
+dev servers (ports 5173/5174 respectively) with no shared build or
+deploy story — that hasn't changed. What's new: `index.html` and
+`design-system.html` now link to the gallery directly
+("Ver la galería de componentes →"), so the accessibility-auditing
+workflow this ADR built is one click away while developing, instead of
+something only reachable by remembering to run `npm run gallery`
+separately and typing the port.
+
+The link is real markup (`<a id="gallery-link" href="http://localhost:5174" hidden>`)
+present in both pages, but stays `hidden` unless `import.meta.env.DEV` is
+true — checked in `main.ts`, which removes the attribute only then. Vite
+resolves `import.meta.env.DEV` to a literal `false` in a production
+build, so the reveal code is dead-code-eliminated entirely (verified by
+grepping the built bundle) rather than merely gated at runtime — a
+production build can never show a link to a `localhost` port that
+wouldn't resolve for a real visitor anyway.
+
+**Deliberately not solved here:** whether the gallery itself is ever
+worth publishing as a real, publicly-reachable part of the portfolio
+case study (a static build, hosted somewhere, no longer tied to a local
+port) is a separate decision for whenever the site's own production
+deployment gets addressed — this amendment only makes the tool easier to
+reach during local development, which was the immediate, concrete need.

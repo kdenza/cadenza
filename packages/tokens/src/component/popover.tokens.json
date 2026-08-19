@@ -1,0 +1,17 @@
+{
+  "cdz-popover": {
+    "color": {
+      "background": { "$value": "{color.form.background.default}", "$type": "color" },
+      "border": { "$value": "{color.form.border.default}", "$type": "color" }
+    },
+    "shadow": { "$value": "{elevation.raised}", "$type": "shadow" },
+    "spacing": {
+      "padding": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "sizing": {
+      "max-height": { "$value": "{spacing.64}", "$type": "dimension" }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" },
+    "border-width": { "$value": "1px", "$type": "dimension" }
+  }
+}

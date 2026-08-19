@@ -2,6 +2,18 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <!-- Synchronous, not a module: must run before first paint to avoid a
+         flash of the wrong theme. Only sets data-theme if the visitor has
+         previously toggled it — otherwise prefers-color-scheme keeps
+         driving things with zero JS, same as before this existed. -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem('cdz-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>Cadenza — Design System</title>
@@ -14,7 +26,15 @@
   </head>
   <body>
     <main>
-      <nav><a href="./index.html">← Volver al sitio</a></nav>
+      <cdz-button id="theme-toggle">Cambiar a modo oscuro</cdz-button>
+      <nav>
+        <cdz-link href="./index.html">← Volver al sitio</cdz-link>
+        <!-- Solo visible en desarrollo local -- ver main.ts y la nota en
+             index.html. -->
+        <cdz-link id="gallery-link" href="http://localhost:5174" hidden
+          >Ver la galería de componentes →</cdz-link
+        >
+      </nav>
       <h1>Design System</h1>
       <p>Componentes en producción real (dogfooding), no mockups.</p>
 
@@ -64,7 +84,7 @@
         <p>Estados: default, checked, error y disabled.</p>
         <cdz-radio label="Opción sin marcar"></cdz-radio>
         <cdz-radio label="Opción marcada" checked></cdz-radio>
-        <cdz-radio label="Elegí una opción" error-message="Este campo es obligatorio."></cdz-radio>
+        <cdz-radio label="Elige una opción" error-message="Este campo es obligatorio."></cdz-radio>
         <cdz-radio label="No editable" checked disabled></cdz-radio>
 
         <p>
@@ -78,6 +98,441 @@
         </p>
         <cdz-radio label="Plan mensual" name="plan" checked></cdz-radio>
         <cdz-radio label="Plan anual" name="plan"></cdz-radio>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-text</h2>
+        <p><code>as</code> (tag semántico) y <code>size</code> (estilo visual) son independientes.</p>
+
+        <cdz-text as="h3">Tamaño por defecto según el tag (as="h3")</cdz-text>
+        <cdz-text as="p">Un párrafo normal (as="p", size="body-md" por defecto).</cdz-text>
+        <cdz-text as="p" size="body-sm">Texto de apoyo más chico (size="body-sm").</cdz-text>
+
+        <p>
+          <strong>El punto central:</strong> un <code>&lt;h2&gt;</code> real
+          para la estructura del documento, pero que visualmente no grita —
+          útil para un subtítulo que debe seguir la jerarquía de encabezados
+          sin verse enorme.
+        </p>
+        <cdz-text as="h2" size="body-md">Soy un h2 real, pero me veo como texto normal</cdz-text>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-select</h2>
+        <p>
+          Estados: default con placeholder, helper text, required + error,
+          disabled. <code>options</code> se pasa como propiedad JS (no como
+          atributo) — ver <code>main.ts</code>.
+        </p>
+        <cdz-select id="select-default" label="País" placeholder="Elige un país"></cdz-select>
+        <cdz-select
+          id="select-helper"
+          label="Idioma"
+          helper-text="Usamos esto solo para tu perfil."
+        ></cdz-select>
+        <cdz-select
+          id="select-error"
+          label="Plan"
+          required
+          error-message="Tienes que elegir un plan."
+        ></cdz-select>
+        <cdz-select id="select-disabled" label="No editable" disabled></cdz-select>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-textarea</h2>
+        <p>Estados: default, con helper text, required, error y disabled.</p>
+        <cdz-textarea label="Comentario" placeholder="Cuéntanos algo"></cdz-textarea>
+        <cdz-textarea
+          label="Dirección"
+          helper-text="Incluye calle, número y ciudad."
+          rows="3"
+        ></cdz-textarea>
+        <cdz-textarea label="Mensaje" required></cdz-textarea>
+        <cdz-textarea
+          label="Notas"
+          value="Guardado automáticamente hace unos minutos."
+          error-message="Este campo es obligatorio."
+        ></cdz-textarea>
+        <cdz-textarea label="No editable" value="Contenido fijo" disabled></cdz-textarea>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-switch</h2>
+        <p>
+          Estados: apagado, encendido, helper text, error y disabled (en
+          ambas posiciones). <code>role="switch"</code> sobre un
+          <code>&lt;input type="checkbox"&gt;</code> nativo — ver
+          el JSDoc del componente.
+        </p>
+        <cdz-switch label="Notificaciones por correo"></cdz-switch>
+        <cdz-switch label="Modo avión" checked></cdz-switch>
+        <cdz-switch
+          label="Guardado automático"
+          checked
+          helper-text="Guarda tu progreso cada 30 segundos."
+        ></cdz-switch>
+        <cdz-switch
+          label="Acepto recibir novedades"
+          required
+          error-message="Tienes que decidir una opción."
+        ></cdz-switch>
+        <cdz-switch label="No editable (apagado)" disabled></cdz-switch>
+        <cdz-switch label="No editable (encendido)" checked disabled></cdz-switch>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-range</h2>
+        <p>
+          Estados: default, con helper text, error, disabled, y min/max/step
+          distintos. Sin <code>required</code> a propósito — un range nunca
+          está "vacío".
+        </p>
+        <cdz-range label="Volumen"></cdz-range>
+        <cdz-range
+          label="Brillo"
+          value="70"
+          helper-text="Se ajusta automáticamente de noche."
+        ></cdz-range>
+        <cdz-range
+          label="Temperatura (°C)"
+          min="10"
+          max="30"
+          step="0.5"
+          value="21.5"
+        ></cdz-range>
+        <cdz-range
+          label="Presupuesto"
+          min="0"
+          max="1000"
+          step="50"
+          value="1000"
+          error-message="Superaste el límite disponible."
+        ></cdz-range>
+        <cdz-range label="No editable" value="40" disabled></cdz-range>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-file-input</h2>
+        <p>
+          Estados: default, con <code>accept</code>, <code>multiple</code>,
+          helper text, required + error, y disabled. El texto visible lo
+          dibuja el componente (no el navegador) para que el idioma lo
+          controle la app — ver el JSDoc.
+        </p>
+        <cdz-file-input label="Adjuntar CV"></cdz-file-input>
+        <cdz-file-input
+          label="Documentos"
+          accept=".pdf,.docx"
+          multiple
+          helper-text="PDF o Word, hasta 5 MB cada uno."
+        ></cdz-file-input>
+        <cdz-file-input
+          label="Foto de perfil"
+          accept="image/*"
+          required
+          error-message="Tienes que adjuntar una foto."
+        ></cdz-file-input>
+        <cdz-file-input label="No editable" disabled></cdz-file-input>
+      </section>
+
+      <section>
+        <h2>cdz-link</h2>
+        <p>
+          Siempre subrayado (WCAG 1.4.1: el color no puede ser la única
+          señal). <code>target="_blank"</code> agrega
+          <code>rel="noopener"</code> y un aviso para lectores de pantalla
+          automáticamente.
+        </p>
+        <p>
+          Un enlace <cdz-link href="./index.html">vive dentro del texto</cdz-link>
+          y hereda su tipografía, por eso no rompe el renglón ni cambia de
+          tamaño. Este otro
+          <cdz-link href="https://developer.mozilla.org/es/docs/Web/HTML/Element/a" target="_blank"
+            >abre en una pestaña nueva</cdz-link
+          >
+          — fíjate en el ícono, y prueba con un lector de pantalla para oír el
+          aviso.
+        </p>
+        <p>
+          También sirve para descargas:
+          <cdz-link href="./index.html" download="pagina-inicio.html"
+            >bajar esta página</cdz-link
+          >.
+        </p>
+      </section>
+
+      <section>
+        <h2>cdz-icon</h2>
+        <p>
+          SVG desde un registro compartido, nunca icon font — ver
+          <cdz-link href="../../../docs/decisions/0016-icon-system-grid.md">ADR-0016</cdz-link>.
+          El color sale de <code>currentColor</code>, así que el ícono toma el
+          color del texto donde esté.
+        </p>
+
+        <p>Escala: <code>sm</code>, <code>md</code> (por defecto) y <code>lg</code>.</p>
+        <p>
+          <cdz-icon name="check" size="sm"></cdz-icon>
+          <cdz-icon name="check" size="md"></cdz-icon>
+          <cdz-icon name="check" size="lg"></cdz-icon>
+        </p>
+
+        <p>
+          <strong>Decorativo vs. significativo:</strong> por defecto el ícono es
+          decoración y queda oculto para lectores de pantalla, porque casi
+          siempre está al lado de un texto que ya dice lo mismo. Solo cuando le
+          pasás <code>label</code> pasa a ser significativo
+          (<code>role="img"</code> + <code>aria-label</code>) — para cuando el
+          ícono es lo único que comunica esa información.
+        </p>
+        <p>
+          Hereda el color: <span style="color: var(--color-form-text-error)">
+            <cdz-icon name="dash"></cdz-icon> en contexto de error </span
+          >, y <cdz-icon name="chevron-down"></cdz-icon> en texto normal.
+        </p>
+        <p>
+          Con <code>size="inherit"</code> acompaña al texto que lo rodea, que es
+          como lo usa <code>cdz-link</code>:
+          <cdz-icon name="external-link" size="inherit"></cdz-icon>
+        </p>
+      </section>
+
+      <section>
+        <h2>cdz-badge</h2>
+        <p>
+          Primer componente con <strong>variantes semánticas</strong>, y el que
+          obligó a expandir la paleta: no había verde ni ámbar en el sistema.
+          Los 20 pares texto-sobre-fondo están verificados en ambos modos — ver
+          <cdz-link href="../../../docs/decisions/0017-badge-status-palette.md">ADR-0017</cdz-link>.
+        </p>
+
+        <div class="badge-row">
+          <cdz-badge>Borrador</cdz-badge>
+          <cdz-badge variant="info">Información</cdz-badge>
+          <cdz-badge variant="success">Completado</cdz-badge>
+          <cdz-badge variant="warning">Atención</cdz-badge>
+          <cdz-badge variant="error">Fallido</cdz-badge>
+        </div>
+
+        <p>
+          <strong>El ícono refuerza, no es lo que hace accesible al badge.</strong>
+          El texto ya es señal no cromática: "Completado" y "Fallido" se
+          distinguen sin ver ni color ni ícono. Lo que suma el ícono es una
+          señal de forma que sobrevive al <em>escaneo</em> — en una lista larga,
+          alguien que no separa los tonos igual recibe una pista por fila sin
+          leer cada etiqueta. Viene por defecto y se saca con
+          <code>hide-icon</code>, no al revés:
+        </p>
+        <div class="badge-row">
+          <cdz-badge variant="success" hide-icon>Completado</cdz-badge>
+          <cdz-badge variant="error" hide-icon>Fallido</cdz-badge>
+        </div>
+
+        <p>
+          Dentro de texto corrido el badge no empuja el renglón:
+          el pedido quedó <cdz-badge variant="warning">en revisión</cdz-badge>
+          hasta que se confirme.
+        </p>
+      </section>
+
+      <section>
+        <h2>cdz-spinner</h2>
+        <p>
+          Indicador de carga indeterminado. A diferencia de
+          <code>cdz-badge</code>, este <strong>sí</strong> es una live region
+          (<code>role="status"</code>, polite): un badge ya está cuando carga la
+          página, un spinner aparece porque algo empezó — ver
+          <cdz-link href="../../../docs/decisions/0018-spinner-component.md">ADR-0018</cdz-link>.
+        </p>
+
+        <p>Tamaños <code>sm</code>, <code>md</code> y <code>lg</code>:</p>
+        <div class="badge-row">
+          <cdz-spinner size="sm"></cdz-spinner>
+          <cdz-spinner size="md"></cdz-spinner>
+          <cdz-spinner size="lg"></cdz-spinner>
+        </div>
+
+        <p>
+          Hereda el color del contexto, así que funciona dentro de un botón sin
+          configurarlo:
+        </p>
+        <div class="button-row">
+          <cdz-button>
+            <cdz-spinner size="inherit" label="Guardando…"></cdz-spinner>
+            Guardando…
+          </cdz-button>
+        </div>
+
+        <p>
+          <strong>Con <code>prefers-reduced-motion</code> la rotación
+          desaparece</strong> y la reemplaza un pulso de opacidad — no se
+          congela: un anillo quieto no se distingue de uno roto, y el trabajo
+          del componente es justamente decir "esto sigue andando". Si quieres
+          verlo, activa "Reducir movimiento" en tu sistema y recarga.
+        </p>
+      </section>
+
+      <section class="input-stack">
+        <h2>cdz-progress</h2>
+        <p>
+          Progreso <strong>determinado</strong>, sobre
+          <code>&lt;progress&gt;</code> nativo: el navegador deriva
+          <code>role="progressbar"</code> y los valores ARIA de
+          <code>value</code>/<code>max</code>, sin escribir un atributo a mano.
+          El indeterminado es <code>cdz-spinner</code>, no este — ver
+          <cdz-link href="../../../docs/decisions/0019-progress-component.md">ADR-0019</cdz-link>.
+        </p>
+
+        <cdz-progress label="Subiendo archivo" value="45" show-value></cdz-progress>
+        <cdz-progress label="Sin empezar" value="0" show-value></cdz-progress>
+        <cdz-progress label="Terminado" value="100" show-value></cdz-progress>
+
+        <p>
+          Con <code>max</code> distinto de 100 el porcentaje se calcula contra
+          <em>ese</em> máximo:
+        </p>
+        <cdz-progress label="Archivos procesados" value="3" max="10" show-value></cdz-progress>
+
+        <p>
+          <code>value-text</code> reemplaza lo que anuncia el lector de pantalla
+          para cuando el número crudo no dice nada útil — "45" es exacto e
+          inservible; "45 de 100 MB" es lo que la persona necesita:
+        </p>
+        <cdz-progress
+          label="Descargando"
+          value="45"
+          value-text="45 de 100 MB"
+          show-value
+        ></cdz-progress>
+      </section>
+
+      <section>
+        <h2>cdz-tooltip</h2>
+        <p>
+          El último de Feedback, y el más difícil de hacer accesible. Se abre
+          con el mouse <strong>y con el teclado</strong>, se cierra con Escape,
+          y puedes mover el puntero sobre el propio tooltip sin que desaparezca
+          — los tres requisitos de WCAG 1.4.13. Ver
+          <cdz-link href="../../../docs/decisions/0020-tooltip-component.md"
+            >ADR-0020</cdz-link
+          >.
+        </p>
+
+        <div class="button-row">
+          <cdz-tooltip text="Se envía a la dirección de tu perfil.">
+            <cdz-button>Enviar informe</cdz-button>
+          </cdz-tooltip>
+
+          <cdz-tooltip
+            text="Una descripción larga se acomoda en varias líneas en vez de estirarse fuera de la pantalla."
+          >
+            <cdz-button>Descripción larga</cdz-button>
+          </cdz-tooltip>
+        </div>
+
+        <p>
+          Prueba con el teclado: presiona Tab hasta llegar a los botones de
+          arriba y el tooltip aparece de inmediato, sin la espera que sí tiene
+          el mouse. Esa espera existe para que pasar el puntero por encima de
+          varios controles no dispare un tooltip por cada uno.
+        </p>
+
+        <p>
+          <strong>El texto va como propiedad, no como slot</strong>, a
+          propósito: un tooltip no puede contener nada interactivo, porque no
+          se puede llegar a él con Tab. Si necesitas botones o enlaces
+          flotantes, eso es un <code>cdz-popover</code>, no un tooltip.
+        </p>
+      </section>
+
+      <section>
+        <h2>cdz-divider</h2>
+        <p>
+          <strong>Decorativo por defecto</strong>, semántico solo si se pide.
+          <code>&lt;hr&gt;</code> significa "corte temático", pero la mayoría
+          de las líneas de una interfaz son mobiliario visual: anunciar
+          "separador" una vez por fila convierte una lista en ruido. Ver
+          <cdz-link href="../../../docs/decisions/0021-divider-component.md"
+            >ADR-0021</cdz-link
+          >.
+        </p>
+
+        <p>Horizontal, decorativo — el caso común:</p>
+        <div class="divider-demo">
+          <span>Primer bloque</span>
+          <cdz-divider></cdz-divider>
+          <span>Segundo bloque</span>
+        </div>
+
+        <p>
+          Vertical, para separar elementos en una fila. Se estira solo a la
+          altura de sus hermanos dentro de un contenedor flex:
+        </p>
+        <div class="divider-row">
+          <span>Perfil</span>
+          <cdz-divider orientation="vertical"></cdz-divider>
+          <span>Ajustes</span>
+          <cdz-divider orientation="vertical"></cdz-divider>
+          <span>Salir</span>
+        </div>
+
+        <p>
+          <strong>No trae margen propio</strong>, a propósito: el espacio entre
+          el divisor y lo que lo rodea le corresponde al layout que contiene a
+          ambos, no al divisor. Es la misma razón por la que ningún otro átomo
+          se pone márgenes a sí mismo.
+        </p>
+      </section>
+
+      <section>
+        <h2>cdz-avatar</h2>
+        <p>
+          Tres formas de dibujarse, en orden: la foto de <code>src</code>; si
+          falla, las iniciales sacadas de <code>name</code>; y si no,
+          un ícono genérico de persona. Cuál de las dos últimas se usa lo
+          decide <code>fallback</code>, y las dos son opciones legítimas: las
+          iniciales dicen <em>qué</em> persona, el ícono dice <em>una</em>
+          persona. Ver
+          <cdz-link href="../../../docs/decisions/0022-avatar-component.md"
+            >ADR-0022</cdz-link
+          >.
+        </p>
+
+        <p>Los tres estados, en los tres tamaños:</p>
+        <div class="avatar-row">
+          <cdz-avatar name="Kyrah Monreal" size="sm"></cdz-avatar>
+          <cdz-avatar name="Kyrah Monreal"></cdz-avatar>
+          <cdz-avatar name="Kyrah Monreal" size="lg"></cdz-avatar>
+          <cdz-avatar name="Ana de la Cruz" fallback="icon"></cdz-avatar>
+          <cdz-avatar
+            name="Con foto"
+            size="lg"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 60'%3E%3Crect width='40' height='60' fill='%237b5ea7'/%3E%3Ccircle cx='20' cy='22' r='11' fill='%23e8c6d5'/%3E%3C/svg%3E"
+          ></cdz-avatar>
+        </div>
+
+        <p>
+          El de la derecha lleva una imagen deliberadamente vertical: se recorta
+          al círculo con <code>object-fit: cover</code>, nunca se estira. Y este
+          apunta a una URL rota, así que cae solo a las iniciales:
+        </p>
+        <div class="avatar-row">
+          <cdz-avatar name="Foto Rota" size="lg" src="/no-existe.png"></cdz-avatar>
+        </div>
+
+        <p>
+          <strong>Significativo por defecto</strong> — al revés que
+          <code>cdz-icon</code> y <code>cdz-divider</code>, que son decorativos.
+          No es una inconsistencia: aquellos tendrían que <em>inventar</em> el
+          texto alternativo, y este ya tiene el nombre de la persona, porque le
+          hace falta para las iniciales. Cuando el nombre ya está escrito al
+          lado, <code>decorative</code> lo calla para no repetirlo:
+        </p>
+        <div class="avatar-row">
+          <cdz-avatar name="Kyrah Monreal" decorative></cdz-avatar>
+          <span>Kyrah Monreal comentó hace 2 horas</span>
+        </div>
       </section>
     </main>
     <script type="module" src="../main.ts"></script>

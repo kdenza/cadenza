@@ -1,0 +1,37 @@
+{
+  "cdz-badge": {
+    "color": {
+      "neutral": {
+        "background": { "$value": "{color.status.neutral.background}", "$type": "color" },
+        "foreground": { "$value": "{color.status.neutral.foreground}", "$type": "color" }
+      },
+      "info": {
+        "background": { "$value": "{color.status.info.background}", "$type": "color" },
+        "foreground": { "$value": "{color.status.info.foreground}", "$type": "color" }
+      },
+      "success": {
+        "background": { "$value": "{color.status.success.background}", "$type": "color" },
+        "foreground": { "$value": "{color.status.success.foreground}", "$type": "color" }
+      },
+      "warning": {
+        "background": { "$value": "{color.status.warning.background}", "$type": "color" },
+        "foreground": { "$value": "{color.status.warning.foreground}", "$type": "color" }
+      },
+      "error": {
+        "background": { "$value": "{color.status.error.background}", "$type": "color" },
+        "foreground": { "$value": "{color.status.error.foreground}", "$type": "color" }
+      }
+    },
+    "spacing": {
+      "padding-inline": { "$value": "{spacing.2}", "$type": "dimension" },
+      "gap": { "$value": "0.25rem", "$type": "dimension" }
+    },
+    "typography": {
+      "font-family": { "$value": "{typography.caption.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.caption.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" },
+    "border-width": { "$value": "1px", "$type": "dimension" }
+  }
+}

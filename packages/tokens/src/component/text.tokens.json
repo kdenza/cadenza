@@ -1,0 +1,37 @@
+{
+  "cdz-text": {
+    "color": {
+      "default": { "$value": "{color.text.body}", "$type": "color" }
+    },
+    "heading-1": {
+      "font-family": { "$value": "{typography.heading.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.heading.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.heading.font-weight}", "$type": "fontWeight" }
+    },
+    "heading-2": {
+      "font-family": { "$value": "{typography.heading-2.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.heading-2.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.heading-2.font-weight}", "$type": "fontWeight" }
+    },
+    "heading-3": {
+      "font-family": { "$value": "{typography.heading-3.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.heading-3.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.heading-3.font-weight}", "$type": "fontWeight" }
+    },
+    "body-lg": {
+      "font-family": { "$value": "{typography.body-lg.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.body-lg.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.body-lg.font-weight}", "$type": "fontWeight" }
+    },
+    "body-md": {
+      "font-family": { "$value": "{typography.body.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.body.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.body.font-weight}", "$type": "fontWeight" }
+    },
+    "body-sm": {
+      "font-family": { "$value": "{typography.body-sm.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.body-sm.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.body-sm.font-weight}", "$type": "fontWeight" }
+    }
+  }
+}

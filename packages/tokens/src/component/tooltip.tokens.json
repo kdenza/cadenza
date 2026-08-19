@@ -1,0 +1,19 @@
+{
+  "cdz-tooltip": {
+    "color": {
+      "text": { "$value": "{color.text.body}", "$type": "color" }
+    },
+    "sizing": {
+      "max-width": { "$value": "16rem", "$type": "dimension" }
+    },
+    "typography": {
+      "font-family": { "$value": "{typography.caption.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.caption.font-size}", "$type": "dimension" },
+      "font-weight": { "$value": "{typography.caption.font-weight}", "$type": "fontWeight" }
+    },
+    "delay": {
+      "open": { "$value": "400ms", "$type": "duration" },
+      "close": { "$value": "150ms", "$type": "duration" }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "cdz-icon": {
+    "sizing": {
+      "sm": { "$value": "{spacing.4}", "$type": "dimension" },
+      "md": { "$value": "1.25rem", "$type": "dimension" },
+      "lg": { "$value": "1.5rem", "$type": "dimension" }
+    }
+  }
+}

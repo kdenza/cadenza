@@ -29,7 +29,7 @@ describe('cdz-radio', () => {
 
   it('switches to the error state: aria-invalid and aria-describedby', async () => {
     const el = await fixture<CdzRadio>(
-      html`<cdz-radio label="Opción A" error-message="Elegí una opción"></cdz-radio>`
+      html`<cdz-radio label="Opción A" error-message="Elige una opción"></cdz-radio>`
     );
     const input = el.shadowRoot!.querySelector('input')!;
     expect(input.getAttribute('aria-invalid')).to.equal('true');

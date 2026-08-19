@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { inputStyles } from './input.styles.js';
+import { warnIfLabelMissing } from '../shared/required-label.js';
 
 export type CdzInputType = 'text' | 'email' | 'password' | 'tel' | 'search' | 'url' | 'number';
 
@@ -65,24 +66,9 @@ export class CdzInput extends LitElement {
     this.autocomplete = '';
   }
 
-  /**
-   * Warns loudly — but doesn't throw — when `label` is missing. A
-   * labelless input isn't just impolite, it's a hard accessibility
-   * failure (axe-core flags it `critical`: "Form elements must have
-   * labels" — exactly what surfaced while testing this component in
-   * @kdenza/gallery). `console.error` rather than an exception: a
-   * misused prop shouldn't be able to take down the rest of the page,
-   * but it should be impossible to miss in devtools. Runs on every
-   * update, not just the first, so clearing an initially-valid label
-   * later is caught too.
-   */
+  // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
-    if (this.label.trim().length === 0) {
-      console.error(
-        '[cdz-input] "label" es obligatorio: un campo sin label no es accesible. ' +
-          'Pásalo como propiedad o atributo, ej. <cdz-input label="Correo">.'
-      );
-    }
+    warnIfLabelMissing('cdz-input', this.label);
   }
 
   private _handleInput(event: InputEvent): void {

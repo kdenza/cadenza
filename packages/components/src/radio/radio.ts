@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { radioStyles } from './radio.styles.js';
+import { warnIfLabelMissing } from '../shared/required-label.js';
 
 /**
  * `<cdz-radio>` — a single labeled radio button.
@@ -29,7 +30,8 @@ import { radioStyles } from './radio.styles.js';
  * property of the *group* ("you must pick one of these"), not of any one
  * option. That belongs on the future group molecule too.
  *
- * Same required-`label` enforcement as `<cdz-input>`/`<cdz-checkbox>`.
+ * Same required-`label` enforcement as `<cdz-input>`/`<cdz-checkbox>` —
+ * see `../shared/required-label.ts`.
  */
 export class CdzRadio extends LitElement {
   static styles = radioStyles;
@@ -64,13 +66,9 @@ export class CdzRadio extends LitElement {
     this.value = '';
   }
 
+  // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
-    if (this.label.trim().length === 0) {
-      console.error(
-        '[cdz-radio] "label" es obligatorio: un radio sin label no es accesible. ' +
-          'Pásalo como propiedad o atributo, ej. <cdz-radio label="Opción A">.'
-      );
-    }
+    warnIfLabelMissing('cdz-radio', this.label);
   }
 
   private _handleChange(event: Event): void {

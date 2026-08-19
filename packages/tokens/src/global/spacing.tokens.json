@@ -2,6 +2,7 @@
   "spacing": {
     "2": { "$value": "0.5rem", "$type": "dimension" },
     "3": { "$value": "0.75rem", "$type": "dimension" },
-    "4": { "$value": "1rem", "$type": "dimension" }
+    "4": { "$value": "1rem", "$type": "dimension" },
+    "64": { "$value": "16rem", "$type": "dimension" }
   }
 }

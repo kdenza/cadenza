@@ -1,0 +1,5 @@
+{
+  "shadow": {
+    "raised": { "$value": "0 4px 16px rgba(44, 34, 48, 0.16)", "$type": "shadow" }
+  }
+}

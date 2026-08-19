@@ -1,0 +1,30 @@
+{
+  "cdz-progress": {
+    "color": {
+      "track": { "$value": "{color.form.border.default}", "$type": "color" },
+      "fill": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+      "text": {
+        "label": { "$value": "{color.text.body}", "$type": "color" },
+        "value": { "$value": "{color.text.body}", "$type": "color" }
+      }
+    },
+    "sizing": {
+      "height": { "$value": "0.5rem", "$type": "dimension" }
+    },
+    "spacing": {
+      "gap": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "typography": {
+      "label": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      },
+      "value": {
+        "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+        "font-size": { "$value": "{typography.label.font-size}", "$type": "dimension" },
+        "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+      }
+    }
+  }
+}

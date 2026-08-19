@@ -1,0 +1,6 @@
+{
+  "cdz-divider": {
+    "color": { "$value": "{color.form.border.default}", "$type": "color" },
+    "thickness": { "$value": "1px", "$type": "dimension" }
+  }
+}

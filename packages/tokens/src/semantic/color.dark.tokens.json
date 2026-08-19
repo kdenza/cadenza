@@ -26,6 +26,31 @@
     "accent": {
       "decorative": { "$value": "{color.rose.500}", "$type": "color" }
     },
+    "surface": {
+      "hover": { "$value": "{color.neutral.800}", "$type": "color" }
+    },
+    "status": {
+      "neutral": {
+        "background": { "$value": "{color.neutral.800}", "$type": "color" },
+        "foreground": { "$value": "{color.neutral.200}", "$type": "color" }
+      },
+      "info": {
+        "background": { "$value": "{color.blue.900}", "$type": "color" },
+        "foreground": { "$value": "{color.blue.300}", "$type": "color" }
+      },
+      "success": {
+        "background": { "$value": "{color.green.900}", "$type": "color" },
+        "foreground": { "$value": "{color.green.300}", "$type": "color" }
+      },
+      "warning": {
+        "background": { "$value": "{color.amber.900}", "$type": "color" },
+        "foreground": { "$value": "{color.amber.300}", "$type": "color" }
+      },
+      "error": {
+        "background": { "$value": "{color.red.900}", "$type": "color" },
+        "foreground": { "$value": "{color.red.400}", "$type": "color" }
+      }
+    },
     "form": {
       "background": {
         "default": { "$value": "{color.surface.900}", "$type": "color" },

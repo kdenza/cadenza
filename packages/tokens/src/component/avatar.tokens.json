@@ -1,0 +1,19 @@
+{
+  "cdz-avatar": {
+    "sizing": {
+      "sm": { "$value": "1.5rem", "$type": "dimension" },
+      "md": { "$value": "2rem", "$type": "dimension" },
+      "lg": { "$value": "3rem", "$type": "dimension" }
+    },
+    "color": {
+      "background": { "$value": "{color.status.neutral.background}", "$type": "color" },
+      "foreground": { "$value": "{color.status.neutral.foreground}", "$type": "color" }
+    },
+    "typography": {
+      "font-family": { "$value": "{typography.label.font-family}", "$type": "fontFamily" },
+      "font-weight": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+    },
+    "initials-scale": { "$value": "0.4", "$type": "number" },
+    "icon-scale": { "$value": "0.6", "$type": "number" }
+  }
+}

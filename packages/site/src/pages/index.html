@@ -2,6 +2,19 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <!-- Duplicated verbatim on every page, not extracted to a shared file
+         on purpose: it must run synchronously before first paint (a
+         module import would defer past that point and bring back the
+         FOUC this exists to prevent). See design-system.html and
+         main.ts's theme-toggle code for the rest of this mechanism. -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem('cdz-theme');
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', stored);
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>Cadenza — UX Engineer Portfolio</title>
@@ -14,7 +27,16 @@
   </head>
   <body>
     <main>
-      <nav><a href="./design-system.html">Ver el design system →</a></nav>
+      <nav>
+        <cdz-link href="./design-system.html">Ver el design system →</cdz-link>
+        <!-- Solo visible en desarrollo local (ver main.ts): @kdenza/gallery
+             es un paquete privado, corre en su propio servidor de Vite
+             (puerto 5174) y no se buildea ni se despliega junto al sitio
+             todavía -- ver ADR-0004. -->
+        <cdz-link id="gallery-link" href="http://localhost:5174" hidden
+          >Ver la galería de componentes →</cdz-link
+        >
+      </nav>
       <h1>Cadenza</h1>
       <p>
         Design system + portafolio de UX Engineering. Este sitio es su propio

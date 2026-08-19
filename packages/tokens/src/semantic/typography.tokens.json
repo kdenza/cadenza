@@ -10,9 +10,29 @@
       "font-size": { "$value": "{font.size.7}", "$type": "dimension" },
       "font-weight": { "$value": "{font.weight.semibold}", "$type": "fontWeight" }
     },
+    "heading-2": {
+      "font-family": { "$value": "{font.family.display}", "$type": "fontFamily" },
+      "font-size": { "$value": "{font.size.6}", "$type": "dimension" },
+      "font-weight": { "$value": "{font.weight.semibold}", "$type": "fontWeight" }
+    },
+    "heading-3": {
+      "font-family": { "$value": "{font.family.display}", "$type": "fontFamily" },
+      "font-size": { "$value": "{font.size.5}", "$type": "dimension" },
+      "font-weight": { "$value": "{font.weight.semibold}", "$type": "fontWeight" }
+    },
     "body": {
       "font-family": { "$value": "{font.family.base}", "$type": "fontFamily" },
       "font-size": { "$value": "{font.size.4}", "$type": "dimension" },
+      "font-weight": { "$value": "{font.weight.regular}", "$type": "fontWeight" }
+    },
+    "body-lg": {
+      "font-family": { "$value": "{font.family.base}", "$type": "fontFamily" },
+      "font-size": { "$value": "{font.size.5}", "$type": "dimension" },
+      "font-weight": { "$value": "{font.weight.regular}", "$type": "fontWeight" }
+    },
+    "body-sm": {
+      "font-family": { "$value": "{font.family.base}", "$type": "fontFamily" },
+      "font-size": { "$value": "{font.size.3}", "$type": "dimension" },
       "font-weight": { "$value": "{font.weight.regular}", "$type": "fontWeight" }
     },
     "label": {

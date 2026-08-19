@@ -1,6 +1,8 @@
 import { LitElement, html, nothing, type PropertyValues } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { checkboxStyles } from './checkbox.styles.js';
+import { warnIfLabelMissing } from '../shared/required-label.js';
+import { icons, ICON_GRID } from '../shared/icons.js';
 
 /**
  * `<cdz-checkbox>` — a single labeled checkbox.
@@ -24,8 +26,8 @@ import { checkboxStyles } from './checkbox.styles.js';
  * "explain why this is unavailable" affordance to preserve, and native
  * `disabled` is what correctly excludes the value from `FormData`.
  *
- * Same required-`label` enforcement as `<cdz-input>` (see its class
- * comment for why: `console.error`, not throwing).
+ * Same required-`label` enforcement as `<cdz-input>` — see
+ * `../shared/required-label.ts` for why (`console.error`, not throwing).
  */
 export class CdzCheckbox extends LitElement {
   static styles = checkboxStyles;
@@ -66,13 +68,9 @@ export class CdzCheckbox extends LitElement {
     this.value = '';
   }
 
+  // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
-    if (this.label.trim().length === 0) {
-      console.error(
-        '[cdz-checkbox] "label" es obligatorio: un checkbox sin label no es accesible. ' +
-          'Pásalo como propiedad o atributo, ej. <cdz-checkbox label="Acepto los términos">.'
-      );
-    }
+    warnIfLabelMissing('cdz-checkbox', this.label);
   }
 
   protected updated(changedProperties: PropertyValues<this>): void {
@@ -116,9 +114,17 @@ export class CdzCheckbox extends LitElement {
               aria-describedby=${ifDefined(describedBy)}
               @change=${this._handleChange}
             />
-            <svg class="mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path class="check-mark" d="M3.5 8.5L6.5 11.5L12.5 4.5" />
-              <path class="dash-mark" d="M4 8H12" />
+            <!-- Both marks are always present and toggled by opacity in
+                 CSS, so the box never reflows between states. Each is a
+                 single-path icon from the shared registry. -->
+            <svg
+              class="mark"
+              viewBox="0 0 ${ICON_GRID} ${ICON_GRID}"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path class="check-mark" d=${icons.check.paths[0]} />
+              <path class="dash-mark" d=${icons.dash.paths[0]} />
             </svg>
           </span>
           <label for="checkbox">
