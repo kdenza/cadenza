@@ -266,7 +266,7 @@
         <h2>cdz-icon</h2>
         <p>
           SVG desde un registro compartido, nunca icon font — ver
-          <cdz-link href="../../../docs/decisions/0016-icon-system-grid.md">ADR-0016</cdz-link>.
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0016-icon-system-grid.md" target="_blank">ADR-0016</cdz-link>.
           El color sale de <code>currentColor</code>, así que el ícono toma el
           color del texto donde esté.
         </p>
@@ -304,7 +304,7 @@
           Primer componente con <strong>variantes semánticas</strong>, y el que
           obligó a expandir la paleta: no había verde ni ámbar en el sistema.
           Los 20 pares texto-sobre-fondo están verificados en ambos modos — ver
-          <cdz-link href="../../../docs/decisions/0017-badge-status-palette.md">ADR-0017</cdz-link>.
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0017-badge-status-palette.md" target="_blank">ADR-0017</cdz-link>.
         </p>
 
         <div class="badge-row">
@@ -343,7 +343,7 @@
           <code>cdz-badge</code>, este <strong>sí</strong> es una live region
           (<code>role="status"</code>, polite): un badge ya está cuando carga la
           página, un spinner aparece porque algo empezó — ver
-          <cdz-link href="../../../docs/decisions/0018-spinner-component.md">ADR-0018</cdz-link>.
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0018-spinner-component.md" target="_blank">ADR-0018</cdz-link>.
         </p>
 
         <p>Tamaños <code>sm</code>, <code>md</code> y <code>lg</code>:</p>
@@ -381,7 +381,7 @@
           <code>role="progressbar"</code> y los valores ARIA de
           <code>value</code>/<code>max</code>, sin escribir un atributo a mano.
           El indeterminado es <code>cdz-spinner</code>, no este — ver
-          <cdz-link href="../../../docs/decisions/0019-progress-component.md">ADR-0019</cdz-link>.
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0019-progress-component.md" target="_blank">ADR-0019</cdz-link>.
         </p>
 
         <cdz-progress label="Subiendo archivo" value="45" show-value></cdz-progress>
@@ -414,7 +414,7 @@
           con el mouse <strong>y con el teclado</strong>, se cierra con Escape,
           y puedes mover el puntero sobre el propio tooltip sin que desaparezca
           — los tres requisitos de WCAG 1.4.13. Ver
-          <cdz-link href="../../../docs/decisions/0020-tooltip-component.md"
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0020-tooltip-component.md" target="_blank"
             >ADR-0020</cdz-link
           >.
         </p>
@@ -453,7 +453,7 @@
           <code>&lt;hr&gt;</code> significa "corte temático", pero la mayoría
           de las líneas de una interfaz son mobiliario visual: anunciar
           "separador" una vez por fila convierte una lista en ruido. Ver
-          <cdz-link href="../../../docs/decisions/0021-divider-component.md"
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0021-divider-component.md" target="_blank"
             >ADR-0021</cdz-link
           >.
         </p>
@@ -494,7 +494,7 @@
           decide <code>fallback</code>, y las dos son opciones legítimas: las
           iniciales dicen <em>qué</em> persona, el ícono dice <em>una</em>
           persona. Ver
-          <cdz-link href="../../../docs/decisions/0022-avatar-component.md"
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0022-avatar-component.md" target="_blank"
             >ADR-0022</cdz-link
           >.
         </p>
@@ -518,7 +518,7 @@
           apunta a una URL rota, así que cae solo a las iniciales:
         </p>
         <div class="avatar-row">
-          <cdz-avatar name="Foto Rota" size="lg" src="/no-existe.png"></cdz-avatar>
+          <cdz-avatar name="Foto Rota" size="lg" src="./no-existe.png"></cdz-avatar>
         </div>
 
         <p>
@@ -535,6 +535,6 @@
         </div>
       </section>
     </main>
-    <script type="module" src="../main.ts"></script>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

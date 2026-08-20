@@ -111,13 +111,14 @@ architecture, not shipping the fastest possible button.
   primitives (2 blues, 2 grays, white) — enough for one button's accessible
   states, not yet a real palette. Scaling past Button will require growing
   the global tier deliberately instead of ad hoc.
-- **To revisit:** the `site/src/pages` convention forced `vite.config.js`'s
-  `root` to be `src` (not `src/pages`), which pushes built page URLs under a
-  `/pages/` prefix (`dist/pages/index.html`). Fine for `pnpm dev`/`pnpm
-  build` locally; whoever sets up hosting later needs to either serve
-  `dist/` as-is (URLs live under `/pages/...`) or add a rewrite — this ADR
-  intentionally leaves that choice open since hosting is out of scope this
-  session.
+- **To revisit — resuelto en [ADR-0024](0024-ci-and-deploy.md):** the
+  `site/src/pages` convention forced `vite.config.js`'s `root` to be `src`
+  (not `src/pages`), which pushed built page URLs under a `/pages/` prefix
+  (`dist/pages/index.html`). This ADR left the hosting choice open on
+  purpose. It turned out to matter exactly as predicted: with no
+  `dist/index.html`, a static host's root URL 404s. Resolved by flattening
+  the pages into `src/` rather than adding a rewrite — the prefix bought
+  nothing and cost a redirect on every deploy target.
 
 ## Action Items
 

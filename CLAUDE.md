@@ -262,6 +262,17 @@ ahí antes de asumir el porqué de algo no obvio:
   5.9, que es la única prueba real de que no rompió la emisión de campos
   de clase de la que depende Lit sin decoradores.
 
+- **0024** — CI (GitHub Actions) y despliegue a GitHub Pages. El paso que
+  justifica el CI es `npm audit --audit-level=high`, no el build: es lo
+  que impide que se repita lo de ADR-0023. Lo transferible es lo que
+  **destapó preparar el deploy**: los 7 enlaces a ADRs del sitio llevaban
+  rotos desde siempre (404 también en local), no existía `dist/index.html`
+  —exactamente lo que ADR-0001 había predicho— y una demo pedía una ruta
+  absoluta que se salía del proyecto. Ninguna de las tres fallaba en
+  desarrollo. **El sitio se sirve desde `/` y las páginas viven en `src/`,
+  no en `src/pages/`**; `base` es condicional a `NODE_ENV=production`
+  porque Pages sirve desde `/cadenza/` y el dev server desde `/`.
+
 ## Checklist de átomos
 
 Ver [docs/roadmap.md](docs/roadmap.md) — las cinco categorías de átomos

@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancela una corrida anterior de la misma rama si llega un push nuevo:
+# el resultado de la vieja ya no le importa a nadie.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # Debe coincidir con el Node del entorno de desarrollo (ver la
+          # sección "Restricciones del entorno" de CLAUDE.md).
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Construir
+        # tokens -> components -> analyze -> site. Encadenado a propósito:
+        # si los tokens no compilan, los componentes tampoco deberían.
+        run: npm run build
+
+      - name: Localizar Chrome
+        # @web/test-runner necesita un Chrome. ubuntu-latest ya lo trae, pero
+        # se resuelve la ruta en vez de hardcodearla: si una imagen futura la
+        # mueve, esto falla aquí con un mensaje claro en lugar de romperse
+        # dentro del runner de tests con un error sin contexto.
+        run: |
+          for bin in google-chrome google-chrome-stable chromium-browser chromium; do
+            if path=$(command -v "$bin"); then
+              echo "CHROME_PATH=$path" >> "$GITHUB_ENV"
+              echo "Usando $bin en $path"
+              exit 0
+            fi
+          done
+          echo "::error::No se encontró ningún binario de Chrome en el runner."
+          exit 1
+
+      - name: Tests
+        # Los flags --no-sandbox viven en web-test-runner.config.js, que ya
+        # los necesitaba para entornos containerizados.
+        run: npm test
+
+      - name: Auditoría de seguridad
+        # La razón de ser de este workflow, más que el build o los tests.
+        # ADR-0023: la deuda de dependencias pasó de 2 a 9 advisories sin
+        # que nadie se enterara, porque `npm audit` solo corría cuando
+        # alguien se acordaba. Aquí corre siempre.
+        run: npm audit --audit-level=high

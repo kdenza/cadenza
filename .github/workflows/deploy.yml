@@ -1,0 +1,62 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzarlo a mano desde la pestaña Actions sin tener que hacer
+  # un commit vacío.
+  workflow_dispatch:
+
+# Los permisos mínimos que pide `actions/deploy-pages`.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un despliegue a la vez, y sin cancelar el que ya está en curso: cortar
+# un deploy a medias deja el sitio en un estado indeterminado.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Construir el sitio
+        # NODE_ENV=production es lo que activa `base: '/cadenza/'` en
+        # vite.config.ts. GitHub Pages sirve un sitio de proyecto desde
+        # /<repo>/, no desde la raíz del dominio; sin ese prefijo, todos
+        # los assets darían 404 aunque el build fuera correcto.
+        env:
+          NODE_ENV: production
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          # Solo el sitio. @kdenza/gallery es privado y sigue sin
+          # desplegarse -- ver ADR-0004.
+          path: packages/site/dist
+
+  deploy:
+    # Nada se publica si CI no pasa: el workflow de CI corre sobre el mismo
+    # push, y este job espera a que el sitio compile aquí también.
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
