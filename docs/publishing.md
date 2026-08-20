@@ -87,6 +87,33 @@ En Angular hay que agregar `CUSTOM_ELEMENTS_SCHEMA` al módulo o componente
 donde se use cualquier `cdz-*`, porque Angular no reconoce elementos custom
 por defecto.
 
+### Hace falta un bundler
+
+Vite, webpack, Rollup, Parcel — cualquiera sirve, pero **alguno tiene que
+haber**. El paquete no funciona soltándolo en un HTML con
+`<script type="module">` a pelo, y conviene decirlo claro porque para una
+librería de Web Components es una expectativa razonable que aquí no se
+cumple.
+
+Se rompe en dos puntos, los dos por especificadores *bare*, que un
+navegador no resuelve por su cuenta:
+
+- el JS hace `import { LitElement } from 'lit'`;
+- `dist/styles/tokens.css` hace `@import '@kdenza/tokens/dist/css/...'`,
+  y el navegador lo interpreta como ruta relativa al propio CSS, así que
+  da 404.
+
+Verificado en navegador contra el paquete ya publicado: sin bundler no se
+registra ningún custom element y no llega ningún token. Con Vite, los 7
+componentes de la prueba se registran, el shadow DOM renderiza y
+`--color-page-background` llega con su valor real.
+
+Es el comportamiento normal de una librería Lit —Lit mismo publica
+especificadores bare— pero queda **pendiente**: un build autocontenido
+(con `lit` incluido y el CSS sin `@import` externos) permitiría el uso por
+CDN sin herramientas. Todavía nadie lo ha pedido, y agrega un artefacto
+más que mantener y versionar.
+
 ## Por qué el registry público y no GitHub Packages
 
 Se empezó en GitHub Packages (ADR-0006), con el argumento de que mantenía

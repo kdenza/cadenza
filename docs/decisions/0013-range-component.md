@@ -168,3 +168,66 @@ creep.
    `@kdenza/gallery`; verified in-browser in both color schemes that the
    thumb stays visible against both fill and track, and confirmed the
    fixed binding-order bug no longer reproduces outside of tests.
+
+---
+
+## Enmienda (2026-08-20): verificado en Firefox
+
+Este ADR y el 0019 dejaron abierto lo mismo: las reglas `::-moz-*` estaban
+escritas pero **nunca comprobadas en un motor Gecko**, porque el entorno
+solo tenía Chromium. Ya hay Firefox 153 disponible, así que la duda se
+cierra.
+
+### Cómo se midió, y por qué así
+
+No con `getComputedStyle`. ADR-0019 documenta que sobre pseudo-elementos
+con prefijo esa API **miente** — devuelve transparente para reglas que sí
+aplican. Preguntarle al CSSOM habría repetido el mismo falso negativo.
+
+En su lugar se midió el **píxel pintado**: captura headless de Firefox
+sobre una página con los cuatro casos (normal, error, disabled, progress)
+en ambos modos, y muestreo directo de los colores decodificando el PNG.
+Es la misma lección de siempre — cuando la herramienta de medición es
+sospechosa, bajar un nivel y mirar el resultado, no el reporte.
+
+### Resultado: las cuatro reglas aplican
+
+Los colores muestreados coinciden exactamente con los tokens, y los del
+modo oscuro difieren de los del claro — que es la prueba de que los
+tokens llegan *a través* del pseudo-elemento, no de que coincidan por
+casualidad con un fallback.
+
+| | claro | oscuro |
+|---|---|---|
+| `::-moz-range-track` | `#8a7c87` | `#a79aa3` |
+| relleno del gradiente | `#7a5197` | `#b08fcb` |
+| `::-moz-range-thumb` | `#ffffff` | `#2c2230` |
+| `[aria-invalid]::-moz-range-track` | `#a73535` | `#d96e68` |
+| `:disabled::-moz-range-track` | `#e8dfe4` | `#453a47` |
+| `::-moz-progress-bar` | `#7a5197` | `#b08fcb` |
+
+Un detalle que el muestreo aclaró y el ojo no: el estado de error es
+`box-shadow: 0 0 0 2px`, o sea un **anillo alrededor** del track, no un
+relleno. En el barrido vertical aparece como dos filas rojas —arriba y
+abajo— con el gradiente normal entre ellas. Se veía "raro" hasta releer la
+regla; el código estaba bien.
+
+### El contraste del thumb se sostiene en Gecko
+
+El requisito de 3:1 de ADR-0012, ahora medido sobre lo que Firefox pinta
+de verdad:
+
+| modo | thumb vs relleno | thumb vs track | mínimo |
+|---|---|---|---|
+| claro | 6.08:1 | 3.95:1 | **3.95** |
+| oscuro | 5.54:1 | 5.65:1 | **5.54** |
+
+El anillo de error pasa contra el fondo de página (6.04:1 claro, 5.14:1
+oscuro). El estado disabled da 3.03:1 en claro — exactamente el mismo
+valor exento por WCAG 1.4.3 que ya documenta ADR-0014, lo cual es una
+confirmación cruzada agradable de que los dos componentes comparten los
+mismos roles.
+
+**Nada que arreglar.** La duplicación `::-webkit-*` / `::-moz-*` que este
+ADR aceptó como costo real estaba bien puesta, y ahora está probada en los
+dos motores en vez de en uno.

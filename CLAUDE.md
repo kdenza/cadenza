@@ -12,10 +12,10 @@ Monorepo con **npm workspaces** (migrado desde pnpm, ver ADR-0006). Node
 
 | Paquete | Qué es | Stack | ¿Se publica? |
 |---|---|---|---|
-| `@kdenza/tokens` | Design tokens W3C DTCG → CSS custom properties (light + dark) | Style Dictionary 4.x | Sí, npm público |
+| `@kdenza/tokens` | Design tokens W3C DTCG → CSS custom properties (light + dark) | Style Dictionary 5.x | Sí, npm público |
 | `@kdenza/components` | Web Components, prefijo `cdz-` | Lit 3 + TypeScript, sin decoradores | Sí, npm público |
 | `@kdenza/gallery` | Visor de componentes con auditoría de accesibilidad en vivo | custom-elements-manifest + axe-core | No (privado) |
-| `@kdenza/site` | Portafolio (consume los componentes) | Vite vanilla TS | No (privado) |
+| `@kdenza/site` | Portafolio (consume los componentes) | Vite 8 + TS | No (privado) |
 
 ## Comandos
 
@@ -81,15 +81,22 @@ prioridad en el `PATH` (`~/.bashrc`) — cualquier shell nueva ya usa Node 24
 por defecto. `npm`, `gh`, y todo el pipeline del proyecto ya se verificaron
 funcionando bajo Node 24.
 
-Las versiones de herramientas siguen **fijadas por debajo de su última
-mayor a propósito** (no por necesidad técnica ahora que hay Node 24):
-style-dictionary 4.x, vite 6.x, `@web/test-runner` 0.20.x +
-`@web/test-runner-chrome` (en vez de playwright). Esto fue una decisión
-explícita para no re-verificar todo el pipeline de nuevo en la misma
-sesión que se actualizó Node — subir estas versiones (y volver a validar
-build/tests/dark-mode en cada paso) es trabajo pendiente, no una limitación
-del entorno. `npm audit` ya marca 2 advisories reales ligadas a esto (ver
-ADR-0006).
+Las versiones de herramientas **ya están al día** (agosto 2026):
+style-dictionary 5.x, vite 8.x, TypeScript 7.x, `@web/test-runner` 1.x +
+`@web/test-runner-chrome` (en vez de playwright), axe-core 4.13. `npm
+audit` reporta **0 vulnerabilidades**; el rezago anterior había crecido a
+9 advisories (8 high), incluida una de prototype pollution en
+style-dictionary 4.x. Ver ADR-0023.
+
+Dos cosas que se aprendieron subiendo y conviene no volver a tropezar:
+
+- **Vite 8 ya no queda hoisted a la raíz del workspace.** El binario vive
+  en `packages/<pkg>/node_modules/.bin/vite`; cualquier script o config
+  que apunte a `../../node_modules/.bin/vite` se rompe.
+- **TypeScript 7 emite exactamente lo mismo que 5.9** para este proyecto
+  (41 archivos idénticos byte a byte), incluida la emisión de campos de
+  clase de la que depende el patrón sin decoradores de Lit. Era el riesgo
+  real del salto y no se materializó.
 
 ## Decisiones de arquitectura
 
@@ -246,6 +253,14 @@ ahí antes de asumir el porqué de algo no obvio:
   medida: `src=""` en un `<img>` dispara `error`, no silencio. Cuarto
   falso negativo de medición: `getBBox({ stroke: true })` acepta la opción
   y la ignora.
+
+- **0023** — subida de todas las herramientas: el rezago de ADR-0006 había
+  crecido de 2 a **9 advisories** (8 high, incluido prototype pollution en
+  style-dictionary 4.x). Ahora **0**. Lo transferible es el método:
+  comparar artefactos generados byte a byte contra una línea base, no
+  confiar en que "compila". TypeScript 7 emitió los 41 `.js` idénticos a
+  5.9, que es la única prueba real de que no rompió la emisión de campos
+  de clase de la que depende Lit sin decoradores.
 
 ## Checklist de átomos
 
