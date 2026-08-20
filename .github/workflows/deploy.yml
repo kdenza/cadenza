@@ -42,6 +42,14 @@ jobs:
         run: npm run build
 
       - uses: actions/configure-pages@v5
+        with:
+          # Si Pages todavía no está configurado en modo "GitHub Actions",
+          # esta acción falla con un 404 opaco de la API ("Get Pages site
+          # failed"). Con enablement lo intenta habilitar ella misma, así
+          # que el orden entre tocar el ajuste y lanzar el workflow deja de
+          # importar. Si el fallo fuera por plan o permisos, el error que
+          # devuelve es explícito sobre eso en vez de un Not Found.
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v4
         with:
