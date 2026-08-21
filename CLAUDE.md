@@ -273,6 +273,16 @@ ahí antes de asumir el porqué de algo no obvio:
   no en `src/pages/`**; `base` es condicional a `NODE_ENV=production`
   porque Pages sirve desde `/cadenza/` y el dev server desde `/`.
 
+- **0025** — `:host([hidden]) { display: none }` es **obligatorio** en
+  todo componente que fije `display` en su `:host`: la regla `[hidden]` del
+  navegador es origen UA y `:host` es de autor, así que autor gana y
+  `hidden` deja de funcionar. Faltaba en los 18. Lo encontró el sitio
+  desplegado —no la suite— con un enlace a `localhost` visible en
+  producción. La lección de método completa la de ADR-0019: **sospechar de
+  la medición vale en las dos direcciones**; esta sospecha ya se había
+  levantado antes y se retiró por una verificación mal hecha que dijo
+  "está bien" cuando estaba mal.
+
 ## Checklist de átomos
 
 Ver [docs/roadmap.md](docs/roadmap.md) — las cinco categorías de átomos

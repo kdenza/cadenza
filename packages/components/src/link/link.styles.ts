@@ -15,6 +15,16 @@ export const linkStyles = css`
     display: inline;
   }
 
+  /* Sin esto, el atributo hidden no hace nada en este componente: la regla
+     [hidden] { display: none } del navegador es de origen UA, y el :host de
+     arriba es de autor, así que gana el de autor y el elemento se sigue
+     viendo. Es la contrapartida obligatoria de cualquier :host que fije
+     display -- ver ADR-0025. */
+  :host([hidden]) {
+    display: none;
+  }
+
+
   a {
     color: var(--cdz-link-color-default, #7a5197);
     font: inherit;
