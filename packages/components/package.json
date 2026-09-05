@@ -1,6 +1,6 @@
 {
   "name": "@kdenza/components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Web Components accesibles construidos con Lit, con tokens de diseño DTCG y modo claro/oscuro",
   "type": "module",
   "main": "dist/index.js",
