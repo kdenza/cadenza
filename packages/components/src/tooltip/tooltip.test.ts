@@ -205,6 +205,6 @@ describe('cdz-tooltip', () => {
       console.error = originalError;
     }
     expect(calls.length).to.be.greaterThan(0);
-    expect(String(calls[0][0])).to.include('disparador');
+    expect(String(calls[0][0])).to.include('no element to describe');
   });
 });

@@ -89,9 +89,9 @@ export class CdzLink extends LitElement {
   protected willUpdate(): void {
     if (this.href.trim().length === 0) {
       console.error(
-        '[cdz-link] "href" es obligatorio: un <a> sin href no es un enlace ' +
-          '(no recibe foco ni rol de enlace). Si necesitas una acción ' +
-          'deshabilitable, usa <cdz-button disabled> en su lugar.'
+        '[cdz-link] "href" is required: an <a> without one is not a link ' +
+          '(it takes no focus and gets no link role). If you need a ' +
+          'disableable action, use <cdz-button disabled> instead.'
       );
     }
   }

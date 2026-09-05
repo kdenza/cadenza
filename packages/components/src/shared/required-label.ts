@@ -18,8 +18,8 @@
 export function warnIfLabelMissing(tagName: string, label: string): void {
   if (label.trim().length === 0) {
     console.error(
-      `[${tagName}] "label" es obligatorio: un campo sin label no es accesible. ` +
-        `Pásalo como propiedad o atributo, ej. <${tagName} label="...">.`
+      `[${tagName}] "label" is required: a field without one is not accessible. ` +
+        `Pass it as a property or attribute, e.g. <${tagName} label="...">.`
     );
   }
 }

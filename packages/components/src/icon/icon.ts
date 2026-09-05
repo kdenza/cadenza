@@ -67,9 +67,9 @@ export class CdzIcon extends LitElement {
   protected willUpdate(): void {
     if (this.name.length > 0 && !(this.name in icons)) {
       console.error(
-        `[cdz-icon] No existe un ícono llamado "${this.name}" en el registro. ` +
-          `Disponibles: ${Object.keys(icons).join(', ')}. ` +
-          'Ver packages/components/src/shared/icons.ts.'
+        `[cdz-icon] There is no icon named "${this.name}" in the registry. ` +
+          `Available: ${Object.keys(icons).join(', ')}. ` +
+          'See packages/components/src/shared/icons.ts.'
       );
     }
   }

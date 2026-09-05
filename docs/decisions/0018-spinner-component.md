@@ -1,4 +1,4 @@
-# ADR-0018: `<cdz-spinner>` — el primero que sí se anuncia, y el primero con animación
+# ADR-0018: `<cdz-spinner>` — the first that does announce itself, and the first with animation
 
 **Status:** Accepted
 **Date:** 2026-08-02
@@ -6,126 +6,123 @@
 
 ## Context
 
-Segundo componente de "Feedback". Dos cosas lo hacen distinto de los
-catorce anteriores: es el primero que debe **anunciarse** a tecnología
-asistiva, y el primero con **animación** — o sea el primero donde
-`prefers-reduced-motion` deja de ser opcional.
+Second component in "Feedback". Two things set it apart from the fourteen
+before it: it is the first that must **announce itself** to assistive
+technology, and the first with **animation** — that is, the first where
+`prefers-reduced-motion` stops being optional.
 
 ## Decision
 
-### Sí es live region — y `<cdz-badge>` a propósito no lo es
+### It is a live region — and `<cdz-badge>` deliberately is not
 
-Las dos decisiones son opuestas, tomadas con una semana de diferencia,
-por una razón que vale la pena dejar escrita porque es la que hace que
-ambas sean correctas:
+The two decisions are opposites, taken a week apart, for a reason worth
+writing down because it is what makes both of them correct:
 
-- Un **badge es contenido**. Ya está ahí cuando la página renderiza.
-  Envolverlo en `role="status"` haría que cada badge interrumpa lo que la
-  persona está leyendo (ADR-0017).
-- Un **spinner es un evento**. Aparece *porque algo empezó*. Ese es
-  exactamente el caso para el que existen las live regions.
+- A **badge is content**. It is already there when the page renders.
+  Wrapping it in `role="status"` would make every badge interrupt whatever
+  the person is reading (ADR-0017).
+- A **spinner is an event**. It appears *because something started*. That
+  is exactly the case live regions exist for.
 
-Así que este renderiza `role="status"` — implícitamente *polite*, nunca
-*assertive*: cortar lo que alguien está leyendo jamás se justifica por
-"algo está cargando".
+So this one renders `role="status"` — implicitly *polite*, never
+*assertive*: cutting into what someone is reading is never justified by
+"something is loading".
 
-El SVG va `aria-hidden`; el label oculto es el que lleva el significado.
-El label es traducible, como el `triggerText` de `cdz-file-input`
-(ADR-0014) y el aviso de pestaña nueva de `cdz-link` (ADR-0015) — la
-aplicación es dueña de su copy.
+The SVG is `aria-hidden`; the visually hidden label carries the meaning.
+The label is translatable, like `cdz-file-input`'s `triggerText`
+(ADR-0014) and `cdz-link`'s new-tab notice (ADR-0015) — the application
+owns its copy.
 
-### Reduced motion: se reemplaza, no se detiene
+### Reduced motion: replaced, not stopped
 
-La rotación es un disparador vestibular clásico, así que bajo
-`prefers-reduced-motion: reduce` desaparece por completo en vez de
-ralentizarse.
+Rotation is a classic vestibular trigger, so under
+`prefers-reduced-motion: reduce` it disappears entirely rather than
+slowing down.
 
-Lo importante es que se **reemplaza** por un pulso de opacidad en lugar
-de simplemente frenarse, por dos motivos: un anillo congelado es
-indistinguible de uno roto, y el trabajo entero del componente es decir
-"esto sigue andando". Un cambio de opacidad no desplaza nada en pantalla,
-que es precisamente por qué la guía apunta al *movimiento* y no a toda
-animación.
+What matters is that it is **replaced** by an opacity pulse instead of
+simply being frozen, for two reasons: a frozen ring is indistinguishable
+from a broken one, and the component's entire job is to say "this is still
+running". An opacity change displaces nothing on screen, which is
+precisely why the guidance targets *motion* rather than all animation.
 
-**Verificado leyendo el CSSOM, no asumido por haberlo escrito:**
+**Verified by reading the CSSOM, not assumed from having written it:**
 
-| Comprobación | Resultado |
+| Check | Result |
 |---|---|
-| Condición del media rule | `(prefers-reduced-motion: reduce)` |
-| Animación bajo esa condición | `cdz-pulse` |
-| Keyframes de `cdz-spin` | `100% { transform: rotate(360deg) }` → **mueve** |
-| Keyframes de `cdz-pulse` | `50% { opacity: 0.35 }` → **no mueve** |
+| Media rule condition | `(prefers-reduced-motion: reduce)` |
+| Animation under that condition | `cdz-pulse` |
+| `cdz-spin` keyframes | `100% { transform: rotate(360deg) }` → **moves** |
+| `cdz-pulse` keyframes | `50% { opacity: 0.35 }` → **does not move** |
 
-La afirmación de accesibilidad ("bajo reduced-motion no hay movimiento")
-queda probada contra los keyframes reales, no escrita en prosa. Un test
-lo fija: falla si alguien reemplaza el pulso por `animation: none` o
-deja la rotación viva.
+The accessibility claim ("under reduced motion there is no movement") is
+proven against the real keyframes rather than written in prose. A test
+pins it: it fails if someone replaces the pulse with `animation: none` or
+leaves the rotation alive.
 
-**Un test propio que estaba mal y hubo que arreglar:** la primera versión
-comprobaba que el bloque de reduced-motion no contuviera la subcadena
-`cdz-spin`. Falla como falso positivo, porque el token
-`--cdz-spinner-reduced-motion-duration` **contiene** esa subcadena. Se
-cambió por un chequeo con límites de palabra (`/\bcdz-spin\b/`), que no
-matchea `cdz-spinner` porque después de `spin` viene un carácter de
-palabra. El código siempre estuvo bien; el test era ingenuo — el mismo
-tipo de error que el predicado del área viva en ADR-0016.
+**A test of my own that was wrong and had to be fixed:** the first version
+checked that the reduced-motion block did not contain the substring
+`cdz-spin`. That fails as a false positive, because the token
+`--cdz-spinner-reduced-motion-duration` **contains** that substring. It
+was changed to a word-boundary check (`/\bcdz-spin\b/`), which does not
+match `cdz-spinner` because `spin` is followed by a word character. The
+code was always fine; the test was naive — the same class of error as the
+live-area predicate in ADR-0016.
 
-### Geometría reusada del sistema de íconos
+### Geometry reused from the icon system
 
-Círculo de radio 9 sobre el mismo lienzo de 24 que `info` y
-`alert-circle` (ADR-0016), así un spinner puesto donde estaba un ícono de
-estado no cambia de tamaño ni de peso.
+A circle of radius 9 on the same 24 canvas as `info` and `alert-circle`
+(ADR-0016), so a spinner placed where a status icon used to be changes
+neither size nor weight.
 
-El trazo sí se desvía: 2.5 en vez de 2. Un arco fino en movimiento se lee
-como parpadeo antes que como indicador deliberado. Es una desviación
-consciente de la regla del sistema de íconos, y por eso está dicha aquí.
+The stroke does deviate: 2.5 instead of 2. A thin arc in motion reads as
+flicker before it reads as a deliberate indicator. It is a conscious
+departure from the icon system's rule, which is why it is stated here.
 
-`pathLength="100"` normaliza la circunferencia para que el dash array se
-lea como porcentaje (`25 75` = un cuarto de anillo) en vez de como el
-decimal calculado (14.14 de 56.55).
+`pathLength="100"` normalises the circumference so the dash array reads as
+a percentage (`25 75` = a quarter ring) instead of the computed decimal
+(14.14 of 56.55).
 
-El anillo de fondo usa opacidad y no un segundo token de color: un color
-fijo se rompería apenas el spinner cayera adentro de un botón relleno.
-Verificado en el navegador — el spinner dentro de `<cdz-button>` computó
-`rgb(44, 34, 48)` mientras los sueltos computaron `rgb(240, 230, 234)`,
-que es `currentColor` haciendo su trabajo.
+The background ring uses opacity rather than a second colour token: a
+fixed colour would break the moment the spinner landed inside a filled
+button. Verified in the browser — the spinner inside `<cdz-button>`
+computed `rgb(44, 34, 48)` while the standalone ones computed
+`rgb(240, 230, 234)`, which is `currentColor` doing its job.
 
 ## Consequences
 
-- **Más fácil:** el contraste entre esta decisión y la de `cdz-badge`
-  deja escrito el criterio para el resto de la sección Feedback —
-  ¿el componente ya está cuando carga la página, o aparece porque algo
-  pasó? Eso decide si lleva live region.
-- **Fuera de alcance a propósito — sin delay de aparición.** Un spinner
-  que parpadea por un request de 60ms es peor que ninguno, pero el
-  arreglo le corresponde a quien sabe cuánto tarda la operación, no al
-  átomo.
-- **Fuera de alcance a propósito — nada anuncia el final.** Quitar el
-  spinner es silencioso. Un flujo que necesite "listo" tiene que decirlo
-  por su cuenta; el átomo no puede saber si terminó bien o mal.
-- **A revisar:** no hay variante determinada (con porcentaje). Eso es
-  `role="progressbar"` con `aria-valuenow`, semántica distinta y otro
-  componente — el Progress que sigue en el roadmap.
-- **A revisar:** las live regions dentro de shadow roots abiertos se
-  anuncian bien en los lectores de pantalla actuales, pero es un área
-  donde el soporte históricamente varió. Vale una prueba con lector real
-  cuando haya uno disponible en este entorno.
+- **Easier:** the contrast between this decision and `cdz-badge`'s writes
+  down the criterion for the rest of the Feedback section — is the
+  component already there when the page loads, or does it appear because
+  something happened? That decides whether it gets a live region.
+- **Deliberately out of scope — no appearance delay.** A spinner that
+  flashes for a 60ms request is worse than none, but the fix belongs to
+  whoever knows how long the operation takes, not to the atom.
+- **Deliberately out of scope — nothing announces the end.** Removing the
+  spinner is silent. A flow that needs "done" has to say so itself; the
+  atom cannot know whether it finished well or badly.
+- **To revisit:** there is no determinate variant (with a percentage).
+  That is `role="progressbar"` with `aria-valuenow`, different semantics
+  and a different component — the Progress next on the roadmap.
+- **To revisit:** live regions inside open shadow roots are announced
+  correctly by current screen readers, but it is an area where support has
+  historically varied. Worth a test with a real screen reader when one is
+  available in this environment.
 
 ## Action Items
 
-1. [x] `component/spinner.tokens.json`: tamaños, grosor, opacidad del
-   track y las dos duraciones (normal y reduced-motion).
-2. [x] `<cdz-spinner>` (Lit): `role="status"` polite, label oculto
-   traducible, SVG `aria-hidden`, geometría compartida con el sistema de
-   íconos, `currentColor`.
-3. [x] Reduced motion resuelto reemplazando la rotación por un pulso de
-   opacidad, verificado contra los keyframes reales vía CSSOM.
-4. [x] Corregido un test propio que daba falso positivo por comparar
-   subcadenas contra un nombre de token que las contiene.
-5. [x] Tests: live region polite, label por defecto y traducido, label
-   oculto pero en el árbol, SVG oculto, grilla e `pathLength`,
-   `currentColor`, escala de tamaños, animación por defecto, y las dos
-   comprobaciones de reduced-motion — 170/170.
-6. [x] Dogfooding en el sitio (tamaños, dentro de un botón heredando
-   color) y en la galería; verificado en navegador que los tamaños
-   renderizan 16/20/24 y que el color se hereda del contexto.
+1. [x] `component/spinner.tokens.json`: sizes, stroke width, track opacity
+   and the two durations (normal and reduced-motion).
+2. [x] `<cdz-spinner>` (Lit): `role="status"` polite, translatable hidden
+   label, `aria-hidden` SVG, geometry shared with the icon system,
+   `currentColor`.
+3. [x] Reduced motion solved by replacing the rotation with an opacity
+   pulse, verified against the real keyframes via the CSSOM.
+4. [x] Fixed a test of my own that gave a false positive by comparing
+   substrings against a token name that contains them.
+5. [x] Tests: polite live region, default and translated label, label
+   hidden but present in the tree, hidden SVG, grid and `pathLength`,
+   `currentColor`, size scale, default animation, and both reduced-motion
+   checks — 170/170.
+6. [x] Dogfooded on the site (sizes, inside a button inheriting colour)
+   and in the gallery; verified in-browser that the sizes render 16/20/24
+   and that colour is inherited from context.

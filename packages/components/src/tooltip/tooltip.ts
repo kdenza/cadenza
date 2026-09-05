@@ -184,9 +184,9 @@ export class CdzTooltip extends LitElement {
     const trigger = assigned[0] as HTMLElement | undefined;
     if (!trigger) {
       console.error(
-        '[cdz-tooltip] No hay ningún elemento al que describir. Pon el ' +
-          'disparador dentro del componente, por ejemplo ' +
-          '<cdz-tooltip text="..."><cdz-button>Ayuda</cdz-button></cdz-tooltip>.'
+        '[cdz-tooltip] There is no element to describe. Put the trigger inside ' +
+          'the component, for example ' +
+          '<cdz-tooltip text="..."><cdz-button>Help</cdz-button></cdz-tooltip>.'
       );
       return;
     }

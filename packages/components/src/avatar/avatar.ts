@@ -144,9 +144,9 @@ export class CdzAvatar extends LitElement {
     const usesName = !this.decorative || this.fallback === 'initials';
     if (usesName && this.name.trim().length === 0) {
       console.error(
-        '[cdz-avatar] "name" es obligatorio: es de donde salen las iniciales y ' +
-          'el nombre accesible del avatar. Si el avatar es puramente decorativo ' +
-          'y no necesita nombre, usa <cdz-avatar decorative fallback="icon">.'
+        '[cdz-avatar] "name" is required: it is where the initials and the ' +
+          'accessible name come from. If the avatar is purely decorative and ' +
+          'needs no name, use <cdz-avatar decorative fallback="icon">.'
       );
     }
   }

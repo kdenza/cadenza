@@ -1,4 +1,4 @@
-# ADR-0024: CI en GitHub Actions y despliegue a GitHub Pages
+# ADR-0024: CI on GitHub Actions and deployment to GitHub Pages
 
 **Status:** Accepted
 **Date:** 2026-08-20
@@ -6,111 +6,107 @@
 
 ## Context
 
-Hasta aquí, los 234 tests y `npm audit` corrían **cuando alguien se
-acordaba**. ADR-0023 documenta el precio exacto de eso: la deuda de
-dependencias creció de 2 a 9 advisories a lo largo de tres semanas sin que
-nadie se enterara, y su propia sección "a revisar" señalaba que nada
-impedía que volviera a pasar.
+Until now, the 234 tests and `npm audit` ran **when someone remembered**.
+ADR-0023 records the exact price of that: dependency debt grew from 2 to 9
+advisories over three weeks unnoticed, and its own "to revisit" note
+pointed out that nothing stopped it happening again.
 
-En paralelo, el sistema llevaba dos paquetes publicados en npm y **cero
-URLs públicas**. Un design system que solo se ve clonando el repo no es
-consumible ni demostrable.
+In parallel, the system had two packages published on npm and **zero
+public URLs**. A design system you can only see by cloning the repository
+is neither consumable nor demonstrable.
 
 ## Decision
 
-### CI: build, tests y auditoría en cada push y PR
+### CI: build, tests and audit on every push and PR
 
-Un solo job en `ubuntu-latest`, Node 24 (el mismo del entorno de
-desarrollo). El paso que justifica el workflow no es el build ni los
-tests, sino `npm audit --audit-level=high`: es el que convierte "deuda que
-envejece en silencio" en "build roja el día que aparece".
+A single job on `ubuntu-latest`, Node 24 (the same as the development
+environment). The step that justifies the workflow is neither the build
+nor the tests, but `npm audit --audit-level=high`: it is what turns "debt
+that ages silently" into "a red build the day it appears".
 
-**Chrome se localiza, no se hardcodea.** `@web/test-runner` necesita un
-binario; `ubuntu-latest` lo trae, pero un paso previo lo busca entre
-cuatro nombres posibles y falla con `::error::` si no encuentra ninguno.
-Si una imagen futura lo mueve, el fallo es explícito ahí en vez de un
-error sin contexto dentro del runner de tests.
+**Chrome is located, not hard-coded.** `@web/test-runner` needs a binary;
+`ubuntu-latest` ships one, but a preceding step searches four possible
+names and fails with `::error::` if none is found. If a future image moves
+it, the failure is explicit there rather than an error without context
+inside the test runner.
 
-Verificado en local todo lo verificable sin un runner: YAML válido, `npm
-ci` desde `node_modules` borrado, build, tests con `CHROME_PATH` apuntando
-al Chrome del sistema, y `npm audit --audit-level=high` saliendo con 0.
+Everything verifiable without a runner was verified locally: valid YAML,
+`npm ci` from a deleted `node_modules`, build, tests with `CHROME_PATH`
+pointing at the system Chrome, and `npm audit --audit-level=high` exiting
+0.
 
-De paso se despejó un susto: `npm ci` avisa que el postinstall de esbuild
-queda diferido por la política `allow-scripts` de npm 11. Resulta
-inofensivo — el binario viene del paquete opcional `@esbuild/linux-x64`,
-no del script. Comprobado borrando `node_modules` entero, no razonando
-sobre ello.
+That also cleared a scare: `npm ci` warns that esbuild's postinstall is
+deferred by npm 11's `allow-scripts` policy. It turns out to be harmless —
+the binary comes from the optional `@esbuild/linux-x64` package, not from
+the script. Confirmed by deleting `node_modules` entirely rather than by
+reasoning about it.
 
-### Despliegue: GitHub Pages
+### Deployment: GitHub Pages
 
-Gratis, ya vive donde vive el repo, y no añade una cuenta más que
-mantener. Se publica **solo `packages/site/dist`**; `@kdenza/gallery`
-sigue siendo privada y sin desplegar (ADR-0004).
+Free, already lives where the repository lives, and adds no further
+account to maintain. Only `packages/site/dist` is published;
+`@kdenza/gallery` stays private and undeployed (ADR-0004).
 
-### Lo que el despliegue destapó
+### What the deploy exposed
 
-Esta es la parte que vale la pena guardar. Preparar el deploy encontró
-**tres cosas rotas que en local nunca fallaban**:
+This is the part worth keeping. Preparing the deploy found **three things
+that were broken and never failed locally**:
 
-1. **Los 7 enlaces a ADRs del sitio ya estaban rotos.** Apuntaban a
-   `../../../docs/decisions/*.md`, que sale de la raíz de Vite; daban 404
-   *también en desarrollo*. Nadie lo notó porque nadie los había clicado.
-   Ahora apuntan a las URLs de GitHub, que funcionan en los dos sitios, y
-   usan `target="_blank"` — o sea el `rel="noopener"` y el aviso accesible
-   que `cdz-link` ya traía para esto (ADR-0015).
+1. **The site's 7 ADR links were already broken.** They pointed at
+   `../../../docs/decisions/*.md`, which escapes the Vite root; they 404'd
+   *in development too*. Nobody noticed because nobody had clicked them.
+   They now point at GitHub URLs, which work in both places, and use
+   `target="_blank"` — the `rel="noopener"` and accessible notice
+   `cdz-link` already carried for this (ADR-0015).
 
-2. **No existía `dist/index.html`.** Las páginas vivían en `src/pages/`,
-   así que el build emitía `dist/pages/index.html` y la URL raíz de
-   cualquier host estático habría dado 404. **ADR-0001 predijo esto
-   textualmente** y dejó la decisión abierta "porque el hosting queda
-   fuera de alcance". Se resolvió aplanando las páginas a `src/` en vez de
-   añadir un rewrite: el prefijo `/pages/` no aportaba nada y costaba una
-   redirección en cualquier destino.
+2. **`dist/index.html` did not exist.** The pages lived in `src/pages/`,
+   so the build emitted `dist/pages/index.html` and any static host's root
+   URL would have 404'd. **ADR-0001 predicted this in as many words** and
+   left the decision open "since hosting is out of scope". Resolved by
+   flattening the pages into `src/` rather than adding a rewrite: the
+   `/pages/` prefix bought nothing and cost a redirect on every target.
 
-3. **La demo de imagen rota pedía `/no-existe.png` con ruta absoluta**, que
-   en Pages habría salido del proyecto hacia la raíz del dominio. Sigue
-   dando 404 —que es el punto de la demo— pero ahora dentro de su propio
-   espacio.
+3. **The broken-image demo requested `/no-existe.png` absolutely**, which
+   on Pages would have escaped the project to the domain root. It still
+   404s — that is the demo's point — but now within its own space.
 
-### `base` condicional, no fijo
+### Conditional `base`, not fixed
 
-GitHub Pages sirve un sitio de proyecto desde `/<repo>/`. Poner
-`base: '/cadenza/'` a secas rompería el servidor de desarrollo, que sirve
-desde `/`. Queda condicionado a `NODE_ENV === 'production'`, y el workflow
-lo pone explícitamente.
+GitHub Pages serves a project site from `/<repo>/`. A bare
+`base: '/cadenza/'` would break the dev server, which serves from `/`. It
+is conditioned on `NODE_ENV === 'production'`, and the workflow sets it
+explicitly.
 
-Verificado **sirviendo el build bajo el subpath**, no solo compilándolo:
-un servidor estático con `cadenza/` apuntando a `dist/` reproduce la forma
-exacta de Pages. Las dos páginas, los assets y los enlaces internos
-resuelven; cero errores de consola. Compilar sin errores no habría probado
-nada de esto.
+Verified by **serving the build under the subpath**, not merely compiling
+it: a static server with `cadenza/` pointing at `dist/` reproduces Pages'
+exact shape. Both pages, the assets and the internal links resolve; zero
+console errors. Compiling without errors would have proved none of that.
 
 ## Consequences
 
-- **Más fácil:** hay una URL que poner en un CV, y cada push la actualiza
-  sola.
-- **Nuevo:** una build roja ahora bloquea la vista de que algo va mal, en
-  vez de dejarlo pasar. Es el punto.
-- **A revisar:** el deploy corre en el mismo push que CI pero no *depende*
-  de él — GitHub Pages y CI son workflows separados. Si los tests fallan,
-  el sitio se publica igual. Encadenarlos requiere `workflow_run`, que
-  complica el disparo; se deja así a sabiendas mientras el repo tenga una
-  sola persona.
-- **A revisar:** la galería sigue sin desplegarse. Es el visor con la
-  auditoría de accesibilidad en vivo, o sea justo lo que más demuestra el
-  método — pero es un paquete privado con su propio servidor. Publicarla
-  es una decisión aparte.
+- **Easier:** there is a URL to put on a CV, and every push updates it.
+- **New:** a red build now blocks the view that something is wrong instead
+  of letting it pass. That is the point.
+- **To revisit:** the deploy runs on the same push as CI but does not
+  *depend* on it — Pages and CI are separate workflows. If the tests fail,
+  the site publishes anyway. Chaining them requires `workflow_run`, which
+  complicates the trigger; left as is knowingly while the repository has a
+  single maintainer.
+- **To revisit:** the gallery is still not deployed. It is the viewer with
+  the live accessibility audit — precisely what best demonstrates the
+  method — but it is a private package with its own server. Publishing it
+  is a separate decision.
 
 ## Action Items
 
 1. [x] `.github/workflows/ci.yml`: build + 234 tests + `npm audit
-   --audit-level=high`, con localización defensiva de Chrome. Verificado
-   desde un `node_modules` borrado.
-2. [x] Reescritos los 7 enlaces a ADRs, rotos desde antes, a URLs de
-   GitHub con `target="_blank"`.
-3. [x] Páginas aplanadas de `src/pages/` a `src/`; cerrada la nota "to
-   revisit" de ADR-0001.
-4. [x] `base` condicional en `vite.config.ts` y verificación sirviendo el
-   build bajo `/cadenza/` en un navegador real.
-5. [x] `.github/workflows/deploy.yml` con los permisos mínimos de Pages y
-   `concurrency` sin cancelación, para no dejar un deploy a medias.
+   --audit-level=high`, with defensive Chrome discovery. Verified from a
+   deleted `node_modules`.
+2. [x] Rewrote the 7 ADR links, broken beforehand, to GitHub URLs with
+   `target="_blank"`.
+3. [x] Flattened the pages from `src/pages/` to `src/`; closed ADR-0001's
+   "to revisit" note.
+4. [x] Conditional `base` in `vite.config.ts`, verified by serving the
+   build under `/cadenza/` in a real browser.
+5. [x] `.github/workflows/deploy.yml` with Pages' minimum permissions and
+   `concurrency` without cancellation, so a deploy is never left half-done.
