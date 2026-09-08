@@ -38,8 +38,17 @@
       <h1>Design System</h1>
       <p>Componentes en producción real (dogfooding), no mockups.</p>
 
+      <!-- Las secciones se derivan de los h2 de esta misma página, en
+           main.ts — ver el comentario ahí sobre por qué la derivación no
+           vive dentro del componente. -->
+      <cdz-page-nav
+        id="page-nav"
+        label="Componentes"
+        toggle-label="Ir a un componente"
+      ></cdz-page-nav>
+
       <section>
-        <h2>cdz-button</h2>
+        <h2 id="cdz-button">cdz-button</h2>
         <p>Estados: default, hover (interactivo), focus-visible (tab) y disabled.</p>
         <div class="button-row">
           <cdz-button>Default</cdz-button>
@@ -48,7 +57,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-input</h2>
+        <h2 id="cdz-input">cdz-input</h2>
         <p>Estados: default, con helper text, required, error y disabled.</p>
         <cdz-input label="Nombre" placeholder="Tu nombre"></cdz-input>
         <cdz-input
@@ -66,7 +75,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-checkbox</h2>
+        <h2 id="cdz-checkbox">cdz-checkbox</h2>
         <p>Estados: default, checked, indeterminate, error y disabled.</p>
         <cdz-checkbox label="Recibir novedades"></cdz-checkbox>
         <cdz-checkbox label="Guardar mis datos" checked></cdz-checkbox>
@@ -80,7 +89,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-radio</h2>
+        <h2 id="cdz-radio">cdz-radio</h2>
         <p>Estados: default, checked, error y disabled.</p>
         <cdz-radio label="Opción sin marcar"></cdz-radio>
         <cdz-radio label="Opción marcada" checked></cdz-radio>
@@ -101,7 +110,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-text</h2>
+        <h2 id="cdz-text">cdz-text</h2>
         <p><code>as</code> (tag semántico) y <code>size</code> (estilo visual) son independientes.</p>
 
         <cdz-text as="h3">Tamaño por defecto según el tag (as="h3")</cdz-text>
@@ -118,7 +127,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-select</h2>
+        <h2 id="cdz-select">cdz-select</h2>
         <p>
           Estados: default con placeholder, helper text, required + error,
           disabled. <code>options</code> se pasa como propiedad JS (no como
@@ -140,7 +149,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-textarea</h2>
+        <h2 id="cdz-textarea">cdz-textarea</h2>
         <p>Estados: default, con helper text, required, error y disabled.</p>
         <cdz-textarea label="Comentario" placeholder="Cuéntanos algo"></cdz-textarea>
         <cdz-textarea
@@ -158,7 +167,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-switch</h2>
+        <h2 id="cdz-switch">cdz-switch</h2>
         <p>
           Estados: apagado, encendido, helper text, error y disabled (en
           ambas posiciones). <code>role="switch"</code> sobre un
@@ -182,7 +191,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-range</h2>
+        <h2 id="cdz-range">cdz-range</h2>
         <p>
           Estados: default, con helper text, error, disabled, y min/max/step
           distintos. Sin <code>required</code> a propósito — un range nunca
@@ -213,7 +222,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-file-input</h2>
+        <h2 id="cdz-file-input">cdz-file-input</h2>
         <p>
           Estados: default, con <code>accept</code>, <code>multiple</code>,
           helper text, required + error, y disabled. El texto visible lo
@@ -237,7 +246,7 @@
       </section>
 
       <section>
-        <h2>cdz-link</h2>
+        <h2 id="cdz-link">cdz-link</h2>
         <p>
           Siempre subrayado (WCAG 1.4.1: el color no puede ser la única
           señal). <code>target="_blank"</code> agrega
@@ -263,7 +272,7 @@
       </section>
 
       <section>
-        <h2>cdz-icon</h2>
+        <h2 id="cdz-icon">cdz-icon</h2>
         <p>
           SVG desde un registro compartido, nunca icon font — ver
           <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0016-icon-system-grid.md" target="_blank">ADR-0016</cdz-link>.
@@ -299,7 +308,7 @@
       </section>
 
       <section>
-        <h2>cdz-badge</h2>
+        <h2 id="cdz-badge">cdz-badge</h2>
         <p>
           Primer componente con <strong>variantes semánticas</strong>, y el que
           obligó a expandir la paleta: no había verde ni ámbar en el sistema.
@@ -337,7 +346,7 @@
       </section>
 
       <section>
-        <h2>cdz-spinner</h2>
+        <h2 id="cdz-spinner">cdz-spinner</h2>
         <p>
           Indicador de carga indeterminado. A diferencia de
           <code>cdz-badge</code>, este <strong>sí</strong> es una live region
@@ -374,7 +383,7 @@
       </section>
 
       <section class="input-stack">
-        <h2>cdz-progress</h2>
+        <h2 id="cdz-progress">cdz-progress</h2>
         <p>
           Progreso <strong>determinado</strong>, sobre
           <code>&lt;progress&gt;</code> nativo: el navegador deriva
@@ -408,7 +417,7 @@
       </section>
 
       <section>
-        <h2>cdz-tooltip</h2>
+        <h2 id="cdz-tooltip">cdz-tooltip</h2>
         <p>
           El último de Feedback, y el más difícil de hacer accesible. Se abre
           con el mouse <strong>y con el teclado</strong>, se cierra con Escape,
@@ -447,7 +456,7 @@
       </section>
 
       <section>
-        <h2>cdz-divider</h2>
+        <h2 id="cdz-divider">cdz-divider</h2>
         <p>
           <strong>Decorativo por defecto</strong>, semántico solo si se pide.
           <code>&lt;hr&gt;</code> significa "corte temático", pero la mayoría
@@ -486,7 +495,7 @@
       </section>
 
       <section>
-        <h2>cdz-avatar</h2>
+        <h2 id="cdz-avatar">cdz-avatar</h2>
         <p>
           Tres formas de dibujarse, en orden: la foto de <code>src</code>; si
           falla, las iniciales sacadas de <code>name</code>; y si no,

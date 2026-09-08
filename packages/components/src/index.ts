@@ -29,3 +29,5 @@ export { CdzAvatar, initialsFrom } from './avatar/avatar.js';
 export type { CdzAvatarSize, CdzAvatarFallback } from './avatar/avatar.js';
 export { icons, ICON_GRID, ICON_STROKE_WIDTH } from './shared/icons.js';
 export type { CdzIconName, CdzIconDefinition } from './shared/icons.js';
+export { CdzPageNav } from './page-nav/page-nav.js';
+export type { CdzPageNavSection } from './page-nav/page-nav.js';

@@ -192,6 +192,22 @@ export const icons = {
       // body, not a container, so the softer curve is doing different work.
       'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'
     ]
+  },
+
+  /**
+   * Three rules, for the disclosure button that reveals cdz-page-nav on
+   * narrow screens.
+   *
+   * Stroked extent 3->21 horizontally, 5->19 vertically: the same 18 of
+   * width as `user`, but shorter. A hamburger pushed to the full 20 of the
+   * live area reads as three unrelated lines rather than one control; the
+   * spacing between them has to stay smaller than their length for the
+   * group to read as a single mark.
+   *
+   * Its counterpart when open is `x`, which already exists.
+   */
+  menu: {
+    paths: ['M4 6h16', 'M4 12h16', 'M4 18h16']
   }
 } satisfies Record<string, CdzIconDefinition>;
 

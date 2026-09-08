@@ -1,0 +1,22 @@
+{
+  "cdz-page-nav": {
+    "color": {
+      "item": { "$value": "{color.text.body}", "$type": "color" },
+      "item-current": { "$value": "{color.action.primary.background.default}", "$type": "color" },
+      "marker": { "$value": "{color.action.primary.background.default}", "$type": "color" }
+    },
+    "spacing": {
+      "item-block": { "$value": "{spacing.2}", "$type": "dimension" },
+      "item-inline": { "$value": "{spacing.3}", "$type": "dimension" },
+      "gap": { "$value": "2px", "$type": "dimension" }
+    },
+    "typography": {
+      "font-family": { "$value": "{typography.body-sm.font-family}", "$type": "fontFamily" },
+      "font-size": { "$value": "{typography.body-sm.font-size}", "$type": "dimension" },
+      "font-weight-current": { "$value": "{typography.label.font-weight}", "$type": "fontWeight" }
+    },
+    "radius": { "$value": "{radius.3}", "$type": "dimension" },
+    "marker-width": { "$value": "2px", "$type": "dimension" },
+    "breakpoint": { "$value": "48rem", "$type": "dimension" }
+  }
+}

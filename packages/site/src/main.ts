@@ -1,7 +1,13 @@
 // Registers <cdz-button> as a side effect of importing @kdenza/components.
 import '@kdenza/components';
 import '@kdenza/components/dist/styles/tokens.css';
-import type { CdzButton, CdzSelect, CdzSelectOption } from '@kdenza/components';
+import type {
+  CdzButton,
+  CdzSelect,
+  CdzSelectOption,
+  CdzPageNav,
+  CdzPageNavSection
+} from '@kdenza/components';
 import './styles/global.css';
 
 // @kdenza/gallery is a separate, privately-run Vite dev server (port
@@ -73,3 +79,28 @@ if (selectError) selectError.options = planOptions;
 
 const selectDisabled = document.querySelector<CdzSelect>('#select-disabled');
 if (selectDisabled) selectDisabled.options = planOptions;
+
+// The table of contents is derived from the page's own headings rather
+// than from a hand-written list. A list would be a second source of truth
+// for the same thing, and the two drift the moment a section is renamed —
+// exactly the failure the component cannot detect and the reader can.
+//
+// The derivation lives here, not inside cdz-page-nav: the component
+// renders whatever sections it is given, which keeps it testable without
+// a document around it. Deciding *which* sections belong is the page's
+// job.
+const pageNav = document.querySelector<CdzPageNav>('#page-nav');
+if (pageNav) {
+  const sections: CdzPageNavSection[] = Array.from(
+    document.querySelectorAll<HTMLHeadingElement>('main h2[id]')
+  ).map((heading) => ({ id: heading.id, label: heading.textContent?.trim() ?? heading.id }));
+
+  pageNav.sections = sections;
+
+  // Deep links have to arrive at the right item marked as current;
+  // otherwise the first section stays highlighted while the reader is
+  // somewhere else entirely. The scroll spy corrects it afterwards, but
+  // only once something scrolls.
+  const hash = window.location.hash.slice(1);
+  if (hash && sections.some((s) => s.id === hash)) pageNav.currentId = hash;
+}

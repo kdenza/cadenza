@@ -6,8 +6,8 @@ started — it is a record of what exists, not a sprint plan. It also tracks
 the "Primitives" section (internal building blocks, not atoms) and "After
 the atoms" (molecules), with the same criterion.
 
-**All five atom categories are closed** (18 atoms + 1 primitive). What
-comes next are molecules — see the end of this file.
+**All five atom categories are closed** (18 atoms + 1 primitive), and the
+first molecule is built. See the end of this file.
 
 Heading/Paragraph are not listed as separate items: `cdz-text` (see
 [ADR-0008](decisions/0008-text-component.md)) already covers both with a
@@ -92,6 +92,13 @@ hierarchy.
       Intended for reuse in future menus and comboboxes.
 
 ## After the atoms
+
+- [x] `cdz-page-nav` — [ADR-0027](decisions/0027-page-nav-first-molecule.md).
+      A table of contents for the sections of the current page. The first
+      component past the atom line, and the test that settles the
+      category: it owns state — which section is current — that none of
+      its parts could own alone. Disclosure below the breakpoint, never a
+      drawer; `aria-current="location"`, never `"page"`.
 
 Molecules already identified while building the atoms, not yet started:
 

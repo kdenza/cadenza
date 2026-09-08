@@ -183,3 +183,24 @@ section {
   margin: 0;
   padding-left: var(--spacing-4, 1rem);
 }
+
+/* El anclaje suave le corresponde a la página, no al componente: es una
+   preferencia de documento y afecta a cualquier salto interno, venga de
+   donde venga. Se apaga bajo reduced-motion — un desplazamiento largo y
+   automático es exactamente el tipo de movimiento que la preferencia
+   busca evitar. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Sin esto, al saltar a una sección el encabezado queda pegado al borde
+   superior de la ventana y se lee como si estuviera cortado. */
+main h2[id] {
+  scroll-margin-top: var(--spacing-4, 1rem);
+}
