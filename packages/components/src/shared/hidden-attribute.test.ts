@@ -2,49 +2,58 @@ import { fixtureSync, expect } from '@open-wc/testing';
 import '../index.js';
 
 /**
- * Un test para todo el sistema, no uno por componente.
+ * One test for the whole system, not one per component.
  *
- * Cualquier componente que declare `:host { display: ... }` desactiva el
- * atributo `hidden` sin querer: la regla `[hidden] { display: none }` del
- * navegador es de origen UA, y `:host` es de autor, así que gana la de
- * autor y el elemento se sigue viendo. La contrapartida obligatoria es
- * `:host([hidden]) { display: none }`.
+ * Any component declaring `:host { display: ... }` silently disables the
+ * `hidden` attribute: the browser's `[hidden] { display: none }` is a UA
+ * rule and `:host` is an author rule, so the author rule wins and the
+ * element stays visible. The mandatory counterpart is
+ * `:host([hidden]) { display: none }` — see ADR-0025.
  *
- * Se encontró en producción, no aquí: el enlace a la galería —que apunta a
- * un `localhost` y por eso lleva `hidden` fuera de desarrollo— aparecía a
- * la vista en el sitio desplegado. Los 18 componentes con `display` en su
- * `:host` tenían el mismo agujero.
+ * It was found in production, not here: the gallery link — which points at
+ * a localhost and therefore carries `hidden` outside development — was
+ * visible on the deployed site. All 18 components with a `display` on
+ * their `:host` had the same hole.
  *
- * Este test recorre el registro real de custom elements en vez de una
- * lista escrita a mano, así que un componente nuevo queda cubierto por
- * existir, sin que nadie tenga que acordarse de añadirlo.
+ * The list below is written by hand, because the custom element registry
+ * has no enumeration API to walk. That is a real gap: a new component
+ * would be silently uncovered while this file looked complete. So the list
+ * is not trusted on its own — `scripts/check-hidden-coverage.mjs` runs as
+ * `pretest` and fails if any `customElements.define('cdz-…')` in the
+ * source is missing from it.
+ *
+ * (An earlier version of this comment claimed the test walked the registry
+ * itself. It never did. When the Node check was finally written it found
+ * two uncovered components on its first run: cdz-radio-group, being added
+ * at the time, and cdz-page-nav — which had been uncovered for five
+ * commits, including the ones where it reintroduced this very bug.)
  */
 const TAGS = [
   'cdz-avatar', 'cdz-badge', 'cdz-button', 'cdz-checkbox', 'cdz-divider',
   'cdz-file-input', 'cdz-icon', 'cdz-input', 'cdz-link', 'cdz-progress',
-  'cdz-radio', 'cdz-range', 'cdz-select', 'cdz-spinner', 'cdz-switch',
-  'cdz-text', 'cdz-textarea', 'cdz-tooltip'
+  'cdz-page-nav', 'cdz-radio', 'cdz-radio-group', 'cdz-range', 'cdz-select',
+  'cdz-spinner', 'cdz-switch', 'cdz-text', 'cdz-textarea', 'cdz-tooltip'
 ];
 
-describe('el atributo hidden', () => {
-  it('cubre todos los componentes registrados salvo cdz-popover', () => {
-    // cdz-popover queda fuera a propósito: su visibilidad la gobierna la
-    // API de popover (:host(:popover-open)), no display en el :host.
-    const registrados = TAGS.filter((t) => customElements.get(t));
-    expect(registrados.length).to.equal(TAGS.length);
+describe('the hidden attribute', () => {
+  it('lists only tags that are actually registered', () => {
+    // The other direction — every registered tag appearing in this list —
+    // cannot be checked here and is enforced in Node instead.
+    const registered = TAGS.filter((tag) => customElements.get(tag));
+    expect(registered).to.have.lengthOf(TAGS.length);
   });
 
   for (const tag of TAGS) {
-    it(`oculta <${tag}> de verdad`, async () => {
+    it(`genuinely hides <${tag}>`, async () => {
       const el = fixtureSync<HTMLElement>(`<${tag} hidden></${tag}>`);
       await (el as HTMLElement & { updateComplete?: Promise<unknown> }).updateComplete;
 
-      // No basta con que el atributo esté: hay que medir lo que gana la
-      // cascada, que es justo lo que el bug demostró.
-      expect(getComputedStyle(el).display, `${tag} ignora hidden`).to.equal('none');
+      // The attribute being present is not enough: what has to be measured
+      // is what wins the cascade, which is exactly what the bug showed.
+      expect(getComputedStyle(el).display, `${tag} ignores hidden`).to.equal('none');
 
       const rect = el.getBoundingClientRect();
-      expect(rect.width + rect.height, `${tag} sigue ocupando espacio`).to.equal(0);
+      expect(rect.width + rect.height, `${tag} still takes up space`).to.equal(0);
     });
   }
 });

@@ -27,7 +27,8 @@
     "test:watch": "web-test-runner --watch",
     "prepublishOnly": "npm run build && npm run analyze",
     "check:fixtures": "node scripts/check-test-fixtures.mjs",
-    "pretest": "npm run check:fixtures"
+    "pretest": "npm run check:fixtures && npm run check:hidden",
+    "check:hidden": "node scripts/check-hidden-coverage.mjs"
   },
   "dependencies": {
     "@kdenza/tokens": "^0.1.0",
@@ -39,6 +40,7 @@
     "@web/dev-server-esbuild": "^2.0.0",
     "@web/test-runner": "^1.0.0",
     "@web/test-runner-chrome": "^1.0.1",
+    "@web/test-runner-commands": "^1.0.1",
     "typescript": "^7.0.2"
   }
 }

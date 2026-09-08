@@ -100,11 +100,15 @@ hierarchy.
       its parts could own alone. Disclosure below the breakpoint, never a
       drawer; `aria-current="location"`, never `"page"`.
 
-Molecules already identified while building the atoms, not yet started:
+Molecules already identified while building the atoms, still to do:
 
-- `cdz-radio-group` — coordinates several `cdz-radio` (mutual exclusion,
-  roving tabindex, group-level `required`) — see the limitation documented
-  in [ADR-0007](decisions/0007-radio-component.md).
+- [x] `cdz-radio-group` —
+      [ADR-0029](decisions/0029-radio-group-composition-that-breaks-semantics.md).
+      It does **not** coordinate several `cdz-radio`, which is what this
+      entry originally assumed. Native grouping does not cross shadow
+      roots, so composing the atoms would have meant reimplementing by
+      hand the four things ADR-0007 chose a native radio to get for free.
+      The group renders its own radios in one shadow root instead.
 - `cdz-avatar-stack` — several overlapping avatars with a "+3" overflow.
   Needs its own group semantics, same as `cdz-radio-group` — see
   [ADR-0022](decisions/0022-avatar-component.md).

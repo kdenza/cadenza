@@ -102,11 +102,48 @@
           desmarca al otro — cada <code>&lt;cdz-radio&gt;</code> vive en su
           propio shadow root, y la agrupación nativa de radios no cruza esa
           frontera. La coordinación real (exclusión mutua, flechas del
-          teclado) es trabajo de una futura molécula
-          <code>cdz-radio-group</code>, no de este átomo.
+          teclado) es trabajo de <code>cdz-radio-group</code>, la molécula
+          que aparece justo abajo, no de este átomo.
         </p>
         <cdz-radio label="Plan mensual" name="plan" checked></cdz-radio>
         <cdz-radio label="Plan anual" name="plan"></cdz-radio>
+      </section>
+
+      <section>
+        <h2 id="cdz-radio-group">cdz-radio-group</h2>
+        <p>
+          La molécula que resuelve la limitación de arriba — y no como se
+          esperaría. No agrupa varios <code>&lt;cdz-radio&gt;</code>: dibuja
+          sus propios radios nativos dentro de un solo shadow root, donde el
+          navegador vuelve a verlos como un grupo real. Componer los átomos
+          habría obligado a reimplementar a mano la exclusión mutua, las
+          flechas, el orden de tabulación y la posición en el conjunto —
+          justo lo que se eligió un radio nativo para no reimplementar.
+        </p>
+        <p>
+          Pruébalo con el teclado: <strong>una sola tabulación</strong> entra
+          al grupo (no una por opción) y las flechas mueven la selección.
+        </p>
+        <cdz-radio-group
+          id="radio-group-default"
+          label="Plan de suscripción"
+          name="suscripcion"
+          value="mensual"
+          helper-text="Puedes cambiarlo cuando quieras."
+        ></cdz-radio-group>
+
+        <p>Horizontal, con una opción deshabilitada y estado de error:</p>
+        <cdz-radio-group
+          id="radio-group-horizontal"
+          label="Frecuencia de envío"
+          orientation="horizontal"
+        ></cdz-radio-group>
+        <cdz-radio-group
+          id="radio-group-error"
+          label="Método de pago"
+          required
+          error-message="Elige un método para continuar."
+        ></cdz-radio-group>
       </section>
 
       <section class="input-stack">

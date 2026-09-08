@@ -5,6 +5,8 @@ import type {
   CdzButton,
   CdzSelect,
   CdzSelectOption,
+  CdzRadioGroup,
+  CdzRadioGroupOption,
   CdzPageNav,
   CdzPageNavSection
 } from '@kdenza/components';
@@ -79,6 +81,36 @@ if (selectError) selectError.options = planOptions;
 
 const selectDisabled = document.querySelector<CdzSelect>('#select-disabled');
 if (selectDisabled) selectDisabled.options = planOptions;
+
+// cdz-radio-group's `options` is a JS property for the same reason
+// cdz-select's is. Unlike cdz-select, though, the group renders its own
+// native radios rather than accepting slotted <cdz-radio> children — see
+// ADR-0029 for why composing the atoms would have broken the grouping.
+const subscriptionOptions: CdzRadioGroupOption[] = [
+  { value: 'mensual', label: 'Mensual' },
+  { value: 'anual', label: 'Anual' },
+  { value: 'equipo', label: 'Equipo' }
+];
+
+const radioGroupDefault = document.querySelector<CdzRadioGroup>('#radio-group-default');
+if (radioGroupDefault) radioGroupDefault.options = subscriptionOptions;
+
+const radioGroupHorizontal = document.querySelector<CdzRadioGroup>('#radio-group-horizontal');
+if (radioGroupHorizontal) {
+  radioGroupHorizontal.options = [
+    { value: 'diario', label: 'Diario' },
+    { value: 'semanal', label: 'Semanal' },
+    { value: 'nunca', label: 'Nunca', disabled: true }
+  ];
+}
+
+const radioGroupError = document.querySelector<CdzRadioGroup>('#radio-group-error');
+if (radioGroupError) {
+  radioGroupError.options = [
+    { value: 'tarjeta', label: 'Tarjeta' },
+    { value: 'transferencia', label: 'Transferencia' }
+  ];
+}
 
 // The table of contents is derived from the page's own headings rather
 // than from a hand-written list. A list would be a second source of truth

@@ -4,6 +4,8 @@ export { CdzInput } from './input/input.js';
 export type { CdzInputType } from './input/input.js';
 export { CdzCheckbox } from './checkbox/checkbox.js';
 export { CdzRadio } from './radio/radio.js';
+export { CdzRadioGroup } from './radio-group/radio-group.js';
+export type { CdzRadioGroupOption, CdzRadioGroupOrientation } from './radio-group/radio-group.js';
 export { CdzText } from './text/text.js';
 export type { CdzTextAs, CdzTextSize } from './text/text.js';
 export { CdzSelect } from './select/select.js';

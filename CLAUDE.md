@@ -294,10 +294,40 @@ before assuming why something non-obvious is the way it is:
   the artefacts as well. A stated preference has a scope, and widening it
   silently decides something on someone's behalf.
 
+- **0027** — `cdz-page-nav`, the first molecule: it owns state (which
+  section is current) that none of its parts could own alone. Disclosure
+  below the breakpoint, never a drawer; `aria-current="location"`, never
+  `"page"`. It also **reintroduced ADR-0025's `hidden` bug five commits
+  after documenting it**, which is why that rule was restated as being
+  about any element given a `display`, not just `:host`.
+
+- **0028** — tests that depend on the rendering pipeline. `@open-wc`'s
+  async `fixture()` falls back to `requestAnimationFrame` when the mounted
+  root has no `updateComplete` — so a plain `<div>` wrapper makes a test
+  wait for a frame a headless runner never paints. It kept CI red for four
+  commits while every local run passed. Four fixtures had the shape, not
+  the two a first grep reported. Enforced now by
+  `scripts/check-test-fixtures.mjs` as `pretest`. Also records that a test
+  module which fails to import is **skipped silently** while the suite
+  still reports green.
+
+- **0029** — `cdz-radio-group`: **composing the atoms would have broken
+  the semantics the atom was chosen for.** Native radio grouping does not
+  cross shadow roots, so slotting `<cdz-radio>` children would have meant
+  hand-reimplementing mutual exclusion, arrow keys, roving tabindex and
+  set position — exactly what ADR-0007 picked a native radio to avoid. The
+  group renders its own radios in one shadow root instead. Verified with
+  **trusted** key events (`sendKeys` over CDP): a synthetic `KeyboardEvent`
+  does not drive native radio behaviour, so a test built on one would be
+  green and measuring nothing. Writing it exposed that ADR-0025's systemic
+  `hidden` test claimed to walk the element registry and did not — leaving
+  `cdz-page-nav` uncovered for five commits, including the ones where it
+  reintroduced that very bug.
+
 ## Atom checklist
 
 See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
-closed; what comes next are molecules.
+closed; molecules are under way (`cdz-page-nav`, `cdz-radio-group`).
 
 ## Current status
 
@@ -307,9 +337,10 @@ navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
 `cdz-switch`, `cdz-range`, `cdz-file-input`, `cdz-link`, `cdz-icon`,
 `cdz-badge`, `cdz-spinner`, `cdz-progress`, `cdz-tooltip`, `cdz-divider`,
 `cdz-avatar`. Plus one primitive (not an atom): `cdz-popover`, on which
-`cdz-select` was rebuilt (see ADR-0010).
+`cdz-select` was rebuilt (see ADR-0010), and two molecules:
+`cdz-page-nav` (ADR-0027) and `cdz-radio-group` (ADR-0029).
 
 Published on the public npm registry: `@kdenza/tokens@0.1.0` and
-`@kdenza/components@0.1.1`. The site is live at
+`@kdenza/components@0.1.3`. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 253 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 284 tests, 0 vulnerabilities. See [README.md](README.md).

@@ -60,7 +60,7 @@ quietly edited out.
 | **Language** | TypeScript (strict, and deliberately without decorators) |
 | **Tokens** | W3C [DTCG](https://tr.designtokens.org/) JSON → [Style Dictionary](https://styledictionary.com) → CSS custom properties |
 | **Build** | Vite 8 · npm workspaces |
-| **Tests** | [@web/test-runner](https://modern-web.dev/docs/test-runner/overview/) in real Chrome, with [axe-core](https://github.com/dequelabs/axe-core) accessibility assertions — 253 tests |
+| **Tests** | [@web/test-runner](https://modern-web.dev/docs/test-runner/overview/) in real Chrome, with [axe-core](https://github.com/dequelabs/axe-core) accessibility assertions — 284 tests |
 | **API docs** | [custom-elements-manifest](https://custom-elements-manifest.open-wc.org/) analyzer |
 | **CI** | GitHub Actions: build, tests and `npm audit` on every push |
 
@@ -111,13 +111,15 @@ npm test           # component tests
 ## Status
 
 **All five atom categories are closed** — forms, text and navigation,
-feedback, media and structure — with 18 atoms plus one reusable primitive:
+feedback, media and structure — with 18 atoms, one reusable primitive and
+two molecules:
 
 `cdz-button` · `cdz-input` · `cdz-checkbox` · `cdz-radio` · `cdz-text` ·
 `cdz-select` · `cdz-textarea` · `cdz-switch` · `cdz-range` ·
 `cdz-file-input` · `cdz-link` · `cdz-icon` · `cdz-badge` · `cdz-spinner` ·
 `cdz-progress` · `cdz-tooltip` · `cdz-divider` · `cdz-avatar` ·
-`cdz-popover` *(primitive)*
+`cdz-popover` *(primitive)* · `cdz-page-nav` *(molecule)* ·
+`cdz-radio-group` *(molecule)*
 
 Plus a hand-drawn icon set of 10, all on one grid.
 
