@@ -109,6 +109,14 @@ nav {
   margin-bottom: var(--spacing-2, 0.5rem);
 }
 
+/* La bio es prosa, no una línea de crédito: un poco de aire arriba para
+   separarla de la firma, y ancho de lectura acotado como el resto de los
+   párrafos de la página. */
+.hero .bio {
+  margin-top: var(--spacing-2, 0.5rem);
+  max-width: 60ch;
+}
+
 h2 {
   font-family: var(--typography-heading-2-font-family, 'Figtree', system-ui, sans-serif);
   font-size: var(--typography-heading-2-font-size, 1.5rem);
