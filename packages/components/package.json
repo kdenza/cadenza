@@ -19,13 +19,15 @@
     "access": "public"
   },
   "license": "MIT",
-  "author": "Mónica Castillo (https://github.com/moni-kyrah)",
+  "author": "M\u00f3nica Castillo (https://github.com/moni-kyrah)",
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json && cp -r src/styles dist/styles",
     "analyze": "cem analyze",
     "test": "web-test-runner",
     "test:watch": "web-test-runner --watch",
-    "prepublishOnly": "npm run build && npm run analyze"
+    "prepublishOnly": "npm run build && npm run analyze",
+    "check:fixtures": "node scripts/check-test-fixtures.mjs",
+    "pretest": "npm run check:fixtures"
   },
   "dependencies": {
     "@kdenza/tokens": "^0.1.0",

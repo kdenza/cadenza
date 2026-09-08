@@ -1,4 +1,4 @@
-import { html, fixture, expect } from '@open-wc/testing';
+import { html, fixture, fixtureSync, expect } from '@open-wc/testing';
 import './icon.js';
 import type { CdzIcon } from './icon.js';
 import { icons, ICON_GRID } from '../shared/icons.js';
@@ -74,10 +74,19 @@ describe('cdz-icon', () => {
   });
 
   it('paints with currentColor so it inherits the surrounding text colour', async () => {
-    const wrapper = await fixture(
+    // fixtureSync, not fixture: the async one awaits `elementUpdated` on
+    // whatever it mounts, and a plain <div> has no `updateComplete`, so it
+    // falls back to `nextFrame()` -- requestAnimationFrame. That makes the
+    // test depend on the browser choosing to paint, which a headless CI
+    // runner does not reliably do: these timed out at mocha's 2s in GitHub
+    // Actions while passing locally. Awaiting the component's own
+    // updateComplete is the guarantee that actually matters, and
+    // getComputedStyle forces style resolution synchronously. See ADR-0027.
+    const wrapper = fixtureSync<HTMLElement>(
       html`<div style="color: rgb(0, 128, 0)"><cdz-icon name="check"></cdz-icon></div>`
     );
     const el = wrapper.querySelector<CdzIcon>('cdz-icon')!;
+    await el.updateComplete;
     const svg = el.shadowRoot!.querySelector('svg')!;
     expect(getComputedStyle(svg).stroke).to.equal('rgb(0, 128, 0)');
     expect(getComputedStyle(svg).fill).to.equal('none');
@@ -93,12 +102,21 @@ describe('cdz-icon', () => {
     const lg = await fixture<CdzIcon>(html`<cdz-icon name="check" size="lg"></cdz-icon>`);
     expect(getComputedStyle(lg.shadowRoot!.querySelector('svg')!).width).to.equal('24px');
 
-    const wrapper = await fixture(
+    // fixtureSync, not fixture: the async one awaits `elementUpdated` on
+    // whatever it mounts, and a plain <div> has no `updateComplete`, so it
+    // falls back to `nextFrame()` -- requestAnimationFrame. That makes the
+    // test depend on the browser choosing to paint, which a headless CI
+    // runner does not reliably do: these timed out at mocha's 2s in GitHub
+    // Actions while passing locally. Awaiting the component's own
+    // updateComplete is the guarantee that actually matters, and
+    // getComputedStyle forces style resolution synchronously. See ADR-0027.
+    const wrapper = fixtureSync<HTMLElement>(
       html`<div style="font-size: 32px">
         <cdz-icon name="check" size="inherit"></cdz-icon>
       </div>`
     );
     const inherited = wrapper.querySelector<CdzIcon>('cdz-icon')!;
+    await inherited.updateComplete;
     expect(getComputedStyle(inherited.shadowRoot!.querySelector('svg')!).width).to.equal('32px');
   });
 

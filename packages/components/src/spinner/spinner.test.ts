@@ -1,4 +1,4 @@
-import { html, fixture, expect } from '@open-wc/testing';
+import { html, fixture, fixtureSync, expect } from '@open-wc/testing';
 import './spinner.js';
 import type { CdzSpinner } from './spinner.js';
 import { ICON_GRID } from '../shared/icons.js';
@@ -77,10 +77,19 @@ describe('cdz-spinner', () => {
   });
 
   it('inherits its colour from context via currentColor', async () => {
-    const wrapper = await fixture(
+    // fixtureSync, not fixture: the async one awaits `elementUpdated` on
+    // whatever it mounts, and a plain <div> has no `updateComplete`, so it
+    // falls back to `nextFrame()` -- requestAnimationFrame. That makes the
+    // test depend on the browser choosing to paint, which a headless CI
+    // runner does not reliably do: these timed out at mocha's 2s in GitHub
+    // Actions while passing locally. Awaiting the component's own
+    // updateComplete is the guarantee that actually matters, and
+    // getComputedStyle forces style resolution synchronously. See ADR-0027.
+    const wrapper = fixtureSync<HTMLElement>(
       html`<div style="color: rgb(0, 128, 0)"><cdz-spinner></cdz-spinner></div>`
     );
     const el = wrapper.querySelector<CdzSpinner>('cdz-spinner')!;
+    await el.updateComplete;
     expect(getComputedStyle(el.shadowRoot!.querySelector('svg')!).stroke).to.equal(
       'rgb(0, 128, 0)'
     );
@@ -96,10 +105,19 @@ describe('cdz-spinner', () => {
     const lg = await fixture<CdzSpinner>(html`<cdz-spinner size="lg"></cdz-spinner>`);
     expect(getComputedStyle(lg.shadowRoot!.querySelector('svg')!).width).to.equal('24px');
 
-    const wrapper = await fixture(
+    // fixtureSync, not fixture: the async one awaits `elementUpdated` on
+    // whatever it mounts, and a plain <div> has no `updateComplete`, so it
+    // falls back to `nextFrame()` -- requestAnimationFrame. That makes the
+    // test depend on the browser choosing to paint, which a headless CI
+    // runner does not reliably do: these timed out at mocha's 2s in GitHub
+    // Actions while passing locally. Awaiting the component's own
+    // updateComplete is the guarantee that actually matters, and
+    // getComputedStyle forces style resolution synchronously. See ADR-0027.
+    const wrapper = fixtureSync<HTMLElement>(
       html`<div style="font-size: 40px"><cdz-spinner size="inherit"></cdz-spinner></div>`
     );
     const inherited = wrapper.querySelector<CdzSpinner>('cdz-spinner')!;
+    await inherited.updateComplete;
     expect(getComputedStyle(inherited.shadowRoot!.querySelector('svg')!).width).to.equal('40px');
   });
 

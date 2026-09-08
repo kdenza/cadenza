@@ -222,7 +222,7 @@
         <h2>Lo que salió mal</h2>
         <p>
           Un caso de estudio que solo cuenta los aciertos no sirve para juzgar
-          a nadie. Tres correcciones que quedaron escritas en los ADRs:
+          a nadie. Cuatro correcciones que quedaron escritas en los ADRs:
         </p>
         <ul class="mistakes">
           <li>
@@ -243,6 +243,17 @@
             atributo <code>hidden</code> no funcionaba en ninguno de los 18
             componentes —una regla de autor le ganaba a la del navegador— y lo
             encontró el sitio ya desplegado, no la suite.
+          </li>
+          <li>
+            <strong>CI en rojo cuatro commits seguidos, verde en local.</strong>
+            Cuatro tests montaban el componente dentro de un
+            <code>&lt;div&gt;</code>, y esperar a un <code>&lt;div&gt;</code>
+            termina esperando a que el navegador pinte un frame. En una
+            máquina con compositor llega en milisegundos; en un runner
+            headless, no llega. Dos fallaban y dos pasaban por suerte. El
+            arreglo a mano ya había fallado dos veces antes en este proyecto,
+            así que ahora la regla la verifica un script antes de que arranque
+            el navegador.
           </li>
         </ul>
       </section>

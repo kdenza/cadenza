@@ -87,11 +87,14 @@ console errors. Compiling without errors would have proved none of that.
 - **Easier:** there is a URL to put on a CV, and every push updates it.
 - **New:** a red build now blocks the view that something is wrong instead
   of letting it pass. That is the point.
-- **To revisit:** the deploy runs on the same push as CI but does not
-  *depend* on it — Pages and CI are separate workflows. If the tests fail,
-  the site publishes anyway. Chaining them requires `workflow_run`, which
+- **~~To revisit~~ — materialised, see [ADR-0028](0028-tests-that-depend-on-the-rendering-pipeline.md):**
+  the deploy runs on the same push as CI but does not *depend* on it —
+  Pages and CI are separate workflows. If the tests fail, the site
+  publishes anyway. Chaining them requires `workflow_run`, which
   complicates the trigger; left as is knowingly while the repository has a
-  single maintainer.
+  single maintainer. Days later CI went red for four commits and the site
+  published over all four. The decision stands, but it is no longer
+  hypothetical: it was paid.
 - **To revisit:** the gallery is still not deployed. It is the viewer with
   the live accessibility audit — precisely what best demonstrates the
   method — but it is a private package with its own server. Publishing it
