@@ -16,11 +16,10 @@ export const progressStyles = css`
     display: block;
   }
 
-  /* Sin esto, el atributo hidden no hace nada en este componente: la regla
-     [hidden] { display: none } del navegador es de origen UA, y el :host de
-     arriba es de autor, así que gana el de autor y el elemento se sigue
-     viendo. Es la contrapartida obligatoria de cualquier :host que fije
-     display -- ver ADR-0025. */
+  /* Without this the hidden attribute does nothing on this component: the
+     browser's [hidden] { display: none } is a UA rule, and the :host above
+     is an author rule, so the author rule wins and the element stays
+     visible. Mandatory counterpart to any display -- see ADR-0025. */
   :host([hidden]) {
     display: none;
   }

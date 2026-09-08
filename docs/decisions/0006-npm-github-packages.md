@@ -1,4 +1,4 @@
-# ADR-0006: pnpm → npm, y publicar vía GitHub Packages
+# ADR-0006: pnpm → npm, and publishing via GitHub Packages
 
 **Status:** Accepted — supersedes the pnpm portion of ADR-0001
 **Date:** 2026-07-27

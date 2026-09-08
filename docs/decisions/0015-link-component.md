@@ -6,7 +6,7 @@
 
 ## Context
 
-Eleventh atom, and the only entry in the roadmap's "Texto y navegación"
+Eleventh atom, and the only entry in the roadmap's "Text and navigation"
 section. A link looks like the least interesting control left — it's
 almost entirely native behavior — and the decisions worth recording turn
 out to be about what this component deliberately *refuses* to do.

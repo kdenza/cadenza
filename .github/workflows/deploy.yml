@@ -3,18 +3,19 @@ name: Deploy site
 on:
   push:
     branches: [main]
-  # Permite lanzarlo a mano desde la pestaña Actions sin tener que hacer
-  # un commit vacío.
+  # Allows launching it by hand from the Actions tab without having to make
+  # an empty commit.
   workflow_dispatch:
 
-# Los permisos mínimos que pide `actions/deploy-pages`.
+# The minimum permissions `actions/deploy-pages` asks for.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Un despliegue a la vez, y sin cancelar el que ya está en curso: cortar
-# un deploy a medias deja el sitio en un estado indeterminado.
+# One deployment at a time, and without cancelling the one already in
+# progress: cutting a deploy halfway leaves the site in an indeterminate
+# state.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -32,34 +33,35 @@ jobs:
 
       - run: npm ci
 
-      - name: Construir el sitio
-        # NODE_ENV=production es lo que activa `base: '/cadenza/'` en
-        # vite.config.ts. GitHub Pages sirve un sitio de proyecto desde
-        # /<repo>/, no desde la raíz del dominio; sin ese prefijo, todos
-        # los assets darían 404 aunque el build fuera correcto.
+      - name: Build the site
+        # NODE_ENV=production is what switches on `base: '/cadenza/'` in
+        # vite.config.ts. GitHub Pages serves a project site from /<repo>/,
+        # not from the domain root; without that prefix every asset would
+        # 404 even if the build were correct.
         env:
           NODE_ENV: production
         run: npm run build
 
       - uses: actions/configure-pages@v5
         with:
-          # Si Pages todavía no está configurado en modo "GitHub Actions",
-          # esta acción falla con un 404 opaco de la API ("Get Pages site
-          # failed"). Con enablement lo intenta habilitar ella misma, así
-          # que el orden entre tocar el ajuste y lanzar el workflow deja de
-          # importar. Si el fallo fuera por plan o permisos, el error que
-          # devuelve es explícito sobre eso en vez de un Not Found.
+          # If Pages is not configured in "GitHub Actions" mode yet, this
+          # action fails with an opaque 404 from the API ("Get Pages site
+          # failed"). With enablement it tries to enable Pages itself, so
+          # the order between changing the setting and launching the
+          # workflow stops mattering. If the failure were about the plan or
+          # permissions, the error it returns is explicit about that rather
+          # than a Not Found.
           enablement: true
 
       - uses: actions/upload-pages-artifact@v4
         with:
-          # Solo el sitio. @kdenza/gallery es privado y sigue sin
-          # desplegarse -- ver ADR-0004.
+          # The site only. @kdenza/gallery is private and still is not
+          # deployed -- see ADR-0004.
           path: packages/site/dist
 
   deploy:
-    # Nada se publica si CI no pasa: el workflow de CI corre sobre el mismo
-    # push, y este job espera a que el sitio compile aquí también.
+    # Nothing is published if CI does not pass: the CI workflow runs on the
+    # same push, and this job waits for the site to build here too.
     needs: build
     runs-on: ubuntu-latest
     environment:
