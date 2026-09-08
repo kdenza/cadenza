@@ -1,4 +1,4 @@
-# ADR-0017: `<cdz-badge>` y la paleta de estado — primera expansión real de la identidad visual
+# ADR-0017: `<cdz-badge>` and the status palette — the first real expansion of the visual identity
 
 **Status:** Accepted
 **Date:** 2026-08-02
@@ -6,53 +6,53 @@
 
 ## Context
 
-Primer componente de la sección "Feedback" del roadmap, y el primero de
-todo el sistema que necesita **variantes semánticas**. Los doce átomos
-anteriores tenían *estados* (error, disabled, checked) pero nunca
-variantes: cada uno hacía una sola cosa con un solo tratamiento visual.
+First component in the roadmap's "Feedback" section, and the first in the
+whole system to need **semantic variants**. The twelve atoms before it had
+*states* (error, disabled, checked) but never variants: each did one thing
+with one visual treatment.
 
-Eso destapó un hueco real en la identidad: desde ADR-0002 el sistema
-tiene lila, rosa, azul, rojo, tinta y neutrales — **no hay verde ni
-ámbar**. Un badge de éxito o de advertencia no se podía construir
-reusando nada.
+That exposed a real gap in the identity: since ADR-0002 the system has
+had lilac, rose, blue, red, ink and neutrals — **there is no green and no
+amber**. A success or warning badge could not be built by reusing
+anything.
 
 ## Decision
 
-### Se expandió la paleta, con la misma disciplina de ADR-0002
+### The palette was expanded, with ADR-0002's discipline
 
-Es la primera vez desde ADR-0002 que se agregan colores globales, así que
-se siguió el mismo método: **contraste calculado antes de elegir**, no
-después de que "se viera bien".
+It is the first time global colours have been added since ADR-0002, so the
+same method was followed: **contrast calculated before choosing**, not
+after something "looked right".
 
-Nuevas rampas globales: `green` y `amber` (100/300/700/900 cada una).
-`blue` y `red` se extendieron con los escalones que les faltaban
-(100/300/700/900 y 100/900 respectivamente), y `neutral` ganó un `200`.
+New global ramps: `green` and `amber` (100/300/700/900 each). `blue` and
+`red` were extended with the steps they were missing (100/300/700/900 and
+100/900 respectively), and `neutral` gained a `200`.
 
-Los tonos se eligieron apagados y cálidos a propósito — un verde salvia y
-un ámbar tostado antes que los verdes/amarillos saturados de un framework
-genérico — para que convivan con el lila y el rosa de la identidad en vez
-de pelearse con ellos.
+The hues were deliberately chosen muted and warm — a sage green and a
+toasted amber rather than the saturated greens and yellows of a generic
+framework — so they live alongside the identity's lilac and rose instead
+of fighting them.
 
-### Capa semántica nueva: `color.status.*`
+### A new semantic layer: `color.status.*`
 
 `color.status.{neutral,info,success,warning,error}.{background,foreground}`,
-bifurcada por modo como el resto de la capa semántica. El badge no
-referencia `green.700` nunca: referencia `status.success.foreground`. Eso
-es lo que va a permitir que un futuro alert, toast o tabla de estado
-compartan exactamente los mismos colores sin volver a decidirlos.
+forked per mode like the rest of the semantic layer. The badge never
+references `green.700`: it references `status.success.foreground`. That is
+what will let a future alert, toast or status table share exactly the same
+colours without deciding them again.
 
-Estrategia por modo: en claro, **fondo tenue + texto fuerte**; en oscuro,
-**fondo profundo + texto claro**.
+Strategy per mode: in light, **muted background + strong text**; in dark,
+**deep background + light text**.
 
-### Los 20 pares, verificados dos veces
+### The 20 pairs, verified twice
 
-Primero con matemática de luminancia relativa antes de escribir un solo
-token, y después **releyendo del navegador** los valores computados sobre
-el componente ya construido. Los números coincidieron hasta el centésimo,
-lo que confirma que el pipeline global → semantic → component → CSS
-custom property no deforma nada por el camino.
+First with relative-luminance maths before a single token was written, and
+afterwards by **reading back from the browser** the computed values on the
+finished component. The numbers matched to the hundredth, which confirms
+the global → semantic → component → CSS custom property pipeline deforms
+nothing along the way.
 
-| Variante | Claro texto/chip | Claro borde/página | Oscuro texto/chip | Oscuro borde/página |
+| Variant | Light text/chip | Light border/page | Dark text/chip | Dark border/page |
 |---|---|---|---|---|
 | neutral | 8.26:1 | 9.92:1 | 6.37:1 | 10.01:1 |
 | info | 6.95:1 | 7.72:1 | 7.37:1 | 8.26:1 |
@@ -60,93 +60,92 @@ custom property no deforma nada por el camino.
 | warning | 5.77:1 | 6.16:1 | 7.70:1 | 9.06:1 |
 | error | 5.44:1 | 6.04:1 | 4.67:1 | 5.14:1 |
 
-Los diez pares de texto pasan AA (4.5:1) y los diez bordes superan 3:1.
+All ten text pairs clear AA (4.5:1) and all ten borders exceed 3:1.
 
-**Un fallo real durante el diseño:** el primer candidato para `neutral` en
-oscuro usaba `neutral.400` sobre `neutral.800` → **4.00:1**. Ese par ya
-existe en el sistema y ADR-0002 lo tiene registrado como el tratamiento de
-*disabled*, donde WCAG 1.4.3 lo exime. Aquí sería texto de contenido real,
-sin exención posible. Se resolvió agregando `neutral.200` (6.37:1). El
-error es instructivo: **un par de colores aprobado para un rol no viaja
-automáticamente a otro rol**, que es exactamente lo que ADR-0002 ya
-advertía y volvió a pasar igual.
+**A real failure during design:** the first candidate for `neutral` in
+dark used `neutral.400` on `neutral.800` → **4.00:1**. That pair already
+exists in the system, and ADR-0002 records it as the *disabled* treatment,
+where WCAG 1.4.3 exempts it. Here it would be real content text, with no
+exemption available. Resolved by adding `neutral.200` (6.37:1). The
+mistake is instructive: **a colour pair approved for one role does not
+automatically travel to another role**, which is exactly what ADR-0002
+already warned about and happened again anyway.
 
-### El borde comparte el color del texto
+### The border shares the text colour
 
-Los fondos tenues quedan muy cerca de la página en luminosidad (≈1.1:1),
-así que sin contorno el chip no tiene borde localizable. Usar el color del
-texto como borde resuelve la definición sin inventar un tercer token, y
-garantiza ≥3:1 contra la página gratis: ese color ya tuvo que pasar 4.5:1
-como texto.
+The muted backgrounds sit very close to the page in luminance (≈1.1:1), so
+without an outline the chip has no locatable edge. Using the text colour
+as the border solves definition without inventing a third token, and
+guarantees ≥3:1 against the page for free: that colour already had to
+clear 4.5:1 as text.
 
-### El ícono refuerza; no es lo que hace accesible al badge
+### The icon reinforces; it is not what makes the badge accessible
 
-Aquí hubo una **afirmación mía que había que corregir**. La primera versión
-del JSDoc y de la copy del sitio decía que sin ícono las variantes se
-comunicarían "solo por color". Es falso: el **texto** del badge
-("Completado", "Fallido") ya es una señal no cromática perfectamente
-suficiente para WCAG 1.4.1.
+There was **a claim of mine here that had to be corrected**. The first
+version of the JSDoc and of the site copy said that without the icon the
+variants would be communicated "by colour alone". That is false: the
+badge's **text** ("Completado", "Fallido") is already a perfectly
+sufficient non-chromatic signal for WCAG 1.4.1.
 
-Lo que el ícono realmente aporta es una señal de forma que **sobrevive al
-escaneo**: en una lista larga de badges, alguien que no separa los tonos
-recibe una pista por fila sin tener que leer cada etiqueta. Es una mejora
-real, pero es refuerzo, no el mecanismo de cumplimiento.
+What the icon actually contributes is a shape cue that **survives
+scanning**: in a long list of badges, someone who cannot separate the hues
+gets a per-row hint without reading every label. That is a real
+improvement, but it is reinforcement, not the compliance mechanism.
 
-El riesgo genuino de 1.4.1 es un badge cuyo texto no dice el estado —
-`<cdz-badge variant="error">3</cdz-badge>`, donde el rojo es lo único que
-significa "errores". Ningún ícono repara eso; la respuesta es que el
-estado va en el texto. Queda dicho en el JSDoc porque ninguna API puede
-detectarlo.
+The genuine 1.4.1 risk is a badge whose text does not state the status —
+`<cdz-badge variant="error">3</cdz-badge>`, where red is the only thing
+meaning "errors". No icon repairs that; the answer is that the status
+belongs in the text. It is said in the JSDoc because no API can detect it.
 
-`hideIcon` es opt-out y no opt-in, para que la disposición reforzada sea
-la que sale sin pensarlo.
+`hideIcon` is opt-out rather than opt-in, so the reinforced arrangement is
+what you get without thinking about it.
 
-**Límite conocido del refuerzo a este tamaño:** los íconos del badge van a
-`sm` (16px), y ADR-0016 registra que `info` y `alert-circle` no se
-distinguen entre sí a ese tamaño. O sea que la señal de forma separa
-*info/error* de *success/warning*, pero no separa info de error por sí
-sola. El texto sí. Subirlos a `md` lo arreglaría y los dejaría más grandes
-que el texto de 14px que acompañan, que se ve peor — la compensación se tomó a
-sabiendas.
+**Known limit of that reinforcement at this size:** badge icons render at
+`sm` (16px), and ADR-0016 records that `info` and `alert-circle` are not
+tellable apart at that size. So the shape cue separates *info/error* from
+*success/warning*, but does not separate info from error on its own. The
+text does. Bumping them to `md` would fix it and leave them larger than
+the 14px text they accompany, which reads worse — the trade was taken
+knowingly.
 
-### No es una live region
+### It is not a live region
 
-El badge renderiza un `<span>` pelado alrededor del texto. Nada de
-`role="status"` ni `aria-live`: un badge es **contenido**, y convertir
-cada uno en región viva haría que interrumpan lo que la persona está
-leyendo. Ese comportamiento le corresponde a un futuro alert/toast, donde
-el contenido sí aparece después de cargar la página.
+The badge renders a bare `<span>` around the text. No `role="status"` and
+no `aria-live`: a badge is **content**, and turning each one into a live
+region would make them interrupt whatever the person is reading. That
+behaviour belongs to a future alert/toast, where the content does arrive
+after page load.
 
 ## Consequences
 
-- **Más fácil:** cualquier componente futuro que necesite semántica de
-  estado (alert, toast, tabla, tooltip de error) referencia
-  `color.status.*` y hereda los contrastes ya verificados.
-- **A revisar:** el badge no es descartable. Un badge con "x" para
-  cerrarlo es interactivo, necesita foco, `aria-label` en el botón y
-  manejo de teclado — eso es una molécula, no este átomo.
-- **A revisar:** no hay variante de tamaño. Si aparece la necesidad de un
-  badge más pequeño, hay que revisar el tamaño del ícono junto con él (ver el
-  límite de 16px arriba), no por separado.
-- **A revisar:** `green` y `amber` solo se ejercitan aquí por ahora. Sus
-  escalones 300/900 (los del modo oscuro) recién van a probarse de verdad
-  cuando un segundo componente los use.
+- **Easier:** any future component needing status semantics (alert, toast,
+  table, error tooltip) references `color.status.*` and inherits the
+  already-verified contrasts.
+- **To revisit:** the badge is not dismissible. A badge with an "x" to
+  close it is interactive, needs focus, an `aria-label` on the button and
+  keyboard handling — that is a molecule, not this atom.
+- **To revisit:** there is no size variant. If a smaller badge becomes
+  necessary, the icon size has to be revisited alongside it (see the 16px
+  limit above), not separately.
+- **To revisit:** `green` and `amber` are only exercised here for now.
+  Their 300/900 steps (the dark-mode ones) will not be genuinely tested
+  until a second component uses them.
 
 ## Action Items
 
-1. [x] Paleta de estado diseñada con contraste calculado antes de elegir;
-   un candidato descartado por fallar (4.00:1) y reemplazado por un
-   `neutral.200` nuevo.
-2. [x] Tres capas: rampas globales nuevas, `color.status.*` semántico
-   bifurcado por modo, y `component/badge.tokens.json`.
-3. [x] `<cdz-badge>` (Lit): cinco variantes, ícono por defecto en las
-   semánticas, `hide-icon` para sacarlo, sin live region.
-4. [x] Tests: texto slotteado, neutral sin ícono, ícono correcto por
-   variante, opt-out, ícono fuera del árbol de accesibilidad, ausencia de
-   role/aria-live, accesibilidad en las cinco variantes, y que las cinco
-   resuelvan a cinco colores distintos (un token que fallara en resolver
-   pasaría desapercibido de otro modo) — 158/158.
-5. [x] Verificado en navegador que los 20 pares computados coinciden con
-   la matemática previa, en ambos modos.
-6. [x] Corregida una afirmación de accesibilidad sobreestimada en el
-   JSDoc y en la copy del sitio.
+1. [x] Status palette designed with contrast calculated before choosing;
+   one candidate discarded for failing (4.00:1) and replaced by a new
+   `neutral.200`.
+2. [x] Three layers: new global ramps, semantic `color.status.*` forked
+   per mode, and `component/badge.tokens.json`.
+3. [x] `<cdz-badge>` (Lit): five variants, icon by default on the semantic
+   ones, `hide-icon` to remove it, no live region.
+4. [x] Tests: slotted text, neutral without an icon, correct icon per
+   variant, opt-out, icon outside the accessibility tree, absence of
+   role/aria-live, accessibility across all five variants, and that the
+   five resolve to five distinct colours (a token that failed to resolve
+   would otherwise go unnoticed) — 158/158.
+5. [x] Verified in-browser that the 20 computed pairs match the prior
+   maths, in both modes.
+6. [x] Corrected an overstated accessibility claim in the JSDoc and in the
+   site copy.

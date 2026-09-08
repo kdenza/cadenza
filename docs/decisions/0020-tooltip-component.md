@@ -1,4 +1,4 @@
-# ADR-0020: `<cdz-tooltip>` — dos cosas que no cruzan un shadow root, por la misma razón
+# ADR-0020: `<cdz-tooltip>` — two things that do not cross a shadow root, for the same reason
 
 **Status:** Accepted
 **Date:** 2026-08-02
@@ -6,133 +6,130 @@
 
 ## Context
 
-Último componente de "Feedback", y el que estaba marcado desde el
-principio del roadmap para el final por ser el más difícil de hacer
-accesible. Llegó con `<cdz-popover>` (ADR-0010) ya construido, lo que
-resolvía posicionamiento y capa flotante — o eso parecía.
+Last component in "Feedback", and the one flagged from the start of the
+roadmap to be left until the end for being the hardest to make accessible.
+It arrived with `<cdz-popover>` (ADR-0010) already built, which solved
+positioning and the floating layer — or so it seemed.
 
 ## Decision
 
-### El hallazgo que define la arquitectura: el shadow root bloquea dos cosas distintas
+### The finding that defines the architecture: a shadow root blocks two different things
 
-La estructura obvia —disparador puesto por quien consume (DOM claro),
-burbuja renderizada en el shadow root del componente— **no funciona**, y
-falla de dos maneras independientes que resultan tener la misma causa.
+The obvious structure — trigger supplied by the consumer (light DOM),
+bubble rendered in the component's shadow root — **does not work**, and it
+fails in two independent ways that turn out to have the same cause.
 
-**1. La referencia ARIA no cruza.** `aria-describedby` resuelve ids
-dentro de un solo *tree scope*. Verificado además que la API moderna,
-`ariaDescribedByElements`, existe y está soportada, pero al asignarle un
-elemento que vive *dentro* de un shadow root desde un disparador de
-afuera **descarta la referencia sin lanzar error**: el arreglo se lee de
-vuelta con `length: 0`. La dirección contraria (shadow → claro) sí
-funciona; solo se bloquea hacia adentro.
+**1. The ARIA reference does not cross.** `aria-describedby` resolves ids
+within a single *tree scope*. Also verified that the modern API,
+`ariaDescribedByElements`, exists and is supported, but when assigned an
+element living *inside* a shadow root from a trigger outside it,
+**discards the reference without throwing**: the array reads back with
+`length: 0`. The opposite direction (shadow → light) does work; only
+inward is blocked.
 
-**2. El anclaje visual tampoco cruza.** Esto se descubrió después, y
-duele más porque el CSS se veía perfecto: `anchor-name` en el disparador,
-`position-anchor` en la burbuja, mismo nombre, y aun así la burbuja
-aparecía en (0,0). Aislado con una prueba mínima:
+**2. Visual anchoring does not cross either.** This was discovered later,
+and it stings more because the CSS looked perfect: `anchor-name` on the
+trigger, `position-anchor` on the bubble, same name, and still the bubble
+appeared at (0,0). Isolated with a minimal probe:
 
-| Disposición | ¿Se ancla? |
+| Arrangement | Does it anchor? |
 |---|---|
-| Disparador y burbuja en el **mismo** shadow root (lo que hace `cdz-select`) | Sí — burbuja justo bajo el disparador |
-| Disparador en DOM claro, burbuja en shadow root | **No** — burbuja en (0,0) |
+| Trigger and bubble in the **same** shadow root (what `cdz-select` does) | Yes — bubble right under the trigger |
+| Trigger in light DOM, bubble in a shadow root | **No** — bubble at (0,0) |
 
-`anchor-name` es *tree-scoped*, exactamente igual que los ids. ADR-0010
-había documentado que el anclaje funciona "sin importar qué código lo
-haya seteado" — cierto, pero solo mientras ambos elementos comparten
-scope, que era el caso de `cdz-select` y no es el de un tooltip.
+`anchor-name` is *tree-scoped*, exactly like ids. ADR-0010 had documented
+that anchoring works "regardless of which code set it" — true, but only
+while both elements share a scope, which was `cdz-select`'s case and is
+not a tooltip's.
 
-**Consecuencia:** los dos nodos auxiliares —la descripción accesible y la
-burbuja visible— se construyen imperativamente como hijos en el **DOM
-claro** del componente, compartiendo scope con el disparador. Por eso
-`render()` no tiene más que un `<slot>`, y los estilos alcanzan la
-burbuja con `::slotted()`.
+**Consequence:** both auxiliary nodes — the accessible description and the
+visible bubble — are built imperatively as children in the component's
+**light DOM**, sharing scope with the trigger. That is why `render()` is
+nothing but a `<slot>`, and the styles reach the bubble with
+`::slotted()`.
 
-La descripción se oculta recortándola, nunca con `display: none`: un nodo
-no renderizado no está en el árbol de accesibilidad, lo que anularía todo
-el arreglo.
+The description is hidden by clipping, never with `display: none`: an
+unrendered node is not in the accessibility tree, which would defeat the
+whole fix.
 
-El texto queda duplicado entre ambos nodos. `aria-description` (string,
-sin referencia por id) eliminaría la duplicación y está soportado en este
-navegador, pero su soporte en lectores de pantalla es más joven que el de
-`aria-describedby`. Queda como simplificación a revisar.
+The text ends up duplicated across both nodes. `aria-description` (a
+string, no id reference) would remove the duplication and is supported in
+this browser, but its screen-reader support is younger than
+`aria-describedby`'s. Left as a simplification to revisit.
 
-### Por qué el popover es `manual`
+### Why the popover is `manual`
 
-`<cdz-popover>` usa `auto` por defecto, y los popovers `auto` **se
-cierran entre sí** — verificado. Un tooltip que apareciera mientras un
-`<cdz-select>` está desplegado cerraría el listbox: bug de interacción
-real, no hipotético. Los `manual` conviven con los `auto` en ambas
-direcciones, así que el tooltip usa `manual` y paga el precio de manejar
-Escape por su cuenta.
+`<cdz-popover>` uses `auto` by default, and `auto` popovers **dismiss each
+other** — verified. A tooltip appearing while a `<cdz-select>` is open
+would close the listbox: a real interaction bug, not a hypothetical one.
+`manual` popovers coexist with `auto` ones in both directions, so the
+tooltip uses `manual` and pays the price of handling Escape itself.
 
 ### WCAG 1.4.13 (Content on Hover or Focus)
 
-Las tres condiciones, deliberadas:
+All three conditions, deliberately:
 
-- **Descartable** — Escape cierra sin mover puntero ni foco.
-- **Apuntable** — salir del disparador *agenda* el cierre en vez de
-  cerrar de inmediato, y entrar a la burbuja lo cancela. Importa sobre
-  todo con magnificación de pantalla, donde leer el tooltip puede exigir
-  poner el puntero encima.
-- **Persistente** — nada lo cierra por temporizador.
+- **Dismissible** — Escape closes without moving pointer or focus.
+- **Hoverable** — leaving the trigger *schedules* the close rather than
+  closing immediately, and entering the bubble cancels it. This matters
+  most with screen magnification, where reading the tooltip can require
+  putting the pointer on it.
+- **Persistent** — nothing closes it on a timer.
 
-El foco abre sin retraso; el hover espera, para que pasar el puntero
-sobre una fila de controles no dispare un tooltip por cada uno.
+Focus opens with no delay; hover waits, so sweeping the pointer across a
+row of controls does not fire a tooltip for each one.
 
-### Lo que no es
+### What it is not
 
-Un tooltip no puede contener nada interactivo: no se llega a él ni con
-Tab ni como contenedor navegable, así que cualquier cosa enfocable
-adentro quedaría inalcanzable. `text` es un string y no un slot
-precisamente para que eso sea imposible de equivocar. Un panel flotante
-con botones o enlaces es un popover, y `<cdz-popover>` ya es el primitivo
-para eso.
+A tooltip cannot contain anything interactive: it is reachable neither by
+Tab nor as a navigable container, so anything focusable inside would be
+unreachable. `text` is a string and not a slot precisely so that is
+impossible to get wrong. A floating panel with buttons or links is a
+popover, and `<cdz-popover>` is already the primitive for that.
 
-### Un artefacto de verificación que casi se lee como bug
+### A verification artefact that almost read as a bug
 
-Con `.focus()` desde script el tooltip no abría, y el listener de
-`focusin` no se disparaba pese a que `activeElement` sí cambiaba. Causa:
-cuando el documento no tiene foco, `.focus()` mueve `activeElement` pero
-**no emite eventos de foco**. Con un Tab real —tras un clic que le da
-foco al documento— abre correctamente.
+With `.focus()` from a script the tooltip would not open, and the
+`focusin` listener never fired even though `activeElement` did change.
+Cause: when the document does not have focus, `.focus()` moves
+`activeElement` but **emits no focus events**. With a real Tab — after a
+click that gives the document focus — it opens correctly.
 
-Vale anotar que los tests unitarios no lo habrían detectado: despachan
-`FocusEvent` sintéticos, que saltan el sistema real de foco. Prueban que
-el manejador funciona, no que el evento llegue.
+Worth noting the unit tests could not have caught it: they dispatch
+synthetic `FocusEvent`s, which bypass the real focus system. They prove
+the handler works, not that the event arrives.
 
 ## Consequences
 
-- **Más fácil:** queda escrito que shadow DOM bloquea *referencias por
-  nombre* en general —ids de ARIA y `anchor-name` de CSS— y no solo una
-  de las dos. Cualquier componente futuro que relacione un elemento
-  puesto por quien consume con uno propio choca con lo mismo.
-- **A revisar:** `aria-description` como forma de eliminar la
-  duplicación de texto.
-- **A revisar:** sin tooltips en touch. No hay hover, y el foco llega
-  solo al tocar, que además activa el control. Los tooltips son
-  intrínsecamente un patrón de puntero y teclado; en móvil la
-  información debería estar visible o en un popover explícito.
-- **A revisar:** la burbuja vive en el DOM claro, o sea que es visible
-  para el CSS de quien consume. Es el precio de que el anclaje funcione,
-  pero rompe la encapsulación que el resto de los componentes sí tienen.
+- **Easier:** it is now written down that shadow DOM blocks *name
+  references* in general — ARIA ids and CSS `anchor-name` — and not just
+  one of the two. Any future component relating a consumer-supplied
+  element to one of its own hits the same wall.
+- **To revisit:** `aria-description` as a way to remove the text
+  duplication.
+- **To revisit:** no tooltips on touch. There is no hover, and focus only
+  arrives on tap, which also activates the control. Tooltips are
+  intrinsically a pointer-and-keyboard pattern; on mobile the information
+  should be visible or in an explicit popover.
+- **To revisit:** the bubble lives in the light DOM, which means it is
+  visible to the consumer's CSS. That is the price of anchoring working,
+  but it breaks the encapsulation every other component does have.
 
 ## Action Items
 
-1. [x] Verificadas en navegador las trampas antes de diseñar: referencias
-   ARIA cruzando shadow roots (incluido el descarte silencioso de
-   `ariaDescribedByElements`), y que los popovers `auto` se cierran entre
-   sí.
-2. [x] Descubierto durante la implementación que el anclaje CSS tampoco
-   cruza el shadow root, aislado con una prueba mínima, y reestructurado
-   el componente para construir ambos nodos en el DOM claro.
-3. [x] `<cdz-tooltip>` (Lit): descripción oculta con `role="tooltip"`,
-   burbuja `aria-hidden` y `manual`, hover con retraso, foco sin
-   retraso, Escape, y cierre agendado para permitir el viaje del puntero.
-4. [x] Tests: id que resuelve de verdad desde el documento, ocultamiento
-   por recorte, burbuja fuera del árbol de accesibilidad, popover
-   `manual`, apertura por foco y por hover, Escape, los tres criterios de
-   1.4.13, ids únicos por instancia, sincronización de texto y el aviso
-   cuando no hay disparador — 202/202.
-5. [x] Verificado en navegador con Tab real y con hover real: abre,
-   ancla correctamente bajo el disparador y cierra con Escape.
+1. [x] Verified the traps in-browser before designing: ARIA references
+   crossing shadow roots (including `ariaDescribedByElements`' silent
+   discard), and that `auto` popovers dismiss each other.
+2. [x] Discovered during implementation that CSS anchoring does not cross
+   the shadow root either, isolated it with a minimal probe, and
+   restructured the component to build both nodes in the light DOM.
+3. [x] `<cdz-tooltip>` (Lit): hidden description with `role="tooltip"`,
+   `aria-hidden` and `manual` bubble, hover with delay, focus without
+   delay, Escape, and a scheduled close to allow the pointer's journey.
+4. [x] Tests: an id that genuinely resolves from the document, hiding by
+   clipping, bubble outside the accessibility tree, `manual` popover,
+   opening by focus and by hover, Escape, the three 1.4.13 criteria,
+   unique ids per instance, text synchronisation, and the warning when
+   there is no trigger — 202/202.
+5. [x] Verified in-browser with a real Tab and real hover: it opens,
+   anchors correctly under the trigger, and closes with Escape.
