@@ -1,98 +1,103 @@
-# Roadmap de átomos
+# Atom roadmap
 
-Checklist de controles HTML básicos que Cadenza busca cubrir, organizados
-por categoría. Actualizar esta lista al terminar cada átomo (no al
-empezarlo) — es un registro de lo que existe, no un plan de sprint. También
-trackea la sección "Primitivos" (building blocks internos, no átomos) y
-"Después de los átomos" (moléculas), con el mismo criterio.
+A checklist of the basic HTML controls Cadenza aims to cover, organised by
+category. Update this list when an atom is *finished*, not when it is
+started — it is a record of what exists, not a sprint plan. It also tracks
+the "Primitives" section (internal building blocks, not atoms) and "After
+the atoms" (molecules), with the same criterion.
 
-**Las cinco categorías de átomos están cerradas** (18 átomos + 1
-primitivo). Lo que sigue son moléculas — ver el final de este archivo.
+**All five atom categories are closed** (18 atoms + 1 primitive). What
+comes next are molecules — see the end of this file.
 
-No incluye Heading/Paragraph como items separados: `cdz-text` (ver
-[ADR-0008](decisions/0008-text-component.md)) ya cubre ambos con una sola
-API (`as` + `size`), no hace falta un componente por tag.
+Heading/Paragraph are not listed as separate items: `cdz-text` (see
+[ADR-0008](decisions/0008-text-component.md)) already covers both with a
+single API (`as` + `size`), so there is no need for a component per tag.
 
-## Formularios
+## Forms
 
 - [x] Button — [ADR-0001](decisions/0001-monorepo-tokens-lit.md)
-- [x] Input (texto) — [ADR-0003](decisions/0003-input-component.md)
+- [x] Input (text) — [ADR-0003](decisions/0003-input-component.md)
 - [x] Checkbox — [ADR-0005](decisions/0005-checkbox-component.md)
 - [x] Radio — [ADR-0007](decisions/0007-radio-component.md)
 - [x] Select (dropdown) — [ADR-0009](decisions/0009-select-component.md),
-      reconstruido en [ADR-0010](decisions/0010-popover-primitive-and-select-rebuild.md)
+      rebuilt in [ADR-0010](decisions/0010-popover-primitive-and-select-rebuild.md)
 - [x] Textarea — [ADR-0011](decisions/0011-textarea-component.md)
 - [x] Switch / toggle — [ADR-0012](decisions/0012-switch-component.md)
 - [x] Range (slider) — [ADR-0013](decisions/0013-range-component.md)
 - [x] File input — [ADR-0014](decisions/0014-file-input-component.md)
 
-## Contenido / tipografía
+## Content / typography
 
-- [x] Text (heading + párrafo unificado) — [ADR-0008](decisions/0008-text-component.md)
+- [x] Text (heading + paragraph unified) — [ADR-0008](decisions/0008-text-component.md)
 
-## Texto y navegación
+## Text and navigation
 
 - [x] Link — [ADR-0015](decisions/0015-link-component.md)
 
-## Feedback y estado
+## Feedback and status
 
 - [x] Badge / tag — [ADR-0017](decisions/0017-badge-status-palette.md).
-      Trajo la paleta de estado (`color.status.*`), reusable por
-      cualquier componente que necesite semántica de estado.
+      Brought in the status palette (`color.status.*`), reusable by any
+      component needing status semantics.
 - [x] Spinner / loading — [ADR-0018](decisions/0018-spinner-component.md).
-      Primero con live region (contrasta con badge) y primero con
-      animación, o sea el primero que resuelve `prefers-reduced-motion`.
+      First with a live region (contrasting with badge) and first with
+      animation, i.e. the first to resolve `prefers-reduced-motion`.
 - [x] Progress bar — [ADR-0019](decisions/0019-progress-component.md).
-      Solo determinado; el indeterminado es `cdz-spinner`.
-- [x] Tooltip — [ADR-0020](decisions/0020-tooltip-component.md). Era, en
-      efecto, el más difícil: obligó a descubrir que el shadow DOM bloquea
-      tanto las referencias ARIA por id como el anclaje CSS por
-      `anchor-name`, ambos por ser *tree-scoped*.
+      Determinate only; indeterminate is `cdz-spinner`.
+- [x] Tooltip — [ADR-0020](decisions/0020-tooltip-component.md). It was
+      indeed the hardest: it forced the discovery that the shadow DOM
+      blocks both ARIA references by id and CSS anchoring by
+      `anchor-name`, both for being *tree-scoped*.
 
-## Medios
+## Media
 
 - [x] Icon (wrapper) — [ADR-0016](decisions/0016-icon-system-grid.md).
-      Set actual: 10 íconos (`chevron-down`, `chevron-up`, `x`, `check`,
+      Current set: 10 icons (`chevron-down`, `chevron-up`, `x`, `check`,
       `dash`, `info`, `alert-circle`, `alert-triangle`, `external-link`,
-      `user`). Se agregan al registro a medida que hagan falta; auditar siempre en
-      el contact sheet de la galería antes de darlos por buenos.
-- [x] Avatar — [ADR-0022](decisions/0022-avatar-component.md). Foto →
-      iniciales → ícono genérico, y las dos últimas son hermanas, no una
-      degradada de la otra. **Significativo por defecto**, rompiendo a
-      propósito la regla de ADR-0021: el default es callado cuando la
-      opción ruidosa tendría que adivinarse, y ruidoso cuando la cadena
-      correcta ya está en la mano. Sin color derivado del nombre (un hash
-      no puede prometer contraste).
+      `user`). They are added to the registry as they become necessary;
+      always audit them in the gallery's contact sheet before calling them
+      done.
+- [x] Avatar — [ADR-0022](decisions/0022-avatar-component.md). Photo →
+      initials → generic icon, and the last two are siblings, not one
+      degraded from the other. **Meaningful by default**, deliberately
+      breaking ADR-0021's rule: the default is quiet when the loud option
+      would have to be guessed, and loud when the correct string is
+      already in hand. No colour derived from the name (a hash cannot
+      promise contrast).
 
-## Estructura
+## Structure
 
 - [x] Divider — [ADR-0021](decisions/0021-divider-component.md).
-      Decorativo por defecto (`role="none"`), semántico solo si se pide:
-      la mayoría de las líneas de una interfaz son mobiliario visual, no
-      cortes temáticos. Mismo default que `cdz-icon` por la razón
-      contraria — ahí el riesgo grave es el silencio, aquí el ruido.
+      Decorative by default (`role="none"`), semantic only on request:
+      most lines in an interface are visual furniture, not thematic
+      breaks. Same default as `cdz-icon` for the opposite reason — there
+      the serious risk is silence, here it is noise.
 
-## Primitivos
+## Primitives
 
-No son átomos: no son piezas de UI que se usan solas, son building blocks
-que otros componentes consumen por dentro. Se documentan y versionan
-igual que un átomo (tokens/API → implementación → ADR), pero viven en su
-propia categoría porque no tienen lugar en la jerarquía de Atomic Design.
+Not atoms: they are not UI pieces used on their own, they are building
+blocks other components consume internally. They are documented and
+versioned like an atom (tokens/API → implementation → ADR), but live in
+their own category because they have no place in the Atomic Design
+hierarchy.
 
-- [x] Popover (`cdz-popover`) — panel flotante genérico (trigger + panel
-      posicionado con `popover` + anchor positioning), con el patrón ARIA
-      completo reimplementado a mano (no delega en el `<select>` nativo).
-      Primer consumidor: reemplaza el popup nativo no restyleable de
-      `cdz-select` — ver [ADR-0010](decisions/0010-popover-primitive-and-select-rebuild.md)
-      (la limitación original quedó documentada en
+- [x] Popover (`cdz-popover`) — a generic floating panel (trigger + panel
+      positioned with `popover` + anchor positioning), with the full ARIA
+      pattern reimplemented by hand (it does not delegate to a native
+      `<select>`). First consumer: it replaces `cdz-select`'s
+      unstyleable native popup — see
+      [ADR-0010](decisions/0010-popover-primitive-and-select-rebuild.md)
+      (the original limitation is documented in
       [ADR-0009](decisions/0009-select-component.md)).
-      Pensado para reusarse en futuros menús/comboboxes.
+      Intended for reuse in future menus and comboboxes.
 
-## Después de los átomos
+## After the atoms
 
-Moléculas ya identificadas mientras se construían los átomos, todavía sin
-empezar:
+Molecules already identified while building the atoms, not yet started:
 
-- `cdz-radio-group` — coordina varios `cdz-radio` (exclusión mutua, roving
-  tabindex, `required` a nivel de grupo) — ver el límite documentado en
-  [ADR-0007](decisions/0007-radio-component.md).
+- `cdz-radio-group` — coordinates several `cdz-radio` (mutual exclusion,
+  roving tabindex, group-level `required`) — see the limitation documented
+  in [ADR-0007](decisions/0007-radio-component.md).
+- `cdz-avatar-stack` — several overlapping avatars with a "+3" overflow.
+  Needs its own group semantics, same as `cdz-radio-group` — see
+  [ADR-0022](decisions/0022-avatar-component.md).

@@ -1,78 +1,90 @@
-# Publicar y consumir los paquetes de Cadenza
+# Publishing and consuming the Cadenza packages
 
-`@kdenza/tokens` y `@kdenza/components` se publican al **registry público
-de npm** (npmjs.com), bajo el scope `@kdenza`. `@kdenza/site` y
-`@kdenza/gallery` son privados — nunca se publican, solo existen dentro de
-este monorepo.
+`@kdenza/tokens` and `@kdenza/components` are published to the **public
+npm registry** (npmjs.com), under the `@kdenza` scope. `@kdenza/site` and
+`@kdenza/gallery` are private — they are never published and exist only
+inside this monorepo.
 
-La razón de que sea el registry público y no GitHub Packages está al final
-de este archivo, y en la enmienda de
-[ADR-0006](decisions/0006-npm-github-packages.md).
+The reasoning for choosing the public registry over GitHub Packages is at
+the end of this file, and in
+[ADR-0006](decisions/0006-npm-github-packages.md)'s amendment.
 
-## Antes de la primera publicación (una sola vez)
+## Before the first publish (once)
 
-1. Tener cuenta en [npmjs.com](https://www.npmjs.com/signup).
-2. **Ser dueña del scope `@kdenza`.** En npm un scope pertenece a un
-   usuario o a una organización, y solo se puede publicar bajo el propio.
-   Dos caminos:
-   - que el usuario de npm se llame `kdenza`, o
-   - crear una organización gratuita llamada `kdenza` (npmjs.com → *Add
-     an Organization*; el plan gratuito permite paquetes públicos
-     ilimitados).
+1. Have an account on [npmjs.com](https://www.npmjs.com/signup).
+2. **Own the `@kdenza` scope.** On npm a scope belongs to a user or an
+   organisation, and you can only publish under your own. Two routes:
+   - the npm user is named `kdenza`, or
+   - create a free organisation named `kdenza` (npmjs.com → *Add an
+     Organization*; the free plan allows unlimited public packages).
 
-   Si `kdenza` ya está tomado en npm, hay que elegir otro scope y
-   renombrar los paquetes — es el mismo problema que ya pasó una vez con
-   `cadenza` en GitHub (ver ADR-0006).
-3. Autenticarse en la terminal:
+   If `kdenza` is already taken on npm, you have to pick another scope and
+   rename the packages — the same problem that already came up once with
+   `cadenza` on GitHub (see ADR-0006).
+3. Authenticate in the terminal:
    ```bash
    npm login
    ```
 
-## Publicar una versión
+## Publishing a version
 
 ```bash
 npm version patch -w @kdenza/tokens
 ```
 
-`patch` para arreglos, `minor` para API nueva compatible, `major` para
-cambios rompientes — semver normal.
+`patch` for fixes, `minor` for compatible new API, `major` for breaking
+changes — normal semver.
+
+Note that with `-w` (workspace), `npm version` bumps `package.json` but
+**deliberately skips** the git commit and tag it would create outside a
+workspace. Commit the bump yourself.
 
 ```bash
 npm publish -w @kdenza/tokens
 ```
 
-`prepublishOnly` corre el build (y el `analyze` en components) solo,
-así que nunca se puede publicar un `dist/` viejo o ausente.
+`prepublishOnly` runs the build (and `analyze` for components) on its own,
+so a stale or missing `dist/` can never be published.
 
-Los paquetes con scope se publican como **privados por defecto**, lo que
-falla sin plan de pago. Por eso ambos llevan `publishConfig.access:
-"public"` en su `package.json`: sin eso haría falta `npm publish
---access public` en cada publicación, y basta olvidarlo una vez.
+Scoped packages publish as **private by default**, which fails without a
+paid plan. That is why both carry `publishConfig.access: "public"` in
+their `package.json`: without it you would need `npm publish
+--access public` every time, and forgetting once is enough.
 
-**Orden entre los dos paquetes:** `@kdenza/components` depende de
-`@kdenza/tokens`. Si se publican versiones nuevas de ambos, primero
-tokens; y si components necesita la versión nueva, actualizar esa
-referencia en `packages/components/package.json` antes de publicarlo.
+**Order between the two packages:** `@kdenza/components` depends on
+`@kdenza/tokens`. If new versions of both are going out, publish tokens
+first; and if components needs the new version, update that reference in
+`packages/components/package.json` before publishing it.
 
 ```bash
 npm publish -w @kdenza/components
 ```
 
-Para ver exactamente qué se va a subir, sin subir nada:
+To see exactly what would be uploaded, without uploading anything:
 
 ```bash
 npm pack --dry-run -w @kdenza/components
 ```
 
-## Consumir desde otro proyecto
+### If publishing fails with a 404
 
-Sin `.npmrc`, sin token, sin configuración:
+A `404` on the `PUT` almost always means **"npm does not know who you
+are"**, not "the package does not exist". The registry deliberately
+returns 404 rather than 403 on writes so it does not leak who owns a
+scope. The usual cause is an expired session; `npm login` again.
+
+Note the asymmetry: a `GET` in the same state returns an honest `401`.
+Only writes are obscured.
+
+## Consuming from another project
+
+No `.npmrc`, no token, no configuration:
 
 ```bash
 npm install @kdenza/components
 ```
 
-Eso trae `@kdenza/tokens` como dependencia transitiva. Después:
+That brings `@kdenza/tokens` along as a transitive dependency. Then:
 
 ```js
 import '@kdenza/components';
@@ -80,62 +92,60 @@ import '@kdenza/components/dist/styles/tokens.css';
 ```
 
 ```html
-<cdz-button>Enviar</cdz-button>
+<cdz-button>Send</cdz-button>
 ```
 
-En Angular hay que agregar `CUSTOM_ELEMENTS_SCHEMA` al módulo o componente
-donde se use cualquier `cdz-*`, porque Angular no reconoce elementos custom
-por defecto.
+In Angular you have to add `CUSTOM_ELEMENTS_SCHEMA` to the module or
+component where any `cdz-*` is used, because Angular does not recognise
+custom elements by default.
 
-### Hace falta un bundler
+### A bundler is required
 
-Vite, webpack, Rollup, Parcel — cualquiera sirve, pero **alguno tiene que
-haber**. El paquete no funciona soltándolo en un HTML con
-`<script type="module">` a pelo, y conviene decirlo claro porque para una
-librería de Web Components es una expectativa razonable que aquí no se
-cumple.
+Vite, webpack, Rollup, Parcel — any of them will do, but **there has to be
+one**. The package does not work dropped into an HTML file with a bare
+`<script type="module">`, and it is worth saying plainly because for a Web
+Components library that is a reasonable expectation this does not meet.
 
-Se rompe en dos puntos, los dos por especificadores *bare*, que un
-navegador no resuelve por su cuenta:
+It breaks in two places, both because of *bare* specifiers, which a
+browser does not resolve on its own:
 
-- el JS hace `import { LitElement } from 'lit'`;
-- `dist/styles/tokens.css` hace `@import '@kdenza/tokens/dist/css/...'`,
-  y el navegador lo interpreta como ruta relativa al propio CSS, así que
-  da 404.
+- the JS does `import { LitElement } from 'lit'`;
+- `dist/styles/tokens.css` does `@import '@kdenza/tokens/dist/css/...'`,
+  which the browser interprets as a path relative to the CSS file itself,
+  so it 404s.
 
-Verificado en navegador contra el paquete ya publicado: sin bundler no se
-registra ningún custom element y no llega ningún token. Con Vite, los 7
-componentes de la prueba se registran, el shadow DOM renderiza y
-`--color-page-background` llega con su valor real.
+Verified in the browser against the already-published package: without a
+bundler no custom element registers and no token arrives. With Vite, all
+seven components in the test register, the shadow DOM renders, and
+`--color-page-background` arrives with its real value.
 
-Es el comportamiento normal de una librería Lit —Lit mismo publica
-especificadores bare— pero queda **pendiente**: un build autocontenido
-(con `lit` incluido y el CSS sin `@import` externos) permitiría el uso por
-CDN sin herramientas. Todavía nadie lo ha pedido, y agrega un artefacto
-más que mantener y versionar.
+This is normal behaviour for a Lit library — Lit itself publishes bare
+specifiers — but it remains **pending**: a self-contained build (with
+`lit` included and CSS without external `@import`s) would allow CDN use
+with no tooling. Nobody has asked for it yet, and it adds one more
+artefact to maintain and version.
 
-## Por qué el registry público y no GitHub Packages
+## Why the public registry and not GitHub Packages
 
-Se empezó en GitHub Packages (ADR-0006), con el argumento de que mantenía
-los paquetes bajo el mismo control de acceso que el repo. El motivo por el
-que se cambió es concreto:
+It started on GitHub Packages (ADR-0006), on the argument that it kept the
+packages under the same access control as the repository. The reason for
+the change is concrete:
 
-**GitHub Packages exige autenticarse para instalar, incluso paquetes
-públicos.** Quien quisiera consumir Cadenza tendría que generar un
-Personal Access Token y escribir un `.npmrc` antes de poder correr `npm
-install`. Para distribución interna de una empresa eso es aceptable; para
-un sistema de diseño que además es el caso de estudio de un portafolio, es
-justo la fricción que anula el objetivo — nadie genera un token para
-mirar una demo.
+**GitHub Packages requires authentication to install, even for public
+packages.** Anyone wanting to consume Cadenza would have to generate a
+Personal Access Token and write an `.npmrc` before `npm install` would
+work. For a company's internal distribution that is an acceptable trade;
+for a design system that is also a portfolio's case study, it is exactly
+the friction that defeats the purpose — nobody generates a token to look
+at a demo.
 
-El registry público no tiene ese paso. El costo es que los paquetes son
-irreversiblemente públicos y necesitan una licencia real (MIT, ver
-`LICENSE` en la raíz), que era la dirección correcta para este proyecto de
-todos modos.
+The public registry has no such step. The cost is that the packages are
+irreversibly public and need a real licence (MIT, see `LICENSE` at the
+root), which was the right direction for this project anyway.
 
-## Nunca pegar un token en el chat
+## Never paste a token into a chat
 
-Vale para `npm login`, para cualquier PAT de GitHub y para cualquier otra
-credencial: van en tu propia terminal, nunca en una conversación con
-Claude ni comiteadas al repo. Un token pegado en un chat hay que
-considerarlo comprometido y rotarlo.
+This applies to `npm login`, to any GitHub PAT, and to any other
+credential: they belong in your own terminal, never in a conversation with
+Claude and never committed to the repository. A token pasted into a chat
+has to be considered compromised and rotated.

@@ -1,309 +1,315 @@
 # Cadenza
 
-Design system + portfolio de UX Engineering. El sitio es su propio caso de
-estudio: tokens → componentes → sitio, construido con prácticas de equipo
-enterprise.
+Design system + UX Engineering portfolio. The site is its own case study:
+tokens → components → site, built with enterprise team practices.
 
-## Stack y paquetes
+## Stack and packages
 
-Monorepo con **npm workspaces** (migrado desde pnpm, ver ADR-0006). Node
-18.19.1 en el sistema, Node 24 LTS disponible en este entorno — ver
-"Restricciones del entorno" antes de tocar versiones de herramientas.
+A monorepo on **npm workspaces** (migrated from pnpm, see ADR-0006). Node
+18.19.1 on the system, Node 24 LTS available in this environment — see
+"Environment constraints" before touching tool versions.
 
-| Paquete | Qué es | Stack | ¿Se publica? |
+| Package | What it is | Stack | Published? |
 |---|---|---|---|
-| `@kdenza/tokens` | Design tokens W3C DTCG → CSS custom properties (light + dark) | Style Dictionary 5.x | Sí, npm público |
-| `@kdenza/components` | Web Components, prefijo `cdz-` | Lit 3 + TypeScript, sin decoradores | Sí, npm público |
-| `@kdenza/gallery` | Visor de componentes con auditoría de accesibilidad en vivo | custom-elements-manifest + axe-core | No (privado) |
-| `@kdenza/site` | Portafolio (consume los componentes) | Vite 8 + TS | No (privado) |
+| `@kdenza/tokens` | W3C DTCG design tokens → CSS custom properties (light + dark) | Style Dictionary 5.x | Yes, public npm |
+| `@kdenza/components` | Web Components, `cdz-` prefix | Lit 3 + TypeScript, no decorators | Yes, public npm |
+| `@kdenza/gallery` | Component viewer with a live accessibility audit | custom-elements-manifest + axe-core | No (private) |
+| `@kdenza/site` | Portfolio (consumes the components) | Vite 8 + TS | No (private) |
 
-## Comandos
+## Commands
 
 ```bash
 npm install
 npm run build      # tokens → components → analyze → site
-npm run dev        # sitio en modo desarrollo (puerto 5173)
-npm run gallery    # galería de componentes (puerto 5174)
-npm test           # tests de componentes (@web/test-runner + axe-core)
+npm run dev        # site in development mode (port 5173)
+npm run gallery    # component gallery (port 5174)
+npm test           # component tests (@web/test-runner + axe-core)
 ```
 
-Para publicar una nueva versión o consumir los paquetes desde otro
-proyecto, ver [docs/publishing.md](docs/publishing.md) — **ninguna
-credencial (token de npm, PAT de GitHub) se pega en una conversación con
-Claude ni se comitea**: `npm login` va en tu propia terminal. Un token
-pegado en un chat hay que considerarlo comprometido y rotarlo.
+To publish a new version or consume the packages from another project, see
+[docs/publishing.md](docs/publishing.md) — **no credential (npm token,
+GitHub PAT) is ever pasted into a conversation with Claude or committed**:
+`npm login` belongs in your own terminal. A token pasted into a chat has
+to be considered compromised and rotated.
 
-## Convenciones
+## Conventions
 
-- Prefijo de componentes: `cdz-`. Scope de paquetes: `@kdenza/*` (la
-  organización en GitHub es `kdenza`, no la cuenta personal; `cadenza` ya
-  estaba tomado — ver ADR-0006).
-- Tokens en 3 capas: `global` (primitivos) → `semantic` (roles) → `component`
-  (por componente). Nunca saltarse una capa — un componente nuevo referencia
-  `semantic`, no `global` directamente.
-- Componentes Lit **sin decoradores**: `static properties = {...}` + campos
-  `declare` (no `@property()`). Es deliberado — evita el bug de
-  class-field-shadowing de Lit sin depender de flags de `tsconfig`/bundler.
-  Ver cualquier `*.ts` de un componente para el patrón exacto.
-- Cada componente documenta en el JSDoc de su clase **qué patrón ARIA
-  implementa y por qué** (no qué hace — eso ya lo dice el código).
-- Formularios (`cdz-input`, `cdz-checkbox`) exigen `label`: `console.error`
-  si falta, nunca `throw` (un prop mal usado no debe tumbar el resto de la
-  página). Ver ADR-0003.
-- `disabled`: `cdz-button` usa `aria-disabled` (se queda enfocable, para que
-  un lector de pantalla descubra que la acción existe); los campos de
-  formulario usan `disabled` **nativo** (excluye el valor de `FormData`). Es
-  una divergencia a propósito entre componentes, no una inconsistencia.
-- Light/dark se modela en la capa `semantic`
-  (`color.*.light.tokens.json` / `color.*.dark.tokens.json`), nunca en el
-  componente. El cambio de modo por preferencia del SO es
-  `@import ... (prefers-color-scheme: dark)` — cero JavaScript. Encima de
-  eso hay un override manual (botón en el sitio): Style Dictionary genera
-  además `tokens-dark-forced.css`/`tokens-light-forced.css` con selector
-  `[data-theme="..."]` en vez de `:root` (mayor especificidad que un
-  `:root` aunque esté detrás de un media query), y un script inline
-  síncrono en el `<head>` de cada página aplica el `data-theme` guardado
-  en `localStorage` (`cdz-theme`) antes del primer paint, para evitar
-  FOUC. Ver la enmienda de ADR-0002.
-- `custom-elements.json` es un artefacto generado (`.gitignore`d, como
-  `dist/`, pero sí se incluye en el paquete publicado — ver ADR-0006) —
-  regenerar con `npm run analyze -w @kdenza/components` después de
-  cambiar cualquier prop/evento de un componente.
-- `@kdenza/tokens` y `@kdenza/components` tienen versión real (semver) y
-  `publishConfig` porque se publican; `@kdenza/site` y `@kdenza/gallery`
-  son `"private": true` y nunca se publican.
+- Component prefix: `cdz-`. Package scope: `@kdenza/*` (the GitHub
+  organisation is `kdenza`, not the personal account; `cadenza` was
+  already taken — see ADR-0006).
+- Tokens in 3 tiers: `global` (primitives) → `semantic` (roles) →
+  `component` (per component). Never skip a tier — a new component
+  references `semantic`, not `global` directly.
+- Lit components **without decorators**: `static properties = {...}` +
+  `declare` fields (not `@property()`). This is deliberate — it avoids
+  Lit's class-field-shadowing bug without depending on `tsconfig`/bundler
+  flags. See any component's `*.ts` for the exact pattern.
+- Every component documents in its class JSDoc **which ARIA pattern it
+  implements and why** (not what it does — the code already says that).
+- Form components (`cdz-input`, `cdz-checkbox`) require `label`:
+  `console.error` when missing, never `throw` (a misused prop should not
+  take down the rest of the page). See ADR-0003.
+- `disabled`: `cdz-button` uses `aria-disabled` (it stays focusable, so a
+  screen reader can discover the action exists); form fields use **native**
+  `disabled` (which excludes the value from `FormData`). This is a
+  deliberate divergence between components, not an inconsistency.
+- Light/dark is modelled in the `semantic` tier
+  (`color.*.light.tokens.json` / `color.*.dark.tokens.json`), never in the
+  component. Switching by OS preference is
+  `@import ... (prefers-color-scheme: dark)` — zero JavaScript. On top of
+  that there is a manual override (a button on the site): Style Dictionary
+  also generates `tokens-dark-forced.css`/`tokens-light-forced.css` with a
+  `[data-theme="..."]` selector instead of `:root` (higher specificity
+  than a plain `:root`, even one behind a media query), and a synchronous
+  inline script in every page's `<head>` applies the `data-theme` stored in
+  `localStorage` (`cdz-theme`) before first paint, to avoid FOUC. See
+  ADR-0002's amendment.
+- **`:host([hidden]) { display: none }` is mandatory** in any component
+  that sets `display` on its `:host`. The browser's `[hidden]` rule is UA
+  origin and `:host` is author origin, so author wins and `hidden` stops
+  working. A single test covers all of them. See ADR-0025.
+- `custom-elements.json` is a generated artefact (`.gitignore`d, like
+  `dist/`, but included in the published package — see ADR-0006) —
+  regenerate with `npm run analyze -w @kdenza/components` after changing
+  any component prop or event.
+- `@kdenza/tokens` and `@kdenza/components` have real versions (semver)
+  and `publishConfig` because they are published; `@kdenza/site` and
+  `@kdenza/gallery` are `"private": true` and never are.
+- **The repository is written in English; the site is in Spanish.** Split
+  by audience, not by language — see ADR-0026. This includes the runtime
+  console messages, which ship inside the published package.
 
-## Restricciones del entorno
+## Environment constraints
 
-El sistema tiene Node 18.19.1 en `/usr/bin/node` (root, no tocar sin sudo).
-Además hay **Node 24 LTS instalado en `~/.local/share/node-v24`**, con
-prioridad en el `PATH` (`~/.bashrc`) — cualquier shell nueva ya usa Node 24
-por defecto. `npm`, `gh`, y todo el pipeline del proyecto ya se verificaron
-funcionando bajo Node 24.
+The system has Node 18.19.1 at `/usr/bin/node` (root, do not touch without
+sudo). There is also **Node 24 LTS installed at
+`~/.local/share/node-v24`**, with priority on `PATH` (`~/.bashrc`) — any
+new shell already uses Node 24 by default. `npm`, `gh`, and the project's
+whole pipeline have been verified working under Node 24.
 
-Las versiones de herramientas **ya están al día** (agosto 2026):
-style-dictionary 5.x, vite 8.x, TypeScript 7.x, `@web/test-runner` 1.x +
-`@web/test-runner-chrome` (en vez de playwright), axe-core 4.13. `npm
-audit` reporta **0 vulnerabilidades**; el rezago anterior había crecido a
-9 advisories (8 high), incluida una de prototype pollution en
-style-dictionary 4.x. Ver ADR-0023.
+Tool versions are **now current** (August 2026): style-dictionary 5.x,
+vite 8.x, TypeScript 7.x, `@web/test-runner` 1.x +
+`@web/test-runner-chrome` (rather than playwright), axe-core 4.13. `npm
+audit` reports **0 vulnerabilities**; the earlier lag had grown to 9
+advisories (8 high), including prototype pollution in style-dictionary
+4.x. See ADR-0023.
 
-Dos cosas que se aprendieron subiendo y conviene no volver a tropezar:
+Two things learned during the upgrade, worth not tripping over again:
 
-- **Vite 8 ya no queda hoisted a la raíz del workspace.** El binario vive
-  en `packages/<pkg>/node_modules/.bin/vite`; cualquier script o config
-  que apunte a `../../node_modules/.bin/vite` se rompe.
-- **TypeScript 7 emite exactamente lo mismo que 5.9** para este proyecto
-  (41 archivos idénticos byte a byte), incluida la emisión de campos de
-  clase de la que depende el patrón sin decoradores de Lit. Era el riesgo
-  real del salto y no se materializó.
+- **Vite 8 is no longer hoisted to the workspace root.** The binary lives
+  at `packages/<pkg>/node_modules/.bin/vite`; any script or config
+  pointing at `../../node_modules/.bin/vite` breaks.
+- **TypeScript 7 emits exactly what 5.9 did** for this project (41 files
+  identical byte for byte), including the class-field emission Lit's
+  no-decorators pattern depends on. That was the real risk of the jump and
+  it did not materialise.
 
-## Decisiones de arquitectura
+## Architecture decisions
 
-Registro completo en [`docs/decisions/`](docs/decisions) (ADRs). Empezar
-ahí antes de asumir el porqué de algo no obvio:
+Full record in [`docs/decisions/`](docs/decisions) (ADRs). Start there
+before assuming why something non-obvious is the way it is:
 
-- **0001** — monorepo + Style Dictionary + Lit (la parte de pnpm quedó
-  reemplazada por 0006).
-- **0002** — identidad visual (lila/rosa/azul), Figtree + Source Sans 3,
-  tokens de doble modo (light/dark).
-- **0003** — patrón de `cdz-input`; enmienda: enforcement de `label`
-  obligatorio.
-- **0004** — `@kdenza/gallery`: por qué custom-elements-manifest + axe-core
-  en vez de Storybook/Histoire. Enmienda: link a la galería desde el
-  sitio, visible solo en desarrollo local (`import.meta.env.DEV`) —
-  sigue sin desplegarse junto al sitio.
-- **0005** — `cdz-checkbox`: `indeterminate` imperativo, cero tokens nuevos.
-- **0006** — pnpm → npm, y publicar `@kdenza/tokens`/`@kdenza/components`
-  bajo el scope `@kdenza` (`cadenza` ya estaba tomado en GitHub).
-  **Enmienda:** el destino pasó de GitHub Packages al **registry público
-  de npm**, porque GitHub Packages exige autenticarse para *instalar*
-  incluso paquetes públicos — fricción que anula el objetivo de que el
-  sistema sea consumible desde un portafolio. Implica `access: "public"`
-  (los paquetes con scope son privados por defecto) y licencia MIT real.
-  De paso se encontró un bug latente: el `.npmrc` mapeaba `@cadenza`, un
-  scope que ya no existía.
-- **0007** — `cdz-radio`: la agrupación nativa de radios no cruza shadow
-  roots — limitación real, documentada y verificada con test, no un bug.
-  La coordinación real queda para una futura molécula `cdz-radio-group`.
-- **0008** — `cdz-text`: `as` (tag semántico) y `size` (estilo visual)
-  independientes — primera vez con tokens tipográficos genuinamente
-  nuevos (`heading-2/3`, `body-lg/sm`) en varios átomos.
-- **0009** — `cdz-select` (v1, superada por 0010): `options` es propiedad
-  JS (no slot, limitación real de `<select>`+shadow DOM); el popup abierto
-  no se podía restylear (límite real de plataforma, en ese momento sin
-  resolver). Se extrajo `warnIfLabelMissing` compartido
-  (`shared/required-label.ts`) y se retrofitteó Input/Checkbox/Radio.
-- **0010** — `cdz-popover`: primitivo genérico (no es átomo, categoría
-  aparte en `docs/roadmap.md`), agnóstico de ARIA, basado en el atributo
-  `popover` + CSS Anchor Positioning (verificado en navegador, no
-  asumido). `cdz-select` se reconstruyó sobre él con el patrón APG
-  "Select-Only Combobox" — resuelve la limitación de estilo del popup que
-  ADR-0009 había dejado documentada como límite real, no arreglada.
-- **0011** — `cdz-textarea`: mismo patrón que `cdz-input`, cero tokens
-  nuevos. La única decisión genuinamente nueva es `resize: vertical`
-  (nunca `both`, para no romper el layout) y `rows` en vez de `type`.
-- **0012** — `cdz-switch`: `role="switch"` sobre un
-  `<input type="checkbox">` nativo (mismo enfoque que checkbox, sin
-  indeterminate). Cero tokens de color nuevos, pero requirió verificar
-  contraste real: ningún color fijo de thumb pasa 3:1 contra los 4 combos
-  track-on/off × light/dark — el rol ya existente
-  `color.action.primary.text.default` (el mismo del check de checkbox)
-  sí los resuelve todos.
-- **0013** — `cdz-range`: el control nativo más fragmentado para
-  restylear (verificado que los pseudo-elementos sin prefijo todavía no
-  existen, hace falta `::-webkit-*`/`::-moz-*` duplicado). Reusa
-  directamente la tabla de contraste de ADR-0012 para el thumb (mismos 4
-  colores). Encontrado y arreglado un bug real de orden de bindings:
-  `.value` se aplicaba antes que `min`/`max` en el template, y como
-  lit-html aplica bindings en orden, el valor se clampeaba contra el
-  `max` nativo por defecto (100) en el primer render. Sin `required` a
-  propósito (un range nunca está "vacío"). De paso, arregla un gap real
-  en la galería: los props `number` se asignaban como string crudo desde
-  el control de texto genérico (afecta también a `rows` de textarea).
+- **0001** — monorepo + Style Dictionary + Lit (the pnpm part was
+  superseded by 0006).
+- **0002** — visual identity (lilac/rose/blue), Figtree + Source Sans 3,
+  dual-mode tokens (light/dark).
+- **0003** — `cdz-input`'s pattern; amendment: enforcing a required
+  `label`.
+- **0004** — `@kdenza/gallery`: why custom-elements-manifest + axe-core
+  rather than Storybook/Histoire. Amendment: a link to the gallery from
+  the site, visible only in local development (`import.meta.env.DEV`) —
+  still not deployed alongside the site.
+- **0005** — `cdz-checkbox`: imperative `indeterminate`, zero new tokens.
+- **0006** — pnpm → npm, and publishing
+  `@kdenza/tokens`/`@kdenza/components` under the `@kdenza` scope
+  (`cadenza` was already taken on GitHub). **Amendment:** the target moved
+  from GitHub Packages to the **public npm registry**, because GitHub
+  Packages requires authentication to *install* even public packages —
+  friction that defeats the goal of the system being consumable from a
+  portfolio. This implies `access: "public"` (scoped packages are private
+  by default) and a real MIT licence. A latent bug turned up in passing:
+  the `.npmrc` mapped `@cadenza`, a scope that no longer existed.
+- **0007** — `cdz-radio`: native radio grouping does not cross shadow
+  roots — a real limitation, documented and verified with a test, not a
+  bug. Real coordination is left to a future `cdz-radio-group` molecule.
+- **0008** — `cdz-text`: `as` (semantic tag) and `size` (visual style)
+  independent — the first time with genuinely new typographic tokens
+  (`heading-2/3`, `body-lg/sm`) across several atoms.
+- **0009** — `cdz-select` (v1, superseded by 0010): `options` is a JS
+  property (not a slot, a real `<select>`+shadow DOM limitation); the open
+  popup could not be restyled (a real platform limit, unresolved at the
+  time). The shared `warnIfLabelMissing` (`shared/required-label.ts`) was
+  extracted and retrofitted into Input/Checkbox/Radio.
+- **0010** — `cdz-popover`: a generic primitive (not an atom, its own
+  category in `docs/roadmap.md`), ARIA-agnostic, based on the `popover`
+  attribute + CSS Anchor Positioning (verified in-browser, not assumed).
+  `cdz-select` was rebuilt on it using the APG "Select-Only Combobox"
+  pattern — resolving the popup styling limitation ADR-0009 had left
+  documented as a real limit rather than fixed.
+- **0011** — `cdz-textarea`: same pattern as `cdz-input`, zero new tokens.
+  The only genuinely new decision is `resize: vertical` (never `both`, so
+  the layout cannot break) and `rows` instead of `type`.
+- **0012** — `cdz-switch`: `role="switch"` over a native
+  `<input type="checkbox">` (same approach as checkbox, without
+  indeterminate). Zero new colour tokens, but it required verifying real
+  contrast: no fixed thumb colour clears 3:1 against all four
+  track-on/off × light/dark combinations — the already-existing
+  `color.action.primary.text.default` role (the same one as checkbox's
+  check) does resolve all of them.
+- **0013** — `cdz-range`: the most fragmented native control to restyle
+  (verified that unprefixed pseudo-elements still do not exist, so
+  duplicated `::-webkit-*`/`::-moz-*` is required). Reuses ADR-0012's
+  contrast table directly for the thumb (same four colours). Found and
+  fixed a real binding-order bug: `.value` was applied before `min`/`max`
+  in the template, and since lit-html applies bindings in order, the value
+  was clamped against the native default `max` (100) on first render. No
+  `required`, deliberately (a range is never "empty"). It also fixed a
+  real gap in the gallery: `number` props were assigned as raw strings
+  from the generic text control (which also affects textarea's `rows`).
+  **Amendment:** the `::-moz-*` rules are now verified in Firefox 153 by
+  sampling painted pixels, not `getComputedStyle`.
 
-- **0014** — `cdz-file-input`: el `value` no se puede setear (barrera de
-  seguridad del navegador, no decisión de diseño) → `files` de solo
-  lectura + `clear()`. El input nativo queda recortado (nunca
-  `display:none`, que lo sacaría del tab order) y el chrome visible lo
-  dibuja el componente, porque el texto "sin archivos" vive en un shadow
-  root **cerrado** y lo localiza el navegador, no la app. Primer caso
-  donde se acota una regla de axe a propósito: el contraste de disabled
-  (3.03:1, exento por WCAG 1.4.3 y usado por los 10 átomos) solo se
-  marca aquí porque el texto está en spans decorativos.
+- **0014** — `cdz-file-input`: `value` cannot be set (a browser security
+  barrier, not a design decision) → read-only `files` + `clear()`. The
+  native input is clipped (never `display:none`, which would remove it
+  from the tab order) and the visible chrome is drawn by the component,
+  because the "no files" text lives in a **closed** shadow root and is
+  localised by the browser, not the app. First case where an axe rule is
+  deliberately scoped: the disabled contrast (3.03:1, exempt under WCAG
+  1.4.3 and used by all 10 atoms) is only flagged here because the text
+  sits in decorative spans.
 
-- **0015** — `cdz-link`: primer átomo que **hereda** tipografía en vez de
-  imponerla (es contenido inline). Sin `disabled` (no existe en HTML para
-  enlaces — `aria-disabled` no impide el click y sacar `href` destruye la
-  semántica; para eso está `cdz-button disabled`). `target="_blank"`
-  agrega `rel="noopener"` (fusionado, no pisado) y un aviso accesible
-  traducible. Sin `:visited`: el navegador miente a propósito en
-  `getComputedStyle` para evitar history sniffing, así que sería el único
-  color del sistema imposible de verificar con la metodología del proyecto.
+- **0015** — `cdz-link`: the first atom that **inherits** typography
+  rather than imposing it (it is inline content). No `disabled` (it does
+  not exist in HTML for links — `aria-disabled` does not prevent the
+  click, and removing `href` destroys the semantics; `cdz-button disabled`
+  is what that is for). `target="_blank"` adds `rel="noopener"` (merged,
+  not overwritten) and a translatable accessible notice. No `:visited`:
+  the browser deliberately lies in `getComputedStyle` to prevent history
+  sniffing, so it would be the only colour in the system impossible to
+  verify with this project's methodology.
 
-- **0016** — sistema de íconos: SVG, **nunca** icon font (una icon font
-  usa el Private Use Area de Unicode, así que para el navegador es texto,
-  y se rompe entera si alguien activa una fuente propia tipo
-  OpenDyslexic). Los sprite sheets también quedan descartados:
-  verificado que `<use href="#id">` no cruza el shadow DOM. Grilla 24×24,
-  área viva 20×20 (acota el **trazo**, no la geometría), stroke 2
-  constante, terminales redondas. Registro en
-  `components/src/shared/icons.ts`. Enmienda: `cdz-icon` construido sobre
-  ese registro — **decorativo por defecto** (`aria-hidden`), significativo
-  solo si le pasás `label` (`role="img"` + `aria-label`). Color por
-  `currentColor`, sin prop. La galería tiene un contact sheet de todo el
-  set a 96px con el área viva superpuesta: es la herramienta para juzgar
-  peso óptico al dibujar íconos nuevos (a tamaño real no se ve).
+- **0016** — icon system: SVG, **never** an icon font (an icon font uses
+  Unicode's Private Use Area, so to the browser it is text, and the whole
+  set breaks if someone enables their own font such as OpenDyslexic).
+  Sprite sheets are also ruled out: verified that `<use href="#id">` does
+  not cross the shadow DOM. 24×24 grid, 20×20 live area (bounding the
+  **stroke**, not the geometry), constant stroke 2, round caps. Registry
+  in `components/src/shared/icons.ts`. Amendment: `cdz-icon` built on that
+  registry — **decorative by default** (`aria-hidden`), meaningful only if
+  given a `label` (`role="img"` + `aria-label`). Colour via
+  `currentColor`, no prop. The gallery has a contact sheet of the whole
+  set at 96px with the live area overlaid: it is the tool for judging
+  optical weight when drawing new icons (at real size you cannot see it).
 
-- **0017** — `cdz-badge` + paleta de estado: primer componente con
-  **variantes semánticas**, y primera expansión de la paleta desde
-  ADR-0002 (no había verde ni ámbar). Capa semántica nueva
-  `color.status.*`, bifurcada por modo — cualquier alert/toast/tabla
-  futura la reusa. Los 20 pares verificados dos veces (matemática antes
-  de elegir, y releídos del navegador después). El ícono **refuerza** la
-  variante para el escaneo, pero el que cumple 1.4.1 es el texto del
-  badge — no sobreestimar eso.
+- **0017** — `cdz-badge` + status palette: the first component with
+  **semantic variants**, and the first palette expansion since ADR-0002
+  (there was no green and no amber). A new `color.status.*` semantic
+  layer, forked per mode — any future alert/toast/table reuses it. All 20
+  pairs verified twice (maths before choosing, and read back from the
+  browser afterwards). The icon **reinforces** the variant for scanning,
+  but what satisfies 1.4.1 is the badge's text — do not overstate that.
 
-- **0018** — `cdz-spinner`: primero que **sí** es live region
-  (`role="status"` polite), opuesto a badge a propósito — un badge ya
-  está cuando carga la página, un spinner aparece porque algo empezó. Ese
-  es el criterio para el resto de Feedback. Primero con animación: bajo
-  `prefers-reduced-motion` la rotación se **reemplaza** por un pulso de
-  opacidad (no se congela — un anillo quieto parece roto), verificado
-  leyendo los keyframes del CSSOM.
+- **0018** — `cdz-spinner`: the first that **is** a live region
+  (`role="status"` polite), deliberately the opposite of badge — a badge
+  is already there when the page loads, a spinner appears because
+  something started. That is the criterion for the rest of Feedback.
+  First with animation: under `prefers-reduced-motion` the rotation is
+  **replaced** by an opacity pulse (not frozen — a still ring looks
+  broken), verified by reading the keyframes from the CSSOM.
 
-- **0019** — `cdz-progress`: `<progress>` nativo. Primer caso donde
-  "nativo primero" **no** se aplicó por inercia: aquí lo único que se gana
-  es semántica (no comportamiento), así que ganó por dos desempates
-  concretos, no por el principio. Solo determinado — el indeterminado es
-  `cdz-spinner`, porque `appearance: none` mata la animación nativa de
-  ese estado. Documenta el tercer falso negativo de una herramienta de
-  medición (ver la tabla en el ADR): cuando una medición contradice lo
-  esperado, sospechar de la medición primero.
+- **0019** — `cdz-progress`: native `<progress>`. The first case where
+  "native first" was **not** applied out of habit: here the only gain is
+  semantics (not behaviour), so it won on two concrete tiebreakers rather
+  than on the principle. Determinate only — indeterminate is
+  `cdz-spinner`, because `appearance: none` kills that state's native
+  animation. Documents the third false negative from a measurement tool
+  (see the table in the ADR): when a measurement contradicts what is
+  expected, suspect the measurement first.
 
-- **0020** — `cdz-tooltip`: el hallazgo central es que **el shadow DOM
-  bloquea las referencias por nombre en general** — tanto los ids de
-  `aria-describedby` como el `anchor-name` de CSS Anchor Positioning son
-  *tree-scoped*. Por eso el tooltip construye sus dos nodos auxiliares
-  (descripción accesible y burbuja) en el **DOM claro**, no en su shadow
-  root. Ojo: `ariaDescribedByElements` descarta una referencia hacia
-  adentro de un shadow root **en silencio**, sin error. Usa
-  `popover="manual"` porque los `auto` se cierran entre sí y cerraría un
-  `cdz-select` abierto.
+- **0020** — `cdz-tooltip`: the central finding is that **the shadow DOM
+  blocks name references in general** — both `aria-describedby` ids and
+  CSS Anchor Positioning's `anchor-name` are *tree-scoped*. That is why
+  the tooltip builds both of its auxiliary nodes (accessible description
+  and bubble) in the **light DOM**, not in its shadow root. Note:
+  `ariaDescribedByElements` discards a reference pointing into a shadow
+  root **silently**, without error. It uses `popover="manual"` because
+  `auto` popovers dismiss each other and would close an open
+  `cdz-select`.
 
-- **0021** — `cdz-divider`: **decorativo por defecto** (`role="none"`),
-  semántico solo si se pide. Llega al mismo default que `cdz-icon` por la
-  razón **contraria**: en el ícono el riesgo grave es el silencio (un
-  control que nadie puede identificar), aquí es el ruido (un "separador"
-  anunciado una vez por fila). La regla que sí comparten, y la que hay
-  que recordar: el default es la opción más callada — cuál lado es el
-  callado depende del componente. Sin margen propio: el espaciado le
-  toca al layout.
+- **0021** — `cdz-divider`: **decorative by default** (`role="none"`),
+  semantic only on request. It reaches the same default as `cdz-icon` for
+  the **opposite** reason: with the icon the serious risk is silence (a
+  control nobody can identify), here it is noise (a "separator" announced
+  once per row). The rule they do share, and the one to remember: the
+  default is the quieter option — which side is quiet depends on the
+  component. No margin of its own: spacing belongs to the layout.
 
-- **0022** — `cdz-avatar`: **significativo por defecto**, rompiendo a
-  propósito la regla que 0016 y 0021 venían compartiendo. El refinamiento
-  es lo que hay que recordar: *el default es callado cuando la opción
-  ruidosa tendría que adivinarse* (`cdz-icon` tendría que inventar un
-  label desde el `name` del ícono) *y ruidoso cuando la cadena correcta ya
-  está en la mano* (aquí `name` es obligatorio para las iniciales, así que
-  el nombre real ya está). Sin color derivado del nombre por hash: cada
-  color generado tendría que pasar 4.5:1 en ambos modos y un hash no lo
-  puede prometer. Primer componente que trata el texto como Unicode
-  (`Intl.Segmenter` para clústeres de grafemas, salida en NFC). Trampa
-  medida: `src=""` en un `<img>` dispara `error`, no silencio. Cuarto
-  falso negativo de medición: `getBBox({ stroke: true })` acepta la opción
-  y la ignora.
+- **0022** — `cdz-avatar`: **meaningful by default**, deliberately
+  breaking the rule 0016 and 0021 had been sharing. The refinement is what
+  to remember: *the default is quiet when the loud option would have to be
+  guessed* (`cdz-icon` would have to invent a label from the icon's
+  `name`) *and loud when the correct string is already in hand* (here
+  `name` is required for the initials, so the real name is already
+  there). No colour hashed from the name: every generated colour would
+  have to clear 4.5:1 in both modes and a hash cannot promise that. First
+  component to treat text as Unicode (`Intl.Segmenter` for grapheme
+  clusters, NFC output). Measured trap: `src=""` on an `<img>` fires
+  `error`, not silence. Fourth measurement false negative:
+  `getBBox({ stroke: true })` accepts the option and ignores it.
 
-- **0023** — subida de todas las herramientas: el rezago de ADR-0006 había
-  crecido de 2 a **9 advisories** (8 high, incluido prototype pollution en
-  style-dictionary 4.x). Ahora **0**. Lo transferible es el método:
-  comparar artefactos generados byte a byte contra una línea base, no
-  confiar en que "compila". TypeScript 7 emitió los 41 `.js` idénticos a
-  5.9, que es la única prueba real de que no rompió la emisión de campos
-  de clase de la que depende Lit sin decoradores.
+- **0023** — upgrading every tool: ADR-0006's lag had grown from 2 to
+  **9 advisories** (8 high, including prototype pollution in
+  style-dictionary 4.x). Now **0**. The transferable part is the method:
+  compare generated artefacts byte for byte against a baseline, do not
+  trust that it "compiles". TypeScript 7 emitted all 41 `.js` identical to
+  5.9's, which is the only real proof it did not break the class-field
+  emission Lit's no-decorators pattern depends on.
 
-- **0024** — CI (GitHub Actions) y despliegue a GitHub Pages. El paso que
-  justifica el CI es `npm audit --audit-level=high`, no el build: es lo
-  que impide que se repita lo de ADR-0023. Lo transferible es lo que
-  **destapó preparar el deploy**: los 7 enlaces a ADRs del sitio llevaban
-  rotos desde siempre (404 también en local), no existía `dist/index.html`
-  —exactamente lo que ADR-0001 había predicho— y una demo pedía una ruta
-  absoluta que se salía del proyecto. Ninguna de las tres fallaba en
-  desarrollo. **El sitio se sirve desde `/` y las páginas viven en `src/`,
-  no en `src/pages/`**; `base` es condicional a `NODE_ENV=production`
-  porque Pages sirve desde `/cadenza/` y el dev server desde `/`.
+- **0024** — CI (GitHub Actions) and deployment to GitHub Pages. The step
+  that justifies CI is `npm audit --audit-level=high`, not the build: it
+  is what stops ADR-0023 repeating. The transferable part is what
+  **preparing the deploy exposed**: the site's 7 ADR links had been broken
+  all along (404 locally too), `dist/index.html` did not exist — exactly
+  what ADR-0001 had predicted — and a demo requested an absolute path that
+  escaped the project. None of the three failed in development. **The site
+  is served from `/` and the pages live in `src/`, not `src/pages/`**;
+  `base` is conditional on `NODE_ENV=production` because Pages serves from
+  `/cadenza/` and the dev server from `/`.
 
-- **0025** — `:host([hidden]) { display: none }` es **obligatorio** en
-  todo componente que fije `display` en su `:host`: la regla `[hidden]` del
-  navegador es origen UA y `:host` es de autor, así que autor gana y
-  `hidden` deja de funcionar. Faltaba en los 18. Lo encontró el sitio
-  desplegado —no la suite— con un enlace a `localhost` visible en
-  producción. La lección de método completa la de ADR-0019: **sospechar de
-  la medición vale en las dos direcciones**; esta sospecha ya se había
-  levantado antes y se retiró por una verificación mal hecha que dijo
-  "está bien" cuando estaba mal.
+- **0025** — `:host([hidden]) { display: none }` is **mandatory** in any
+  component that sets `display` on its `:host`: the browser's `[hidden]`
+  rule is UA origin and `:host` is author origin, so author wins and
+  `hidden` stops working. It was missing from all 18. The deployed site
+  found it — not the suite — with a link to `localhost` visible in
+  production. The methodological lesson completes ADR-0019's: **suspecting
+  the measurement cuts both ways**; this suspicion had already been raised
+  and was withdrawn on a badly done check that said "fine" when it was
+  broken.
 
-## Checklist de átomos
+- **0026** — documentation language: **English in the repository, Spanish
+  on the site**, split by audience rather than by language. The repo was
+  found split down the middle (ADR-0001–0015 English, 0016–0025 Spanish)
+  through drift, not decision: a conversational preference was applied to
+  the artefacts as well. A stated preference has a scope, and widening it
+  silently decides something on someone's behalf.
 
-Ver [docs/roadmap.md](docs/roadmap.md) — las cinco categorías de átomos
-están cerradas; lo que sigue son moléculas.
+## Atom checklist
 
-## Estado actual
+See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
+closed; what comes next are molecules.
 
-**18 átomos completos, las cinco categorías cerradas** — "Formularios",
-"Texto y navegación", "Feedback", "Medios" y "Estructura":
-`cdz-button`, `cdz-input`, `cdz-checkbox`, `cdz-radio`, `cdz-text`,
-`cdz-select`, `cdz-textarea`, `cdz-switch`, `cdz-range`,
-`cdz-file-input`, `cdz-link`, `cdz-icon`, `cdz-badge`, `cdz-spinner`,
-`cdz-progress`, `cdz-tooltip`, `cdz-divider`, `cdz-avatar`.
-Más un primitivo (no-átomo):
-`cdz-popover`, sobre el que se reconstruyó `cdz-select` (ver ADR-0010).
-El sitio también tiene un toggle manual de light/dark (ver la enmienda de
-ADR-0002).
-Migrado a npm; `@kdenza/tokens` y `@kdenza/components` en `0.1.0`, listos
-para publicar en el **registry público de npm** (ver la enmienda de
-ADR-0006). El primer `npm publish` real sigue pendiente y necesita dos
-cosas que solo se hacen desde una terminal propia: `npm login`, y
-comprobar que el scope `@kdenza` esté libre en npmjs — si está tomado hay
-que renombrar los paquetes antes de publicar, no después. Ver
-`docs/publishing.md` y [README.md](README.md).
+## Current status
+
+**18 atoms complete, all five categories closed** — forms, text and
+navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
+`cdz-checkbox`, `cdz-radio`, `cdz-text`, `cdz-select`, `cdz-textarea`,
+`cdz-switch`, `cdz-range`, `cdz-file-input`, `cdz-link`, `cdz-icon`,
+`cdz-badge`, `cdz-spinner`, `cdz-progress`, `cdz-tooltip`, `cdz-divider`,
+`cdz-avatar`. Plus one primitive (not an atom): `cdz-popover`, on which
+`cdz-select` was rebuilt (see ADR-0010).
+
+Published on the public npm registry: `@kdenza/tokens@0.1.0` and
+`@kdenza/components@0.1.1`. The site is live at
+<https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
+push. 253 tests, 0 vulnerabilities. See [README.md](README.md).
