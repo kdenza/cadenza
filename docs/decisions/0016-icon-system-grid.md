@@ -1,4 +1,4 @@
-# ADR-0016: Sistema de íconos — SVG sobre icon font, grilla 24, y normalización de los tres que ya existían
+# ADR-0016: Icon system — SVG over an icon font, a 24 grid, and normalising the three that already existed
 
 **Status:** Accepted
 **Date:** 2026-07-30
@@ -6,273 +6,267 @@
 
 ## Context
 
-Antes de construir `cdz-icon` había que decidir de qué está hecho un
-ícono en Cadenza. La pregunta llegó desde la experiencia previa de la
-owner: usar una icon font tipo Font Awesome y personalizar desde ahí, que
-es lo que se hacía en su trabajo anterior.
+Before building `cdz-icon` it had to be decided what an icon in Cadenza is
+made of. The question came from the owner's prior experience: using a
+Font Awesome-style icon font and customising from there, which is what her
+previous job did.
 
-Además, ya había tres íconos escritos a mano —el chevron de `cdz-select`,
-el check/dash de `cdz-checkbox` y el de link externo de `cdz-link`—
-creados en momentos distintos, sin reglas comunes.
+There were also already three hand-written icons — `cdz-select`'s chevron,
+`cdz-checkbox`'s check/dash and `cdz-link`'s external-link mark — created
+at different times, with no rules in common.
 
 ## Decision
 
-### SVG, no icon font
+### SVG, not an icon font
 
-Verificado en el navegador antes de decidir, no asumido:
+Verified in the browser before deciding, not assumed:
 
-- Una icon font ubica sus glifos en el **Private Use Area** de Unicode
-  (el codepoint típico de Font Awesome es `U+F015`). Para el navegador
-  eso **es texto**, no un gráfico: queda un carácter sin significado en el
-  DOM, que es lo que lee un lector de pantalla y lo que se copia al
-  portapapeles.
-- El modo de falla decisivo: si una persona activa una fuente propia
-  (OpenDyslexic por dislexia, o alto contraste de Windows), la icon font
-  **se reemplaza** y cada ícono se vuelve una letra al azar o un
-  cuadradito vacío. Se rompe exactamente para quienes activaron esa ayuda
-  porque la necesitan — inaceptable en un sistema cuya premisa es
-  accesibilidad desde cada commit.
+- An icon font places its glyphs in Unicode's **Private Use Area** (Font
+  Awesome's typical codepoint is `U+F015`). To the browser that **is
+  text**, not a graphic: it leaves a meaningless character in the DOM,
+  which is what a screen reader reads and what gets copied to the
+  clipboard.
+- The decisive failure mode: if someone activates their own font
+  (OpenDyslexic for dyslexia, or Windows high contrast), the icon font
+  **is replaced** and every icon becomes a random letter or an empty box.
+  It breaks precisely for the people who turned that assistance on because
+  they need it — unacceptable in a system whose premise is accessibility
+  from every commit.
 
-SVG además resuelve mejor la personalización que motivaba la pregunta
-original: con `currentColor` el ícono hereda el color del contexto y es
-tokenizable, admite multicolor, y escala nítido. Una icon font limita a
-color y tamaño.
+SVG also solves the customisation that motivated the original question
+better: with `currentColor` the icon inherits its context's colour and is
+tokenisable, supports multicolour, and scales crisply. An icon font limits
+you to colour and size.
 
-**Matiz justo:** el problema es la *webfont*, no Font Awesome. FA6 ofrece
-API de SVG, así que esa familia seguiría siendo viable por esa vía. Se
-descartó por licencia (los íconos free son CC BY 4.0, o sea atribución
-obligatoria en un portafolio público) y por peso de dependencia, no por
-calidad.
+**A fair nuance:** the problem is the *webfont*, not Font Awesome. FA6
+offers an SVG API, so that family would remain viable through it. It was
+ruled out on licensing (the free icons are CC BY 4.0, i.e. mandatory
+attribution in a public portfolio) and dependency weight, not on quality.
 
-### Los sprite sheets quedan descartados por el shadow DOM
+### Sprite sheets are ruled out by the shadow DOM
 
-Verificado: `<use href="#icono">` apuntando a un sprite en el documento
-**no cruza la frontera del shadow DOM**. El mismo markup renderizó
-20×19px en el DOM normal y **0×0** dentro de un shadow root. Como todos
-los componentes de Cadenza viven en shadow roots, esa arquitectura —muy
-común en otros sistemas— no es viable aquí. Los paths se importan como
-datos desde un registro compartido en su lugar.
+Verified: `<use href="#icon">` pointing at a sprite in the document **does
+not cross the shadow DOM boundary**. The same markup rendered 20×19px in
+the normal DOM and **0×0** inside a shadow root. Since every Cadenza
+component lives in a shadow root, that architecture — very common in other
+systems — is not viable here. Paths are imported as data from a shared
+registry instead.
 
-### La grilla
+### The grid
 
-| Regla | Valor |
+| Rule | Value |
 |---|---|
-| Lienzo | 24×24 |
-| Área viva | 20×20 (2 unidades de aire) |
-| Grosor de trazo | 2, constante **relativo al lienzo** |
-| Terminales y uniones | redondas |
-| Radio de esquina | 2 |
+| Canvas | 24×24 |
+| Live area | 20×20 (2 units of air) |
+| Stroke width | 2, constant **relative to the canvas** |
+| Caps and joins | round |
+| Corner radius | 2 |
 
-Sin `fill`: todos los íconos son solo trazo, así un único `currentColor`
-sobre el `<svg>` colorea todo y hereda del contexto gratis.
+No `fill`: every icon is stroke only, so a single `currentColor` on the
+`<svg>` colours everything and inherits from context for free.
 
-**Corrección a la regla, encontrada al verificar:** el área viva acota el
-**trazo**, no la geometría del path. Un trazo de 2 está centrado sobre el
-path, así que agrega 1 unidad por lado; medir solo con `getBBox()`
-subestima exactamente eso. La primera redacción de la regla no lo decía y
-daba falsos "cumple".
+**A correction to the rule, found while verifying:** the live area bounds
+the **stroke**, not the path's geometry. A 2-unit stroke is centred on the
+path, so it adds 1 unit per side; measuring with `getBBox()` alone
+underestimates exactly that. The first wording of the rule did not say so
+and produced false "passes".
 
-### La deriva que se corrigió
+### The drift that was corrected
 
-Los tres íconos existentes, medidos antes de normalizar:
+The three existing icons, measured before normalising:
 
-| Ícono | Lienzo | Trazo | Trazo ÷ lienzo | Trazo renderizado |
+| Icon | Canvas | Stroke | Stroke ÷ canvas | Rendered stroke |
 |---|---|---|---|---|
 | chevron (`cdz-select`) | 12 | 1.5 | 12.5% | 1.5px |
 | check (`cdz-checkbox`) | 16 | 2 | 12.5% | 2px |
 | external-link (`cdz-link`) | 12 | 2 | **16.7%** | 2px |
 
-Dos lienzos, dos grosores, y un ícono un tercio más pesado que los otros
-—escrito, además, el mismo día que se redactó este sistema, lo cual dice
-bastante sobre lo fácil que es que esto derive sin reglas escritas.
+Two canvases, two stroke widths, and one icon a third heavier than the
+others — written, moreover, the same day this system was drafted, which
+says plenty about how easily this drifts without written rules.
 
-Después de normalizar, los tres miden idéntico en el navegador: lienzo
-24, caja renderizada 16px, trazo 2 unidades → **1.33px reales** en los
-tres casos.
+After normalising, all three measure identically in the browser: canvas
+24, rendered box 16px, stroke 2 units → **1.33 real px** in all three
+cases.
 
-### `external-link` necesitó corrección a mano
+### `external-link` needed a manual correction
 
-Con las reglas aplicadas mecánicamente el ícono seguía leyéndose más
-pesado que el resto: una forma **cerrada** pesa ópticamente más que un
-trazo abierto aunque ocupe los mismos límites, y su extensión llegaba
-justo al borde del área viva (3→22) mientras chevron y check quedaban
-holgados. Se redibujó una unidad más adentro arriba y a la derecha
-(3→21, 3→20).
+With the rules applied mechanically the icon still read heavier than the
+rest: a **closed** shape carries more optical weight than an open stroke
+even at the same bounds, and its extent reached right to the edge of the
+live area (3→22) while chevron and check had room to spare. It was
+redrawn one unit further in at the top and right (3→21, 3→20).
 
-Esto es la parte que ninguna regla automatiza: **el balance óptico no es
-el balance aritmético**. Un círculo tiene que ser levemente más grande
-que un cuadrado para *parecer* del mismo tamaño, y una forma cerrada
-tiene que ser levemente más pequeña que una abierta.
+This is the part no rule automates: **optical balance is not arithmetic
+balance**. A circle has to be slightly larger than a square to *look* the
+same size, and a closed shape has to be slightly smaller than an open one.
 
-Se encontró renderizando el set completo a 96px, lado a lado, con el área
-viva dibujada encima — a 16px el problema era invisible. Ese contact
-sheet es la herramienta de verificación real para íconos, no la medición
-puntual.
+It was found by rendering the whole set at 96px, side by side, with the
+live area drawn on top — at 16px the problem was invisible. That contact
+sheet is the real verification tool for icons, not a spot measurement.
 
-### Los tamaños de render se unificaron
+### Render sizes were unified
 
-El chevron pasó de 12px a 16px, y el ícono de link externo de `0.75em` a
-`1em`, para que los tres rindan el mismo grosor real. El de link se
-dimensiona en `em` a propósito: es un ícono inline y tiene que escalar
-con la oración en la que vive, por la misma razón que `cdz-link` hereda
-su tipografía (ADR-0015).
+The chevron went from 12px to 16px, and the external-link icon from
+`0.75em` to `1em`, so all three render the same real stroke width. The
+link one is sized in `em` on purpose: it is an inline icon and has to
+scale with the sentence it lives in, for the same reason `cdz-link`
+inherits its typography (ADR-0015).
 
 ## Consequences
 
-- **Más fácil:** `shared/icons.ts` ya es el registro que va a leer
-  `cdz-icon` (registro interno + prop `name`, la opción elegida). El átomo
-  se reduce a tamaño, color y semántica accesible.
-- **Más fácil:** un ícono nuevo ahora es aplicación mecánica de reglas
-  escritas, no una decisión desde cero.
-- **A revisar:** el set actual son cuatro íconos y todos existían por
-  necesidad de un componente. La decisión de dibujar a mano vs. tomar
-  geometría de un set MIT (Lucide) sigue abierta y se decide con más
-  íconos sobre la mesa.
-- **A revisar:** el radio de esquina 2 hoy solo lo ejercita
-  `external-link`. Si un ícono futuro necesita otro radio, conviene
-  confirmar que el valor sigue siendo el correcto para todo el set antes
-  de romper la regla.
-- **A revisar:** no hay test automático que verifique que un ícono nuevo
-  respeta el área viva. Es verificable programáticamente (`getBBox()` +
-  medio trazo) y sería un buen guardián, pero se hizo a mano aquí.
+- **Easier:** `shared/icons.ts` is already the registry `cdz-icon` will
+  read (internal registry + `name` prop, the option chosen). The atom
+  reduces to size, colour and accessible meaning.
+- **Easier:** a new icon is now the mechanical application of written
+  rules, not a decision from scratch.
+- **To revisit:** the current set is four icons and all existed because a
+  component needed them. The decision to draw by hand vs. take geometry
+  from an MIT set (Lucide) remains open and gets decided with more icons
+  on the table.
+- **To revisit:** corner radius 2 is only exercised by `external-link`
+  today. If a future icon needs a different radius, it is worth confirming
+  the value is still right for the whole set before breaking the rule.
+- **To revisit:** there is no automated test verifying that a new icon
+  respects the live area. It is programmatically checkable (`getBBox()` +
+  half the stroke) and would make a good guard, but it was done by hand
+  here.
 
 ## Action Items
 
-1. [x] Verificados en navegador los dos hechos decisivos: el codepoint PUA
-   de las icon fonts, y que `<use>` no cruza el shadow DOM.
-2. [x] Grilla definida y escrita en `shared/icons.ts`, con la corrección
-   de que el área viva acota el trazo y no la geometría.
-3. [x] Los tres íconos existentes migrados al registro; medido en el
-   navegador que los tres rinden 1.33px de trazo (antes 1.5 / 2 / 2).
-4. [x] `external-link` redibujado por balance óptico tras auditarlo a
-   96px con el área viva superpuesta.
-5. [x] Build y suite completa verdes (137/137) y verificación visual en
-   contexto de los tres componentes afectados.
-6. [x] Construir `cdz-icon` sobre este registro — ver la enmienda.
-7. [ ] Evaluar un test que verifique automáticamente el área viva de cada
-   ícono del registro.
+1. [x] Verified in-browser the two decisive facts: icon fonts' PUA
+   codepoint, and that `<use>` does not cross the shadow DOM.
+2. [x] Grid defined and written into `shared/icons.ts`, with the
+   correction that the live area bounds the stroke and not the geometry.
+3. [x] The three existing icons migrated to the registry; measured in the
+   browser that all three render a 1.33px stroke (previously 1.5 / 2 / 2).
+4. [x] `external-link` redrawn for optical balance after auditing it at
+   96px with the live area overlaid.
+5. [x] Build and full suite green (137/137) and visual verification in
+   context for the three affected components.
+6. [x] Build `cdz-icon` on this registry — see the amendment.
+7. [ ] Evaluate a test that automatically verifies each registry icon's
+   live area.
 
 ## Amendment (2026-07-30): `<cdz-icon>`
 
-El átomo que envuelve el registro. Se quedó con exactamente tres
-responsabilidades —tamaño, color y significado— porque la geometría y las
-reglas de grilla ya viven en `shared/icons.ts`.
+The atom wrapping the registry. It kept exactly three responsibilities —
+size, colour and meaning — because the geometry and grid rules already
+live in `shared/icons.ts`.
 
-### Decorativo por defecto, significativo a pedido
+### Decorative by default, meaningful on request
 
-La decisión central de la API, y es deliberadamente asimétrica:
+The central API decision, and deliberately asymmetric:
 
-- **Sin `label`** → el ícono es decoración: `aria-hidden="true"`, sin rol,
-  no aporta nada al árbol de accesibilidad. Es lo correcto la mayoría de
-  las veces — el chevron al lado de "País", el check dentro de un
-  checkbox y la flecha de link externo están todos junto a un texto que
-  ya dice lo mismo, y anunciarlos de nuevo es ruido.
-- **Con `label`** → el ícono es lo único que comunica esa información:
-  `role="img"` + `aria-label`. Existe para el caso del control que es
-  solo ícono.
+- **No `label`** → the icon is decoration: `aria-hidden="true"`, no role,
+  contributes nothing to the accessibility tree. That is right most of the
+  time — the chevron beside "País", the check inside a checkbox and the
+  external-link arrow all sit next to text that already says the same
+  thing, and announcing them again is noise.
+- **With `label`** → the icon is the only thing communicating that
+  information: `role="img"` + `aria-label`. It exists for the icon-only
+  control.
 
-El default es el seguro a propósito. Un ícono decorativo anunciado de más
-molesta; un ícono significativo que no se anuncia deja un control que una
-persona usuaria de lector de pantalla no puede identificar. Y exigir que
-el caso significativo lleve un string escrito a mano es lo que obliga a
-que ese string exista: una API que dedujera el label del `name` diría
-"external-link" en voz alta, que es peor que nada.
+The default is the safe one on purpose. A decorative icon announced too
+much is annoying; a meaningful icon that goes unannounced leaves a control
+a screen-reader user cannot identify. And requiring the meaningful case to
+carry a hand-written string is what forces that string to exist: an API
+that inferred the label from `name` would say "external-link" aloud, which
+is worse than nothing.
 
-### El color no es una prop
+### Colour is not a prop
 
-El SVG pinta con `currentColor`, así que el ícono toma el color del texto
-donde esté y sigue light/dark solo. Verificado en el navegador, no
-asumido: el mismo `<cdz-icon name="dash">` dentro de un contexto de error
-computó `rgb(217, 110, 104)` mientras los demás computaron
-`rgb(240, 230, 234)`. Ese es el beneficio concreto de haber elegido SVG
-sobre icon font — una font solo podría haber coloreado el glifo entero de
-una.
+The SVG paints with `currentColor`, so the icon takes the text colour of
+wherever it is and follows light/dark by itself. Verified in the browser,
+not assumed: the same `<cdz-icon name="dash">` inside an error context
+computed `rgb(217, 110, 104)` while the others computed
+`rgb(240, 230, 234)`. That is the concrete payoff of having chosen SVG
+over an icon font — a font could only ever have coloured the whole glyph
+at once.
 
-### Escala de tamaños
+### Size scale
 
-`sm` 16px · `md` 20px (default) · `lg` 24px, más `inherit` (`1em`).
-Medidos en el navegador: 16 / 20 / 24, e `inherit` dando 16px junto a
-texto de 16px y 32px junto a texto de 32px.
+`sm` 16px · `md` 20px (default) · `lg` 24px, plus `inherit` (`1em`).
+Measured in the browser: 16 / 20 / 24, with `inherit` giving 16px next to
+16px text and 32px next to 32px text.
 
-`inherit` es de primera clase y no un override: el ícono externo de
-`cdz-link` ya lo había necesitado (ADR-0015), así que la necesidad estaba
-demostrada antes de que existiera la opción.
+`inherit` is first-class rather than an override: `cdz-link`'s external
+icon had already needed it (ADR-0015), so the need was demonstrated before
+the option existed.
 
-### El contact sheet ahora vive en la galería
+### The contact sheet now lives in the gallery
 
-La auditoría que destapó el problema de peso óptico de `external-link` se
-hizo con un overlay temporal inyectado a mano en la página. Esa misma
-vista quedó como sección permanente de `@kdenza/gallery`: todos los
-íconos del registro a 96px con el área viva superpuesta, generada desde
-`shared/icons.ts` para que un ícono nuevo aparezca solo. También el
-dropdown de `name` en los controles se puebla desde el registro.
+The audit that exposed `external-link`'s optical weight problem was done
+with a temporary overlay injected by hand into the page. That same view
+became a permanent section of `@kdenza/gallery`: every registry icon at
+96px with the live area overlaid, generated from `shared/icons.ts` so a
+new icon appears by itself. The `name` dropdown in the controls is
+populated from the registry too.
 
-Es el único lugar donde la galería lee código fuente en vez del manifest:
-los nombres de íconos son datos en un registro, no un union de TypeScript
-que el analyzer pueda leer, y hardcodearlos quedaría desactualizado al
-primer ícono nuevo.
+It is the only place the gallery reads source code rather than the
+manifest: icon names are data in a registry, not a TypeScript union the
+analyzer can read, and hard-coding them would go stale at the first new
+icon.
 
-### Un nombre desconocido no renderiza nada y grita
+### An unknown name renders nothing and shouts
 
-Mismo contrato que los chequeos de `label`/`href` faltantes:
-`console.error` con la lista de nombres disponibles, nunca `throw`.
-Renderizar una caja vacía en silencio convertiría un typo en un misterio
-de layout.
+Same contract as the missing `label`/`href` checks: `console.error` with
+the list of available names, never `throw`. Silently rendering an empty
+box would turn a typo into a layout mystery.
 
 ### Tests
 
-Doce casos, incluyendo uno que recorre **todo** el registro y verifica que
-cada ícono se renderice sobre la grilla compartida — así un ícono nuevo
-agregado con otro `viewBox` rompe el test en vez de romper la coherencia
-óptica en silencio. 148/148 en total.
+Twelve cases, including one that walks the **entire** registry and
+verifies each icon renders on the shared grid — so a new icon added with a
+different `viewBox` breaks the test instead of silently breaking optical
+coherence. 148/148 in total.
 
-## Amendment (2026-08-02): primer lote dibujado con las reglas
+## Amendment (2026-08-02): first batch drawn with the rules
 
-Cinco íconos nuevos, elegidos por lo que la sección Feedback del roadmap
-va a necesitar: `x`, `chevron-up`, `info`, `alert-circle` y
-`alert-triangle`. El set queda en nueve.
+Five new icons, chosen for what the roadmap's Feedback section will need:
+`x`, `chevron-up`, `info`, `alert-circle` and `alert-triangle`. The set
+reaches nine.
 
-`chevron-up` comparte footprint exacto con `chevron-down` (14×8 con
-trazo), para que un control que cambia de dirección no cambie de peso.
+`chevron-up` shares an exact footprint with `chevron-down` (14×8 with
+stroke), so a control that changes direction does not change weight.
 
-Los tres de estado se dibujaron como **una familia**, no como tres íconos
-sueltos: mismo radio de círculo, misma longitud de barra, misma altura
-total de contenido (8→16). Solo varían dos cosas, y las dos significan
-algo — el contenedor dice cuán fuerte es (círculo neutro, triángulo más
-urgente), y la marca dice de qué tipo es (`info` es una "i" con el punto
-arriba; las alertas son "!" con el punto abajo). Invertir ese par es lo
-que evita que `info` y `alert-circle` sean el mismo ícono dos veces.
+The three status ones were drawn as **a family**, not as three separate
+icons: same circle radius, same bar length, same total content height
+(8→16). Only two things vary, and both mean something — the container says
+how urgent it is (neutral circle, more urgent triangle), and the mark says
+what type it is (`info` is an "i" with the dot on top; the alerts are "!"
+with the dot below). Inverting that pair is what keeps `info` and
+`alert-circle` from being the same icon twice.
 
-### Dos cosas que aparecieron al medir
+### Two things that showed up while measuring
 
-**Los círculos "desbordaban" el área viva, pero no.** El audit reportaba
-`insideLiveArea: false` para `info` y `alert-circle`. Medido sin
-redondear, el desborde era de **0.003 unidades** sobre una grilla de 24:
-el error de aproximación de arcos a curvas de Bézier del navegador. El
-triángulo, que son rectas puras, mide exactamente 2→22 con cero
-desborde. Los círculos cumplen; el predicado de auditoría era ingenuo al
-comparar con `<=` exacto contra un número que sale de aplanar curvas. El
-test pendiente del área viva (action item 7) necesita una tolerancia.
+**The circles "overflowed" the live area, except they did not.** The audit
+reported `insideLiveArea: false` for `info` and `alert-circle`. Measured
+without rounding, the overflow was **0.003 units** on a 24 grid: the
+browser's error from approximating arcs as Bézier curves. The triangle,
+which is pure straight lines, measures exactly 2→22 with zero overflow.
+The circles comply; the audit predicate was naive in comparing with an
+exact `<=` against a number produced by flattening curves. The pending
+live-area test (action item 7) needs a tolerance.
 
-**El piso de legibilidad de 16px se rompe para un par, y no tiene
-arreglo por dibujo.** `info` y `alert-circle` no se distinguen entre sí a
-`size="sm"`. Lo que las diferencia —cuál extremo lleva el punto— ocupa
-unas 3 unidades de grilla, que a 16px son ~2px reales, por debajo de lo
-que un trazo de 1.33px puede expresar.
+**The 16px legibility floor breaks for one pair, and drawing cannot fix
+it.** `info` and `alert-circle` are not tellable apart at `size="sm"`.
+What distinguishes them — which end carries the dot — occupies about 3
+grid units, which at 16px is ~2 real px, below what a 1.33px stroke can
+express.
 
-Se probaron tres redibujos (barra más larga, más separación punto-barra,
-separación mayor con barra corta) renderizando los pares alternados a
-16px. **Ninguno cambió el resultado**, y eso es lo que lo convierte en un
-límite y no en un problema de dibujo. A `md` (20px) y arriba el par lee
-bien.
+Three redraws were tried (longer bar, more dot-to-bar separation, greater
+separation with a short bar) by rendering the pairs alternating at 16px.
+**None changed the outcome**, and that is what makes it a limit rather
+than a drawing problem. At `md` (20px) and above the pair reads fine.
 
-La regla que queda: **usar `md` o mayor cuando estos dos tengan que
-distinguirse entre sí por forma.** En la práctica los componentes que los
-van a usar (badge, alert) siempre acompañan el ícono con texto — que es
-justo por qué `cdz-icon` los trata como decorativos por defecto: el ícono
-apoya el mensaje, no lo carga. El color también difiere entre ambos, pero
-como segunda señal, nunca como única (WCAG 1.4.1).
+The rule that remains: **use `md` or larger when these two have to be
+distinguished from each other by shape.** In practice the components that
+will use them (badge, alert) always accompany the icon with text — which
+is exactly why `cdz-icon` treats them as decorative by default: the icon
+supports the message, it does not carry it. Colour also differs between
+them, but as a second signal, never the only one (WCAG 1.4.1).
 
-Esto es el mismo tipo de hallazgo que el peso óptico de `external-link`:
-invisible a tamaño real hasta que se mira con la herramienta adecuada.
-La diferencia es que aquel se arreglaba redibujando y este no.
+This is the same class of finding as `external-link`'s optical weight:
+invisible at real size until you look with the right tool. The difference
+is that the earlier one was fixable by redrawing and this one is not.

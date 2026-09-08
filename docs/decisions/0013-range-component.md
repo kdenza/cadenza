@@ -171,63 +171,60 @@ creep.
 
 ---
 
-## Enmienda (2026-08-20): verificado en Firefox
+## Amendment (2026-08-20): verified in Firefox
 
-Este ADR y el 0019 dejaron abierto lo mismo: las reglas `::-moz-*` estaban
-escritas pero **nunca comprobadas en un motor Gecko**, porque el entorno
-solo tenía Chromium. Ya hay Firefox 153 disponible, así que la duda se
-cierra.
+This ADR and 0019 left the same thing open: the `::-moz-*` rules were
+written but **never checked in a Gecko engine**, because the environment
+only had Chromium. Firefox 153 is now available, so the question closes.
 
-### Cómo se midió, y por qué así
+### How it was measured, and why that way
 
-No con `getComputedStyle`. ADR-0019 documenta que sobre pseudo-elementos
-con prefijo esa API **miente** — devuelve transparente para reglas que sí
-aplican. Preguntarle al CSSOM habría repetido el mismo falso negativo.
+Not with `getComputedStyle`. ADR-0019 documents that on prefixed
+pseudo-elements that API **lies** — it returns transparent for rules that
+do apply. Asking the CSSOM would have repeated the same false negative.
 
-En su lugar se midió el **píxel pintado**: captura headless de Firefox
-sobre una página con los cuatro casos (normal, error, disabled, progress)
-en ambos modos, y muestreo directo de los colores decodificando el PNG.
-Es la misma lección de siempre — cuando la herramienta de medición es
-sospechosa, bajar un nivel y mirar el resultado, no el reporte.
+Instead the **painted pixel** was measured: a headless Firefox screenshot
+of a page with all four cases (normal, error, disabled, progress) in both
+modes, and direct colour sampling by decoding the PNG. It is the same
+lesson as always — when the measuring tool is suspect, drop a level and
+look at the result, not at the report.
 
-### Resultado: las cuatro reglas aplican
+### Result: all four rules apply
 
-Los colores muestreados coinciden exactamente con los tokens, y los del
-modo oscuro difieren de los del claro — que es la prueba de que los
-tokens llegan *a través* del pseudo-elemento, no de que coincidan por
-casualidad con un fallback.
+The sampled colours match the tokens exactly, and the dark-mode ones
+differ from the light — which is the proof that tokens arrive *through*
+the pseudo-element, rather than coincidentally matching a fallback.
 
-| | claro | oscuro |
+| | light | dark |
 |---|---|---|
 | `::-moz-range-track` | `#8a7c87` | `#a79aa3` |
-| relleno del gradiente | `#7a5197` | `#b08fcb` |
+| gradient fill | `#7a5197` | `#b08fcb` |
 | `::-moz-range-thumb` | `#ffffff` | `#2c2230` |
 | `[aria-invalid]::-moz-range-track` | `#a73535` | `#d96e68` |
 | `:disabled::-moz-range-track` | `#e8dfe4` | `#453a47` |
 | `::-moz-progress-bar` | `#7a5197` | `#b08fcb` |
 
-Un detalle que el muestreo aclaró y el ojo no: el estado de error es
-`box-shadow: 0 0 0 2px`, o sea un **anillo alrededor** del track, no un
-relleno. En el barrido vertical aparece como dos filas rojas —arriba y
-abajo— con el gradiente normal entre ellas. Se veía "raro" hasta releer la
-regla; el código estaba bien.
+One detail the sampling clarified and the eye did not: the error state is
+`box-shadow: 0 0 0 2px`, i.e. a **ring around** the track, not a fill. In
+the vertical scan it shows up as two red rows — above and below — with the
+normal gradient between them. It looked "wrong" until the rule was
+re-read; the code was fine.
 
-### El contraste del thumb se sostiene en Gecko
+### The thumb's contrast holds in Gecko
 
-El requisito de 3:1 de ADR-0012, ahora medido sobre lo que Firefox pinta
-de verdad:
+ADR-0012's 3:1 requirement, now measured against what Firefox actually
+paints:
 
-| modo | thumb vs relleno | thumb vs track | mínimo |
+| mode | thumb vs fill | thumb vs track | minimum |
 |---|---|---|---|
-| claro | 6.08:1 | 3.95:1 | **3.95** |
-| oscuro | 5.54:1 | 5.65:1 | **5.54** |
+| light | 6.08:1 | 3.95:1 | **3.95** |
+| dark | 5.54:1 | 5.65:1 | **5.54** |
 
-El anillo de error pasa contra el fondo de página (6.04:1 claro, 5.14:1
-oscuro). El estado disabled da 3.03:1 en claro — exactamente el mismo
-valor exento por WCAG 1.4.3 que ya documenta ADR-0014, lo cual es una
-confirmación cruzada agradable de que los dos componentes comparten los
-mismos roles.
+The error ring passes against the page background (6.04:1 light, 5.14:1
+dark). The disabled state gives 3.03:1 in light — exactly the same value
+WCAG 1.4.3 exempts and that ADR-0014 already documents, which is a
+pleasant cross-confirmation that both components share the same roles.
 
-**Nada que arreglar.** La duplicación `::-webkit-*` / `::-moz-*` que este
-ADR aceptó como costo real estaba bien puesta, y ahora está probada en los
-dos motores en vez de en uno.
+**Nothing to fix.** The `::-webkit-*` / `::-moz-*` duplication this ADR
+accepted as a real cost was correctly placed, and is now proven in both
+engines instead of one.
