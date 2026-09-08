@@ -4,11 +4,6 @@ import '@kdenza/components/dist/styles/tokens.css';
 import type { CdzButton, CdzSelect, CdzSelectOption } from '@kdenza/components';
 import './styles/global.css';
 
-const cta = document.querySelector<CdzButton>('#cta-primary');
-cta?.addEventListener('click', () => {
-  console.log('cdz-button clicked');
-});
-
 // @kdenza/gallery is a separate, privately-run Vite dev server (port
 // 5174) with no build/deploy story of its own yet — the link only makes
 // sense while both dev servers are running locally, so it's hidden by

@@ -17,7 +17,11 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <title>Cadenza — UX Engineer Portfolio</title>
+    <title>Cadenza — Design system accesible · Mónica Castillo</title>
+    <meta
+      name="description"
+      content="Un design system accesible construido con Web Components, y el caso de estudio de cómo se tomó cada decisión."
+    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -27,8 +31,26 @@
   </head>
   <body>
     <main>
-      <nav>
-        <cdz-link href="./design-system.html">Ver el design system →</cdz-link>
+      <cdz-button id="theme-toggle">Cambiar a modo oscuro</cdz-button>
+
+      <header class="hero">
+        <h1>Cadenza</h1>
+        <cdz-text as="p" size="body-lg">
+          Un design system <strong>accesible y sencillo</strong>, y el caso de
+          estudio de cómo se tomó cada decisión.
+        </cdz-text>
+        <cdz-text as="p" size="body-sm">
+          Por Mónica Castillo · UX Engineer
+        </cdz-text>
+        <div class="button-row">
+          <cdz-link href="./design-system.html">Ver los 18 componentes →</cdz-link>
+          <cdz-link href="https://github.com/kdenza/cadenza" target="_blank">
+            Código y decisiones
+          </cdz-link>
+          <cdz-link href="https://www.npmjs.com/package/@kdenza/components" target="_blank">
+            Instalar desde npm
+          </cdz-link>
+        </div>
         <!-- Solo visible en desarrollo local (ver main.ts): @kdenza/gallery
              es un paquete privado, corre en su propio servidor de Vite
              (puerto 5174) y no se buildea ni se despliega junto al sitio
@@ -36,16 +58,233 @@
         <cdz-link id="gallery-link" href="http://localhost:5174" hidden
           >Ver la galería de componentes →</cdz-link
         >
-      </nav>
-      <h1>Cadenza</h1>
-      <p>
-        Design system + portafolio de UX Engineering. Este sitio es su propio
-        caso de estudio: tokens → componentes → sitio, de punta a punta.
-      </p>
-      <div class="button-row">
-        <cdz-button id="cta-primary">Contactarme</cdz-button>
-        <cdz-button disabled>No disponible</cdz-button>
-      </div>
+      </header>
+
+      <cdz-divider></cdz-divider>
+
+      <section>
+        <h2>El problema</h2>
+        <p>
+          Casi todos los design systems se documentan por lo que
+          <em>contienen</em>: aquí está el botón, aquí el input, estas son sus
+          props. Pero en el día a día esa nunca es la pregunta cara. La
+          pregunta cara es <strong>por qué este componente se comporta así, y
+          qué se rompe si lo cambio</strong>.
+        </p>
+        <p>
+          Cuando esa respuesta no está escrita, cada persona que llega la
+          reconstruye por su cuenta —normalmente equivocándose— o simplemente
+          copia el patrón sin entenderlo. Ahí es donde un design system deja de
+          ahorrar trabajo y empieza a producirlo.
+        </p>
+        <p>
+          Cadenza está construido al revés: <strong>26 registros de decisión
+          de arquitectura</strong>, uno por cada decisión que costó pensar, con
+          sus concesiones y lo que se dejó afuera a propósito.
+        </p>
+      </section>
+
+      <section>
+        <h2>El método: verificar, no suponer</h2>
+        <p>
+          Nada aquí se afirma porque lo diga la documentación de un navegador.
+          Los contrastes se leen de vuelta del navegador ya renderizado, el
+          soporte de una API se comprueba antes de apoyarse en ella, y cuando
+          una afirmación resultó falsa se corrigió a la vista en vez de
+          borrarla.
+        </p>
+        <div class="stat-row">
+          <div class="stat"><strong>18</strong><span>átomos + 1 primitivo</span></div>
+          <div class="stat"><strong>26</strong><span>decisiones documentadas</span></div>
+          <div class="stat"><strong>253</strong><span>tests, con axe-core</span></div>
+          <div class="stat"><strong>0</strong><span>vulnerabilidades</span></div>
+        </div>
+      </section>
+
+      <cdz-divider></cdz-divider>
+
+      <section>
+        <h2>Cuatro decisiones</h2>
+        <p>
+          Cuatro casos donde la respuesta obvia era la equivocada. Los
+          componentes que ves aquí abajo no son capturas: son el sistema
+          funcionando.
+        </p>
+
+        <article class="decision">
+          <h3>1. Los íconos nunca pueden ser una fuente</h3>
+          <div class="evidence">
+            <cdz-icon name="user" size="lg"></cdz-icon>
+            <cdz-icon name="check" size="lg"></cdz-icon>
+            <cdz-icon name="alert-triangle" size="lg"></cdz-icon>
+            <cdz-icon name="info" size="lg"></cdz-icon>
+            <cdz-icon name="external-link" size="lg"></cdz-icon>
+          </div>
+          <p>
+            Una icon font guarda sus glifos en el
+            <em>Private Use Area</em> de Unicode. Para el navegador eso
+            <strong>es texto</strong>, no un gráfico. Y si alguien activa su
+            propia tipografía —OpenDyslexic por dislexia, o el alto contraste
+            de Windows— la fuente se reemplaza y cada ícono se convierte en una
+            letra al azar.
+          </p>
+          <p>
+            Es decir: <strong>se rompe exactamente para quien activó esa ayuda
+            porque la necesita</strong>. Ese fue el argumento que cerró la
+            discusión, no la comodidad de escribir SVG.
+          </p>
+        </article>
+
+        <article class="decision">
+          <h3>2. El shadow DOM bloquea las referencias por nombre</h3>
+          <div class="evidence">
+            <cdz-tooltip text="Esta burbuja vive en el DOM claro, no en el shadow root">
+              <cdz-button>Pasa el mouse o dale Tab</cdz-button>
+            </cdz-tooltip>
+          </div>
+          <p>
+            Un tooltip necesita dos cosas: que el lector de pantalla lo asocie
+            al control, y que aparezca visualmente pegado a él. Las dos
+            fallaron, por separado, y resultaron tener la misma causa.
+          </p>
+          <p>
+            <code>aria-describedby</code> resuelve ids dentro de un solo árbol,
+            y <code>anchor-name</code> de CSS también. Ambos son
+            <em>tree-scoped</em>. Peor: la API moderna
+            <code>ariaDescribedByElements</code> descarta la referencia
+            <strong>en silencio</strong>, sin lanzar error — se lee de vuelta
+            vacía.
+          </p>
+          <p>
+            El componente terminó construyendo sus nodos auxiliares fuera de su
+            propio shadow root. No es elegante; es lo que la plataforma
+            permite.
+          </p>
+        </article>
+
+        <article class="decision">
+          <h3>3. Cuándo un default debe callarse y cuándo hablar</h3>
+          <div class="evidence">
+            <cdz-avatar name="Mónica Castillo"></cdz-avatar>
+            <cdz-icon name="info" size="lg"></cdz-icon>
+            <cdz-divider orientation="vertical"></cdz-divider>
+            <cdz-badge variant="success">Verificado</cdz-badge>
+          </div>
+          <p>
+            Tres de estos componentes son <strong>decorativos por
+            defecto</strong> —invisibles para un lector de pantalla— y uno
+            <strong>se anuncia</strong>. La diferencia no es capricho.
+          </p>
+          <p>
+            Un ícono no puede anunciarse solo: tendría que inventar su texto
+            alternativo a partir del nombre del archivo, y
+            <em>"alert-triangle"</em> leído en voz alta es peor que el silencio.
+            El avatar sí puede: ya exige el nombre de la persona para calcular
+            las iniciales, así que la opción ruidosa no es una adivinanza.
+          </p>
+          <p>
+            <strong>La regla que quedó:</strong> el default es callado cuando la
+            opción ruidosa tendría que adivinarse, y ruidoso cuando la cadena
+            correcta ya está en la mano.
+          </p>
+        </article>
+
+        <article class="decision">
+          <h3>4. Cuatro veces que la herramienta de medición mintió</h3>
+          <div class="evidence">
+            <cdz-badge variant="neutral">8.26:1</cdz-badge>
+            <cdz-badge variant="info">7.37:1</cdz-badge>
+            <cdz-badge variant="success">5.45:1</cdz-badge>
+            <cdz-badge variant="warning">5.77:1</cdz-badge>
+            <cdz-badge variant="error">4.67:1</cdz-badge>
+          </div>
+          <p>
+            Estos son contrastes reales, medidos sobre los componentes ya
+            renderizados. Llegar a ellos costó descubrir que las herramientas
+            se equivocan más de lo que uno espera:
+            <code>getComputedStyle</code> miente sobre <code>:visited</code> (a
+            propósito, por privacidad) y sobre pseudo-elementos con prefijo;
+            <code>getBBox()</code> ignora el grosor del trazo; y
+            <code>getBBox({ stroke: true })</code> <strong>acepta la opción y
+            la ignora</strong>, sin avisar.
+          </p>
+          <p>
+            De ahí salió la regla más útil del proyecto: <strong>cuando una
+            medición contradice lo que debería pasar, sospechar primero de la
+            medición</strong>. Las cuatro veces, el código estaba bien.
+          </p>
+        </article>
+      </section>
+
+      <cdz-divider></cdz-divider>
+
+      <section>
+        <h2>Lo que salió mal</h2>
+        <p>
+          Un caso de estudio que solo cuenta los aciertos no sirve para juzgar
+          a nadie. Tres correcciones que quedaron escritas en los ADRs:
+        </p>
+        <ul class="mistakes">
+          <li>
+            <strong>Una afirmación de accesibilidad exagerada.</strong> El
+            texto decía que sin ícono los badges se distinguirían "solo por
+            color". Es falso: su propio texto ya es una señal no cromática. El
+            ícono refuerza para el escaneo, pero no es lo que cumple la norma.
+            Corregido en el código y en el sitio.
+          </li>
+          <li>
+            <strong>Un test intermitente "arreglado" sin entenderlo.</strong>
+            Se cambió lo que parecía la causa obvia y la suite pasó ocho veces
+            seguidas. No estaba arreglado. La evidencia de "pasó ocho veces"
+            era igual de compatible con no haber tocado nada.
+          </li>
+          <li>
+            <strong>Un bug que 234 tests en verde no vieron.</strong> El
+            atributo <code>hidden</code> no funcionaba en ninguno de los 18
+            componentes —una regla de autor le ganaba a la del navegador— y lo
+            encontró el sitio ya desplegado, no la suite.
+          </li>
+        </ul>
+      </section>
+
+      <cdz-divider></cdz-divider>
+
+      <section>
+        <h2>Cómo está construido</h2>
+        <p>
+          Web Components con <strong>Lit 3</strong> y TypeScript, sin
+          framework: funcionan igual en React, Vue, Angular o en un HTML
+          suelto. Los tokens son JSON del estándar
+          <strong>W3C DTCG</strong> y pasan por Style Dictionary en tres capas
+          —primitivos → roles → componente— hasta convertirse en custom
+          properties de CSS.
+        </p>
+        <p>
+          El modo claro/oscuro se modela solo en la capa de roles, así que
+          cambiar de tema <strong>no necesita una línea de JavaScript</strong>
+          en el caso común. Los tests corren en Chrome real con axe-core, y
+          cada push dispara build, tests y auditoría de seguridad.
+        </p>
+        <div class="button-row">
+          <cdz-link href="./design-system.html">Ver los 18 componentes →</cdz-link>
+          <cdz-link href="https://github.com/kdenza/cadenza/tree/main/docs/decisions" target="_blank">
+            Leer las 26 decisiones
+          </cdz-link>
+        </div>
+      </section>
+
+      <cdz-divider></cdz-divider>
+
+      <section>
+        <h2>Contacto</h2>
+        <p>
+          Si te interesa cómo trabajo, las decisiones están todas escritas y el
+          código es MIT.
+        </p>
+        <div class="button-row">
+          <cdz-link href="https://github.com/moni-kyrah" target="_blank">GitHub</cdz-link>
+        </div>
+      </section>
     </main>
     <script type="module" src="./main.ts"></script>
   </body>

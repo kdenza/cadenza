@@ -93,3 +93,93 @@ nav {
   align-items: center;
   gap: var(--spacing-3, 0.75rem);
 }
+
+/* --- Caso de estudio (index.html) ---------------------------------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2, 0.5rem);
+}
+
+/* El h1 ya trae su propia regla decorativa; dentro del hero solo hace
+   falta que no arrastre el margen del navegador. */
+.hero h1 {
+  margin-bottom: var(--spacing-2, 0.5rem);
+}
+
+h2 {
+  font-family: var(--typography-heading-2-font-family, 'Figtree', system-ui, sans-serif);
+  font-size: var(--typography-heading-2-font-size, 1.5rem);
+  font-weight: var(--typography-heading-2-font-weight, 600);
+  margin: var(--spacing-4, 1rem) 0 0;
+}
+
+h3 {
+  font-family: var(--typography-heading-3-font-family, 'Figtree', system-ui, sans-serif);
+  font-size: var(--typography-heading-3-font-size, 1.25rem);
+  font-weight: var(--typography-heading-3-font-weight, 600);
+  margin: 0;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+  width: 100%;
+}
+
+/* Las cifras del método. Se envuelven en pantallas chicas en vez de
+   comprimirse, para que ningún número quede partido. */
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 1rem);
+  margin-top: var(--spacing-2, 0.5rem);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 7rem;
+}
+
+.stat strong {
+  font-family: var(--typography-heading-font-family, 'Figtree', system-ui, sans-serif);
+  font-size: var(--typography-heading-2-font-size, 1.5rem);
+  color: var(--color-action-primary-background-default, #7a5197);
+}
+
+.stat span {
+  font-size: var(--typography-body-sm-font-size, 0.875rem);
+}
+
+/* Cada decisión es una unidad de lectura: bloque, no tarjeta. Una
+   tarjeta sugeriría que se pueden leer en cualquier orden, y estas
+   cuatro se construyen una sobre otra. */
+.decision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+  padding-left: var(--spacing-4, 1rem);
+  border-left: 2px solid var(--color-accent-decorative, #c96a85);
+}
+
+/* Los componentes de aquí son la evidencia del argumento, no adorno:
+   van antes del texto que los explica, para que se vean primero. */
+.evidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3, 0.75rem);
+  padding: var(--spacing-3, 0.75rem) 0;
+}
+
+.mistakes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3, 0.75rem);
+  margin: 0;
+  padding-left: var(--spacing-4, 1rem);
+}
