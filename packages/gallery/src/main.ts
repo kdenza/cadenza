@@ -66,15 +66,15 @@ const ENUM_HINTS: Record<string, Record<string, string[]>> = {
 // No JSDoc `@slot` annotations exist yet to read from the manifest, so
 // default slotted content per tag is listed here instead.
 const SLOT_CONTENT: Record<string, string> = {
-  'cdz-button': 'Botón de ejemplo',
-  'cdz-text': 'Texto de ejemplo',
-  'cdz-link': 'Enlace de ejemplo',
-  'cdz-badge': 'Pendiente',
+  'cdz-button': 'Example button',
+  'cdz-text': 'Example text',
+  'cdz-link': 'Example link',
+  'cdz-badge': 'Pending',
   // cdz-popover is a primitive, not a standalone atom -- see its own
   // gallery section for the caveat about previewing it without a real
   // anchor. This is just enough content to see the panel render at all
   // when toggled open via the `open` control.
-  'cdz-popover': 'Contenido de ejemplo (sin anchor real -- ver cdz-select para el uso previsto).'
+  'cdz-popover': 'Example content (no real anchor -- see cdz-select for the intended use).'
 };
 
 /**
@@ -89,7 +89,7 @@ const SLOT_CONTENT: Record<string, string> = {
 const SLOT_ELEMENT: Record<string, () => Element> = {
   'cdz-tooltip': () => {
     const trigger = document.createElement('cdz-button');
-    trigger.textContent = 'Pasa el mouse o el foco por aquí';
+    trigger.textContent = 'Hover or focus here';
     return trigger;
   }
 };
@@ -100,30 +100,30 @@ const SLOT_ELEMENT: Record<string, () => Element> = {
 // default preview mid-violation isn't the point, unlike deliberately
 // clearing it via the control to see the warning on demand.
 const DEFAULT_PROP_OVERRIDES: Record<string, Record<string, unknown>> = {
-  'cdz-input': { label: 'Nombre de ejemplo' },
-  'cdz-textarea': { label: 'Mensaje de ejemplo' },
-  'cdz-checkbox': { label: 'Acepto los términos' },
-  'cdz-radio': { label: 'Opción de ejemplo' },
-  'cdz-switch': { label: 'Notificaciones' },
-  'cdz-range': { label: 'Volumen' },
-  'cdz-file-input': { label: 'Adjuntar CV' },
+  'cdz-input': { label: 'Example name' },
+  'cdz-textarea': { label: 'Example message' },
+  'cdz-checkbox': { label: 'I accept the terms' },
+  'cdz-radio': { label: 'Example option' },
+  'cdz-switch': { label: 'Notifications' },
+  'cdz-range': { label: 'Volume' },
+  'cdz-file-input': { label: 'Attach CV' },
   // href is mandatory for the same reason label is on the form atoms —
   // without one, the default preview would sit permanently in its own
   // console.error state. See ADR-0015.
-  'cdz-link': { href: '#ejemplo' },
+  'cdz-link': { href: '#example' },
   // Without a name the preview would render nothing at all.
   'cdz-icon': { name: 'check' },
-  'cdz-progress': { label: 'Subiendo archivo', value: 45 },
+  'cdz-progress': { label: 'Uploading file', value: 45 },
   // Same reason as the form atoms' label: without a name there are no
   // initials and no accessible name, so the gallery would be auditing an
   // empty circle and reporting the component's own console error.
   'cdz-avatar': { name: 'Kyrah Monreal' },
-  'cdz-tooltip': { text: 'Descripción de ejemplo' },
+  'cdz-tooltip': { text: 'Example description' },
   'cdz-select': {
-    label: 'País',
+    label: 'Country',
     options: [
       { value: 'ar', label: 'Argentina' },
-      { value: 'br', label: 'Brasil' },
+      { value: 'br', label: 'Brazil' },
       { value: 'cl', label: 'Chile' }
     ]
   }
@@ -346,15 +346,15 @@ function buildIconContactSheet(): HTMLElement {
   section.className = 'component-section';
 
   const heading = document.createElement('h2');
-  heading.textContent = 'Set de íconos';
+  heading.textContent = 'Icon set';
   section.appendChild(heading);
 
   const description = document.createElement('p');
   description.className = 'description';
   description.textContent =
-    'Todos los íconos del registro a 96px, con el área viva de 20×20 superpuesta. ' +
-    'Sirve para juzgar peso óptico entre íconos — a tamaño real no se ve. ' +
-    'Se genera desde shared/icons.ts, así que un ícono nuevo aparece solo.';
+    'Every icon in the registry at 96px, with the 20×20 live area overlaid. ' +
+    'This is the tool for judging optical weight between icons — at real size you cannot see it. ' +
+    'It is generated from shared/icons.ts, so a new icon shows up on its own.';
   section.appendChild(description);
 
   const sheet = document.createElement('div');

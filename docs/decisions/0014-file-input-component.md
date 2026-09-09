@@ -6,7 +6,7 @@
 
 ## Context
 
-Tenth atom, and the last one in the "Formularios" section of
+Tenth atom, and the last one in the "Forms" section of
 `docs/roadmap.md`. A file picker looks like the simplest remaining
 control and is in practice the one with the most non-obvious platform
 constraints — two of which are *security* boundaries rather than styling

@@ -9,8 +9,8 @@ let tooltipIdCounter = 0;
  * `<cdz-tooltip>` — a short description attached to a trigger.
  *
  * ```html
- * <cdz-tooltip text="Se envía a tu correo">
- *   <cdz-button>Enviar</cdz-button>
+ * <cdz-tooltip text="Sent to your email address">
+ *   <cdz-button>Send</cdz-button>
  * </cdz-tooltip>
  * ```
  *
