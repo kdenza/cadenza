@@ -324,10 +324,25 @@ before assuming why something non-obvious is the way it is:
   `cdz-page-nav` uncovered for five commits, including the ones where it
   reintroduced that very bug.
 
+- **0030** — `cdz-avatar-stack`: the other half of ADR-0029. Stated baldly,
+  that ADR is easy to misread as "molecules do not compose atoms". The real
+  test is **who provides the guarantee**: composition is safe when the
+  atom's guarantee travels with the element (an accessible name does), and
+  unsafe when it comes from the platform relating that element to its
+  siblings (radio grouping does), because a shadow root is exactly what
+  breaks that relation. So this molecule composes the atom freely. A real
+  `<ul>`/`<li>`, and people past `max` are **not rendered** rather than
+  hidden, keeping the accessible experience at parity with the visual one.
+  The stacking order was reversed **after looking at the page**: the
+  conventional order clips each avatar's left edge, eating the first letter
+  of every set of initials. No test would have caught it — both orders pass
+  axe and produce the same a11y tree.
+
 ## Atom checklist
 
 See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
-closed; molecules are under way (`cdz-page-nav`, `cdz-radio-group`).
+closed, and every molecule identified while building them is done
+(`cdz-page-nav`, `cdz-radio-group`, `cdz-avatar-stack`).
 
 ## Current status
 
@@ -337,10 +352,11 @@ navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
 `cdz-switch`, `cdz-range`, `cdz-file-input`, `cdz-link`, `cdz-icon`,
 `cdz-badge`, `cdz-spinner`, `cdz-progress`, `cdz-tooltip`, `cdz-divider`,
 `cdz-avatar`. Plus one primitive (not an atom): `cdz-popover`, on which
-`cdz-select` was rebuilt (see ADR-0010), and two molecules:
-`cdz-page-nav` (ADR-0027) and `cdz-radio-group` (ADR-0029).
+`cdz-select` was rebuilt (see ADR-0010), and three molecules:
+`cdz-page-nav` (ADR-0027), `cdz-radio-group` (ADR-0029) and
+`cdz-avatar-stack` (ADR-0030).
 
 Published on the public npm registry: `@kdenza/tokens@0.1.0` and
 `@kdenza/components@0.1.3`. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 284 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 297 tests, 0 vulnerabilities. See [README.md](README.md).

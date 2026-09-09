@@ -100,7 +100,7 @@ hierarchy.
       its parts could own alone. Disclosure below the breakpoint, never a
       drawer; `aria-current="location"`, never `"page"`.
 
-Molecules already identified while building the atoms, still to do:
+Every molecule identified while building the atoms is now built:
 
 - [x] `cdz-radio-group` —
       [ADR-0029](decisions/0029-radio-group-composition-that-breaks-semantics.md).
@@ -109,6 +109,9 @@ Molecules already identified while building the atoms, still to do:
       roots, so composing the atoms would have meant reimplementing by
       hand the four things ADR-0007 chose a native radio to get for free.
       The group renders its own radios in one shadow root instead.
-- `cdz-avatar-stack` — several overlapping avatars with a "+3" overflow.
-  Needs its own group semantics, same as `cdz-radio-group` — see
-  [ADR-0022](decisions/0022-avatar-component.md).
+- [x] `cdz-avatar-stack` —
+      [ADR-0030](decisions/0030-avatar-stack-when-composition-is-right.md).
+      Several overlapping avatars with a "+N" overflow. Unlike
+      `cdz-radio-group`, this one **does** compose the atom: an accessible
+      name travels with the element, so nesting costs nothing. It is the
+      case that keeps ADR-0029 from being read as a prohibition.

@@ -28,6 +28,8 @@ export { CdzTooltip } from './tooltip/tooltip.js';
 export { CdzDivider } from './divider/divider.js';
 export type { CdzDividerOrientation } from './divider/divider.js';
 export { CdzAvatar, initialsFrom } from './avatar/avatar.js';
+export { CdzAvatarStack } from './avatar-stack/avatar-stack.js';
+export type { CdzAvatarStackPerson } from './avatar-stack/avatar-stack.js';
 export type { CdzAvatarSize, CdzAvatarFallback } from './avatar/avatar.js';
 export { icons, ICON_GRID, ICON_STROKE_WIDTH } from './shared/icons.js';
 export type { CdzIconName, CdzIconDefinition } from './shared/icons.js';

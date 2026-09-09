@@ -29,7 +29,7 @@ import '../index.js';
  * commits, including the ones where it reintroduced this very bug.)
  */
 const TAGS = [
-  'cdz-avatar', 'cdz-badge', 'cdz-button', 'cdz-checkbox', 'cdz-divider',
+  'cdz-avatar', 'cdz-avatar-stack', 'cdz-badge', 'cdz-button', 'cdz-checkbox', 'cdz-divider',
   'cdz-file-input', 'cdz-icon', 'cdz-input', 'cdz-link', 'cdz-progress',
   'cdz-page-nav', 'cdz-radio', 'cdz-radio-group', 'cdz-range', 'cdz-select',
   'cdz-spinner', 'cdz-switch', 'cdz-text', 'cdz-textarea', 'cdz-tooltip'

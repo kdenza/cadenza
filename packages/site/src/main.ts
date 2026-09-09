@@ -7,6 +7,8 @@ import type {
   CdzSelectOption,
   CdzRadioGroup,
   CdzRadioGroupOption,
+  CdzAvatarStack,
+  CdzAvatarStackPerson,
   CdzPageNav,
   CdzPageNavSection
 } from '@kdenza/components';
@@ -110,6 +112,23 @@ if (radioGroupError) {
     { value: 'tarjeta', label: 'Tarjeta' },
     { value: 'transferencia', label: 'Transferencia' }
   ];
+}
+
+// cdz-avatar-stack renders its own <cdz-avatar> elements from an array
+// rather than accepting slotted children. That is not a retreat from
+// composition -- it is what lets the <li> wrappers be real elements, since
+// a <ul> may only directly contain <li>. See ADR-0030.
+const team: CdzAvatarStackPerson[] = [
+  { name: 'Ana López' },
+  { name: 'Beto Ruiz' },
+  { name: 'Carla Díaz' },
+  { name: 'Diego Mena' },
+  { name: 'Elena Sosa' }
+];
+
+for (const id of ['stack-full', 'stack-capped', 'stack-sm', 'stack-md', 'stack-lg']) {
+  const stack = document.querySelector<CdzAvatarStack>(`#${id}`);
+  if (stack) stack.people = team;
 }
 
 // The table of contents is derived from the page's own headings rather

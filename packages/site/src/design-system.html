@@ -580,6 +580,47 @@
           <span>Kyrah Monreal comentó hace 2 horas</span>
         </div>
       </section>
+
+      <section>
+        <h2 id="cdz-avatar-stack">cdz-avatar-stack</h2>
+        <p>
+          Varios avatares encimados con un contador <code>+N</code>. Es la
+          molécula que evita que ADR-0029 se lea como la regla equivocada:
+          ahí <code>cdz-radio-group</code> <strong>no</strong> podía componer
+          <code>cdz-radio</code>, porque anidarlo destruía la agrupación
+          nativa. La lección nunca fue "las moléculas no componen átomos",
+          sino <em>revisar si la garantía la da la plataforma</em>. Aquí no:
+          lo que hace correcto a un avatar es su propio nombre accesible, y
+          un nombre sobrevive a estar anidado en cualquier lado. Así que
+          esta molécula sí compone el átomo.
+        </p>
+        <p>
+          Es una lista de verdad —<code>&lt;ul&gt;</code> con
+          <code>&lt;li&gt;</code>— así que un lector de pantalla anuncia
+          cuántas personas hay y permite recorrerlas una por una. Las que
+          pasan de <code>max</code> no se ocultan con CSS: no se dibujan.
+          Quien ve la pantalla tampoco puede leerlas, y dejarlas en el árbol
+          de accesibilidad expondría nombres que el diseño ya decidió no
+          mostrar. Ver
+          <cdz-link href="https://github.com/kdenza/cadenza/blob/main/docs/decisions/0030-avatar-stack-when-composition-is-right.md" target="_blank"
+            >ADR-0030</cdz-link
+          >.
+        </p>
+
+        <p>Cinco personas, sin límite y recortado a tres:</p>
+        <div class="avatar-row">
+          <cdz-avatar-stack id="stack-full" label="Equipo del proyecto"></cdz-avatar-stack>
+          <cdz-avatar-stack id="stack-capped" label="Equipo del proyecto" max="3"></cdz-avatar-stack>
+        </div>
+
+        <p>Los tres tamaños:</p>
+        <div class="avatar-row">
+          <cdz-avatar-stack id="stack-sm" label="Revisores" size="sm" max="3"></cdz-avatar-stack>
+          <cdz-avatar-stack id="stack-md" label="Revisores" size="md" max="3"></cdz-avatar-stack>
+          <cdz-avatar-stack id="stack-lg" label="Revisores" size="lg" max="3"></cdz-avatar-stack>
+        </div>
+      </section>
+
     </main>
     <script type="module" src="./main.ts"></script>
   </body>
