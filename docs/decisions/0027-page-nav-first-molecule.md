@@ -191,6 +191,37 @@ scrolled at the time and nobody checked `scrollY`. A position is only
 meaningful next to the scroll offset it was taken at. Same family as
 ADR-0019's table — the measurement was real, the reading of it was not.
 
+### And a third invalid measurement, from the same session
+
+Verifying the fix on the deployed site reported the **old** CSS still
+live: `grid-row` computed as `1 / -1`, the 730px hole intact, on a URL
+that had already been redeployed successfully.
+
+It was not the deploy. The browser had served a cached page, and a forced
+reload re-fetches the document without invalidating its subresources.
+
+What settled it was checking outside the browser: the served stylesheet
+was byte-identical to the local build (same md5), and it did contain the
+fix — the minifier had folded `grid-row: 1 / span 40` into
+`grid-area: 1/1/span 40`, which is also why a first grep for `grid-row`
+found nothing. Re-requesting with a cache-busting query confirmed the
+correct values.
+
+Three invalid measurements in one session, all from the browser, all
+resolved the same way — by checking the fact somewhere the browser was not
+involved:
+
+| Symptom | Looked like | Actually |
+|---|---|---|
+| Scroll spy dead on the deployed site | Broken code | Pane not compositing; `document.hidden` was true |
+| Content not pushed down (47px) | Layout fine | Page was scrolled; `scrollY` never checked |
+| Old CSS live after a green deploy | Failed deploy | Browser cache; served bytes matched the build |
+
+**"Verify on the deployed site" means nothing if the browser is showing
+you yesterday.** The rule that survives: when a measurement decides
+something, confirm the underlying fact through a channel that does not
+share the suspect's cache, compositor, or scroll position.
+
 Verified by measurement rather than by eye: at 1280px the nav's
 `getBoundingClientRect().top` stays at 16px at every scroll position,
 and at 375px the layout returns to a single column with the disclosure
