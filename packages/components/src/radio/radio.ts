@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { radioStyles } from './radio.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { syncCheckedState } from '../shared/checked-state.js';
 
 /**
  * `<cdz-radio>` — a single labeled radio button.
@@ -69,6 +70,13 @@ export class CdzRadio extends LitElement {
   // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-radio', this.label);
+  }
+
+  protected updated(): void {
+    // See ../shared/checked-state.ts: a listener that reverts `checked`
+    // leaves lit-html's dirty check matching, so the binding never fires
+    // and the clicked input stays checked under a property reading false.
+    syncCheckedState(this.shadowRoot?.querySelector('input'), this.checked);
   }
 
   private _handleChange(event: Event): void {

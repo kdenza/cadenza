@@ -128,4 +128,21 @@ describe('cdz-checkbox', () => {
     }
     expect(calls.length).to.equal(0);
   });
+  it('keeps the native input in step when a listener reverts checked', async () => {
+    // lit-html skips a binding whose value has not changed since it last
+    // committed. Reverting inside the listener lands back on that value,
+    // so without an imperative sync the clicked box stays checked under a
+    // property reading false -- and FormData carries it.
+    const el = await fixture<CdzCheckbox>(html`<cdz-checkbox label="Acepto"></cdz-checkbox>`);
+    el.addEventListener('change', () => {
+      el.checked = false;
+    });
+    const input = el.shadowRoot!.querySelector('input')!;
+
+    input.click();
+    await el.updateComplete;
+
+    expect(el.checked, 'the property should hold the reverted value').to.be.false;
+    expect(input.checked, 'and the control on screen has to agree with it').to.be.false;
+  });
 });
