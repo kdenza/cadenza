@@ -175,6 +175,22 @@ Two details the layout had to get right:
   nav grows past the bottom of the screen and its last items become
   unreachable while stuck.
 
+A third detail, and the one that actually shipped broken first: the nav
+was given `grid-row: 1 / -1` to span the content column's rows. **A
+negative grid line refers to the end of the *explicit* grid**, and only
+columns were declared here. With no explicit rows the value silently
+collapses to row 1 — whose height then becomes the nav's own 758px,
+opening a 730px hole above the first component. The fix is a span larger
+than the page will need (`1 / span 40`); if a page ever exceeds it the nav
+spans fewer rows, which is harmless because it is sticky and height-capped
+anyway.
+
+It shipped because the first verification was read carelessly: the first
+section measured 47px from the top, which looked correct, but the page was
+scrolled at the time and nobody checked `scrollY`. A position is only
+meaningful next to the scroll offset it was taken at. Same family as
+ADR-0019's table — the measurement was real, the reading of it was not.
+
 Verified by measurement rather than by eye: at 1280px the nav's
 `getBoundingClientRect().top` stays at 16px at every scroll position,
 and at 375px the layout returns to a single column with the disclosure

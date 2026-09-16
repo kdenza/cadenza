@@ -44,8 +44,17 @@ main {
 
   main.with-page-nav > cdz-page-nav {
     grid-column: 1;
-    /* Spans every row so it can stay put while the second column scrolls. */
-    grid-row: 1 / -1;
+    /* Spans the rows the second column occupies, so its height is spread
+       across them instead of inflating one.
+
+       NOT `1 / -1`: a negative row line refers to the end of the EXPLICIT
+       grid, and only columns are declared here. With no explicit rows it
+       silently collapses to row 1, whose height then becomes the nav's
+       own -- a 730px hole above the content, measured. A span larger than
+       the page will ever need avoids that without an explicit row for
+       every child. If a page ever exceeds it the nav just spans fewer
+       rows, which is harmless: it is sticky and height-capped anyway. */
+    grid-row: 1 / span 40;
     position: sticky;
     top: var(--spacing-4, 1rem);
     /* 22 items is taller than most viewports, so the list scrolls inside
