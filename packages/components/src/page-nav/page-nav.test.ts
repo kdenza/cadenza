@@ -176,4 +176,47 @@ describe('cdz-page-nav', () => {
     await el.updateComplete;
     await expect(el).to.be.accessible();
   });
+  it('rebuilds its scroll spy after being re-parented', async () => {
+    // The sections have to exist in the same root for the spy to resolve
+    // them at all.
+    const headings = document.createElement('div');
+    headings.innerHTML = SECTIONS.map((s) => `<h2 id="${s.id}">${s.label}</h2>`).join('');
+    document.body.appendChild(headings);
+
+    const observed: string[] = [];
+    const NativeObserver = window.IntersectionObserver;
+    class RecordingObserver {
+      observe(target: Element): void {
+        observed.push(target.id);
+      }
+      disconnect(): void {}
+      unobserve(): void {}
+      takeRecords(): IntersectionObserverEntry[] {
+        return [];
+      }
+    }
+    window.IntersectionObserver = RecordingObserver as unknown as typeof IntersectionObserver;
+
+    try {
+      const el = await build();
+      expect(observed, 'the spy observes each section on first render').to.eql([
+        'uno',
+        'dos',
+        'tres'
+      ]);
+
+      observed.length = 0;
+      const parent = el.parentElement!;
+      el.remove();
+      parent.appendChild(el);
+      await el.updateComplete;
+
+      // updated() re-runs _resetObserver only for sections/spy changes, so
+      // without a connectedCallback this array stays empty for good.
+      expect(observed, 'and observes them again after a move').to.eql(['uno', 'dos', 'tres']);
+    } finally {
+      window.IntersectionObserver = NativeObserver;
+      headings.remove();
+    }
+  });
 });

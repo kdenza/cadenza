@@ -1,4 +1,4 @@
-import { html, fixture, expect } from '@open-wc/testing';
+import { html, fixture, expect, aTimeout } from '@open-wc/testing';
 import './select.js';
 import type { CdzSelect } from './select.js';
 
@@ -237,12 +237,15 @@ describe('cdz-select', () => {
     await el.updateComplete;
     expect(el.value).to.equal('');
 
-    // Real Escape dismissal is native browser behavior (untestable via
-    // synthetic events -- see popover.test.ts), so this exercises the
-    // same code path cdz-popover's own toggle listener would trigger.
-    el.shadowRoot!.querySelector('cdz-popover')!.dispatchEvent(
-      new ToggleEvent('toggle', { newState: 'closed' })
-    );
+    // Real Escape dismissal is native browser behavior and cannot be
+    // driven by a synthetic key event (see popover.test.ts). What *can*
+    // be driven is the state change Escape actually causes: hiding the
+    // popover from outside the component, which fires the same native
+    // toggle event this component listens for. Dispatching a bare
+    // ToggleEvent instead would leave the popover genuinely open and
+    // assert against a state no user can reach.
+    el.shadowRoot!.querySelector('cdz-popover')!.hidePopover();
+    await aTimeout(0);
     await el.updateComplete;
     expect(el.value).to.equal('');
     expect(button.getAttribute('aria-expanded')).to.equal('false');
@@ -277,5 +280,48 @@ describe('cdz-select', () => {
       console.error = originalError;
     }
     expect(calls.length).to.equal(0);
+  });
+  it('keeps listening for light-dismiss after being re-parented', async () => {
+    const el = await fixture<CdzSelect>(
+      html`<cdz-select label="País" .options=${SAMPLE_OPTIONS}></cdz-select>`
+    );
+    const popover = el.shadowRoot!.querySelector('cdz-popover') as HTMLElement;
+
+    // Setup runs once (firstUpdated) and teardown on every unmount, so a
+    // move used to leave this element deaf to every change it does not
+    // itself initiate.
+    const parent = el.parentElement!;
+    el.remove();
+    parent.appendChild(el);
+    await el.updateComplete;
+
+    trigger(el).click();
+    await el.updateComplete;
+    expect(trigger(el).getAttribute('aria-expanded')).to.equal('true');
+
+    // Closed from outside the component, the way light-dismiss and Escape
+    // do it: this reaches _open only through the toggle listener.
+    popover.hidePopover();
+    await aTimeout(0);
+    await el.updateComplete;
+    expect(trigger(el).getAttribute('aria-expanded')).to.equal('false');
+  });
+
+  it('does not report itself expanded over a listbox the move already closed', async () => {
+    const el = await fixture<CdzSelect>(
+      html`<cdz-select label="País" .options=${SAMPLE_OPTIONS}></cdz-select>`
+    );
+    trigger(el).click();
+    await el.updateComplete;
+    expect(trigger(el).getAttribute('aria-expanded')).to.equal('true');
+
+    // Removing a showing popover from the document hides it, and says so
+    // to nobody.
+    const parent = el.parentElement!;
+    el.remove();
+    parent.appendChild(el);
+    await el.updateComplete;
+
+    expect(trigger(el).getAttribute('aria-expanded')).to.equal('false');
   });
 });

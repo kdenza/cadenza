@@ -105,7 +105,12 @@ export class CdzSelect extends LitElement {
   };
 
   private _syncOpenState(): void {
-    const isOpen = this._popoverEl?.open ?? false;
+    // `:popover-open` rather than cdz-popover's `open` property: the
+    // browser hides a popover when it leaves the document, without
+    // telling the element, so that property can outlive the state it
+    // describes. The pseudo-class is the browser's own answer, and is
+    // already what cdz-popover's own show()/hide()/toggle() test.
+    const isOpen = this._popoverEl?.matches(':popover-open') ?? false;
     this._open = isOpen;
     if (isOpen) {
       if (this._popoverEl && this._triggerEl) {
@@ -145,6 +150,22 @@ export class CdzSelect extends LitElement {
       this._popoverEl.anchor = this._triggerEl;
       this._popoverEl.addEventListener('toggle', this._handlePopoverToggle);
     }
+  }
+
+  // Setup runs in firstUpdated(), which fires once per element, but
+  // teardown runs on every unmount -- so re-parenting this element (moved
+  // in the DOM, re-keyed by a framework, mounted into a dialog) left it
+  // permanently deaf to the changes it does not initiate: light-dismiss,
+  // Escape, another exclusive popover taking over. It would then report
+  // aria-expanded="true" over a listbox the browser had already closed.
+  // cdz-popover re-arms its own native listener exactly this way.
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (!this.hasUpdated) return;
+    this._popoverEl?.addEventListener('toggle', this._handlePopoverToggle);
+    // Removing a showing popover from the document hides it, so whatever
+    // _open held before the move is stale by definition.
+    this._syncOpenState();
   }
 
   disconnectedCallback(): void {

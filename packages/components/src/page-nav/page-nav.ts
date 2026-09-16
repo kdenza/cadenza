@@ -96,9 +96,23 @@ export class CdzPageNav extends LitElement {
     if (changed.has('sections') || changed.has('spy')) this._resetObserver();
   }
 
+  // updated() rebuilds the observer only when `sections` or `spy` change,
+  // so without this a re-parented nav loses its scroll spy for good: the
+  // disconnect below is permanent and nothing ever calls _resetObserver()
+  // again. Same lifecycle asymmetry as cdz-select's popover listener --
+  // set up once in a first-render hook, torn down on every unmount.
+  connectedCallback(): void {
+    super.connectedCallback();
+    if (this.hasUpdated) this._resetObserver();
+  }
+
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this._observer?.disconnect();
+    // Cleared, not just disconnected: a dead instance left in the field
+    // makes _resetObserver()'s own `this._observer?.disconnect()` look
+    // like it did something on the next call.
+    this._observer = undefined;
   }
 
   private _resetObserver(): void {
