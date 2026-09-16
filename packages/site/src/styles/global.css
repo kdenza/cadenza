@@ -33,6 +33,57 @@ main {
    called this "a page-level question" -- whether this page has room for
    persistent navigation -- and it does, which keeps the component usable
    in a layout that does not. */
+/* Below the breakpoint the nav collapses to a single button, and the same
+   problem applied as on desktop: reaching it meant scrolling back to the
+   top. So it is pinned there instead.
+
+   Pinned at the TOP, not floating in a corner. A floating button cannot
+   keep its list adjacent, and a disclosure whose content is not adjacent
+   has to become an overlay -- with the focus trap, inert and dismissal
+   logic ADR-0027 rejected a drawer for. Sticky at the top keeps the
+   button and its list in one element, so the pattern is unchanged: only
+   the position moved. */
+@media (max-width: 47.99rem) {
+  main.with-page-nav > cdz-page-nav {
+    position: sticky;
+    top: 0;
+    /* Above the content it scrolls over, but below nothing else: the page
+       has no other layered UI. */
+    z-index: 1;
+    /* Without an opaque background the content shows through as it passes
+       underneath. */
+    background: var(--color-page-background, #faf4f6);
+    /* Expanded, the list otherwise runs straight into the page content
+       underneath with nothing separating them. The same role cdz-divider
+       uses, so the line matches every other rule in the system. */
+    border-block-end: 1px solid var(--color-form-border-default, #8a7c87);
+    /* main is a flex column with align-items: flex-start, so the nav would
+       otherwise shrink to the width of its button and let content slide
+       past its right edge as it scrolls under. */
+    align-self: stretch;
+    /* main has 1rem of padding; bleeding past it makes the bar reach the
+       screen edges, so nothing slides visibly around its sides either. */
+    margin-inline: calc(var(--spacing-4, 1rem) * -1);
+    padding: var(--spacing-2, 0.5rem) var(--spacing-4, 1rem);
+    /* Expanded, 22 items are taller than a phone screen, so the list
+       scrolls inside the bar. Capped well below the viewport rather than
+       at 100vh: a panel covering the whole screen leaves anything that
+       takes focus behind it obscured (WCAG 2.2 SC 2.4.11), and leaving
+       page visible underneath also makes it read as a panel over the
+       page rather than a new screen. Following a link collapses it
+       anyway -- see ADR-0027. */
+    box-sizing: border-box;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* WCAG 2.2 SC 2.4.11: a sticky bar must not cover what an in-page link
+     just jumped to. Reserve its height above every target. */
+  main.with-page-nav h2[id] {
+    scroll-margin-top: 4rem;
+  }
+}
+
 @media (min-width: 48rem) {
   main.with-page-nav {
     display: grid;

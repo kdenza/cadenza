@@ -191,6 +191,45 @@ scrolled at the time and nobody checked `scrollY`. A position is only
 meaningful next to the scroll offset it was taken at. Same family as
 ADR-0019's table — the measurement was real, the reading of it was not.
 
+### Below the breakpoint too: pinned at the top, not floating
+
+The same problem existed on narrow screens — reaching the collapsed button
+meant scrolling back to the top — and the obvious fix, a floating button
+in a corner, was rejected for a structural reason rather than an aesthetic
+one.
+
+**A floating button cannot keep its list adjacent.** A disclosure whose
+content is not next to its trigger has to open as an overlay, which brings
+back the focus trap, `inert`, scroll locking and dismissal logic this ADR
+rejected a drawer for. The pattern would change even though only the
+position appeared to.
+
+So the whole nav is pinned to the top instead. Collapsed it is a 56px bar,
+7% of a phone viewport; expanded, the list drops out of the same element,
+so trigger and content stay adjacent and the disclosure is untouched.
+Again the component did not change — only the site's stylesheet.
+
+Four details the layout had to get right, each a measured problem:
+
+- **Full bleed.** `main` is a flex column with `align-items: flex-start`,
+  so the nav shrank to the width of its button and content slid past its
+  right edge while scrolling underneath. Fixed with `align-self: stretch`
+  plus negative inline margins to reach the screen edges.
+- **Capped at 70vh, not 100vh.** A panel covering the whole viewport
+  leaves anything that takes focus behind it obscured — WCAG 2.2
+  SC 2.4.11, the same criterion that rules out the floating button. At
+  70% the page stays partly visible and it reads as a panel over content
+  rather than a new screen.
+- **`scroll-margin-top: 4rem` on every target.** Without it the pinned bar
+  covers the heading an in-page link just jumped to. Measured after the
+  fix: the heading lands at 64px with the bar's bottom edge at 56px.
+- **A bottom border.** Expanded, the list ran straight into the page
+  content with nothing between them. It uses the same
+  `color.form.border.default` role as `cdz-divider`.
+
+Collapse-on-follow, already tested when this ADR was written, is what
+keeps the expanded state transient.
+
 ### And a third invalid measurement, from the same session
 
 Verifying the fix on the deployed site reported the **old** CSS still
