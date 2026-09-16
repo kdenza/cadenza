@@ -29,6 +29,16 @@ the end of this file, and in
 ## Publishing a version
 
 ```bash
+Both packages ship a `README.md` and a `LICENSE`. npm includes those two
+files in the tarball regardless of the `files` field, but it only shows
+them on the package page **after a publish** — a README added without a
+version bump stays invisible.
+
+One trap when bumping `@kdenza/tokens`: on a `0.x` line a caret pins the
+minor, so `^0.1.0` does **not** match `0.2.0`. Moving tokens to a new minor
+means updating `@kdenza/components`' dependency on it in the same commit,
+or publishing a components that cannot resolve its own dependency.
+
 npm version patch -w @kdenza/tokens
 ```
 

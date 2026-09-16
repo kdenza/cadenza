@@ -356,7 +356,11 @@ navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
 `cdz-page-nav` (ADR-0027), `cdz-radio-group` (ADR-0029) and
 `cdz-avatar-stack` (ADR-0030).
 
-Published on the public npm registry: `@kdenza/tokens@0.1.0` and
-`@kdenza/components@0.1.3`. The site is live at
+Published on the public npm registry: `@kdenza/tokens` and
+`@kdenza/components`. Both are at **0.2.0** in the repo, a minor bump for
+the three molecules and their token files; `0.1.0`/`0.1.3` are the last
+versions actually on npm until the next `npm publish`. Note that on a 0.x
+line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
+`components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
 push. 297 tests, 0 vulnerabilities. See [README.md](README.md).

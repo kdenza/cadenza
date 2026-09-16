@@ -1,6 +1,6 @@
 {
   "name": "@kdenza/tokens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Cadenza design tokens (W3C DTCG) built with Style Dictionary",
   "type": "module",
   "main": "dist/css/tokens-light.css",
@@ -16,7 +16,7 @@
     "access": "public"
   },
   "license": "MIT",
-  "author": "Mónica Castillo (https://github.com/moni-kyrah)",
+  "author": "M\u00f3nica Castillo (https://github.com/moni-kyrah)",
   "scripts": {
     "build": "node style-dictionary.config.js",
     "watch": "node --watch-path=src style-dictionary.config.js",
@@ -24,5 +24,19 @@
   },
   "devDependencies": {
     "style-dictionary": "^5.5.2"
+  },
+  "keywords": [
+    "design-tokens",
+    "dtcg",
+    "style-dictionary",
+    "design-system",
+    "css-custom-properties",
+    "css-variables",
+    "theming",
+    "dark-mode"
+  ],
+  "homepage": "https://kdenza.github.io/cadenza/",
+  "bugs": {
+    "url": "https://github.com/kdenza/cadenza/issues"
   }
 }
