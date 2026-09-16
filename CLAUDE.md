@@ -342,6 +342,22 @@ before assuming why something non-obvious is the way it is:
   of every set of initials. No test would have caught it — both orders pass
   axe and produce the same a11y tree.
 
+- **0031** — lifecycle symmetry: **setup hooks and teardown hooks do not
+  run the same number of times.** `firstUpdated()` fires once per element;
+  `disconnectedCallback()` fires on every unmount. Three components
+  acquired in the first and released in the second, so any reparent left
+  them silently inert — `cdz-select` reporting `aria-expanded="true"` over
+  a closed listbox, `cdz-page-nav` losing its scroll spy. The suite missed
+  it because every test mounts an element and leaves it there, which is the
+  one history no real page has. Enforced now by
+  `scripts/check-lifecycle-symmetry.mjs` as `pretest`. The transferable
+  part is what writing that guard exposed: the three findings were **two**
+  shapes, not one — `cdz-tooltip` never released anything on unmount, it
+  re-read its slotted children never. A guard written to the framing that
+  produced the fixes would have caught two of three and printed a tick.
+  Naming a pattern across instances is a hypothesis; generalising it is
+  where you find out whether it holds.
+
 ## Atom checklist
 
 See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
@@ -367,4 +383,4 @@ actually on npm until the next `npm publish`. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 300 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 305 tests, 0 vulnerabilities. See [README.md](README.md).
