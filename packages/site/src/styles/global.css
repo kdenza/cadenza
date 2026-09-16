@@ -20,6 +20,45 @@ main {
   gap: var(--spacing-3, 0.75rem);
 }
 
+/* The design system page carries 22 sections, and cdz-page-nav listing all
+   of them in the normal flow pushed the first component below the fold.
+   Above the component's own breakpoint the nav moves into its own sticky
+   column instead.
+
+   48rem is not a new number: it is exactly where cdz-page-nav drops its
+   disclosure button, so there is one transition rather than two. Below it
+   the button toggles the list; above it the list lives in the margin.
+
+   The position lives here and not in the component on purpose. ADR-0027
+   called this "a page-level question" -- whether this page has room for
+   persistent navigation -- and it does, which keeps the component usable
+   in a layout that does not. */
+@media (min-width: 48rem) {
+  main.with-page-nav {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 40rem);
+    column-gap: var(--spacing-4, 1rem);
+    max-width: 58rem;
+    align-items: start;
+  }
+
+  main.with-page-nav > cdz-page-nav {
+    grid-column: 1;
+    /* Spans every row so it can stay put while the second column scrolls. */
+    grid-row: 1 / -1;
+    position: sticky;
+    top: var(--spacing-4, 1rem);
+    /* 22 items is taller than most viewports, so the list scrolls inside
+       its own column rather than growing past the bottom of the screen. */
+    max-height: calc(100vh - var(--spacing-4, 1rem) * 2);
+    overflow-y: auto;
+  }
+
+  main.with-page-nav > :not(cdz-page-nav) {
+    grid-column: 2;
+  }
+}
+
 h1 {
   font-family: var(--typography-heading-font-family, 'Figtree', system-ui, sans-serif);
   font-size: var(--typography-heading-font-size, 2rem);

@@ -126,6 +126,60 @@ top-level `ul[hidden] { display: none }` and its counterpart inside the
 media query. Same technique ADR-0018 used for `prefers-reduced-motion`,
 and for the same reason.
 
+## Amendment (2026-09-16): where the list lives above the breakpoint
+
+This ADR answered "does the list fit on a narrow screen" and never
+answered "where does it go on a wide one". Above the breakpoint the list
+was simply left in the normal flow — so on the design system page, 22
+items pushed the first component below the fold, and finding another
+component meant scrolling all the way back up to a nav that had long since
+gone off screen.
+
+The list was not too long. It was in the wrong place.
+
+**The fix is layout, not the component.** Above the same 48rem breakpoint
+the page puts the nav in its own `position: sticky` column. The component
+is unchanged: same nav landmark, same links, same `aria-current`, same
+disclosure below the breakpoint. Only `main`'s grid and the nav's position
+moved, both in the site's stylesheet.
+
+That this required no component change is the evidence that the original
+split was right. This ADR had already called it "a page-level question" —
+whether *this* page has room for persistent navigation — and kept
+positioning out of the component precisely so a page without that room
+would still work.
+
+Two alternatives were considered and rejected, for the reasons already
+recorded above rather than new ones:
+
+- **A dropdown menu** does not solve the stated problem. The complaint was
+  having to scroll back to reach the nav; a closed menu has to be reached
+  too. It would also hide the scroll spy, whose whole value is being
+  visible — "you are here" announced inside a closed menu tells nobody
+  anything.
+- **A drawer** still needs the focus trap, `inert`, scroll locking and
+  focus restoration this ADR rejected it for, and still costs a click per
+  use.
+
+Sticky costs neither: the nav is simply always there.
+
+Two details the layout had to get right:
+
+- The sidebar breakpoint is the component's own 48rem, not a new number,
+  so there is one transition rather than two — below it a button toggles
+  the list, above it the list lives in the margin. A separate, wider
+  breakpoint would have created a middle range where the list is permanent
+  *and* in the flow, which is the bug.
+- The list is taller than most viewports, so the column gets
+  `max-height: calc(100vh - 2rem)` and scrolls internally. Without it the
+  nav grows past the bottom of the screen and its last items become
+  unreachable while stuck.
+
+Verified by measurement rather than by eye: at 1280px the nav's
+`getBoundingClientRect().top` stays at 16px at every scroll position,
+and at 375px the layout returns to a single column with the disclosure
+button and a genuinely hidden list.
+
 ## Consequences
 
 - **Easier:** 35 screens of documentation became navigable, and the
@@ -138,6 +192,8 @@ and for the same reason.
   which sounds better but is the wrong signal: a 200px sidebar on a wide
   screen should still show the list. The question is "does this page have
   room for persistent navigation", which is a page-level question.
+  *(The amendment above acts on exactly this: the page, not the component,
+  decides there is room and puts the nav in a sticky column.)*
 - **To revisit:** the scroll spy uses a `rootMargin` tuned by eye
   (`0px 0px -70% 0px`) so "current" means the section being read rather
   than any section on screen. It has not been tested against very short
