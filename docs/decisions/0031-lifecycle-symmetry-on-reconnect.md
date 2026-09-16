@@ -156,12 +156,16 @@ synthesises the notification of a change instead of causing the change.**
   regex literals, so a regex containing an escaped slash would desync it.
   There are none in `src/` today. If that changes it needs a real
   tokeniser rather than a quiet wrong answer.
-- **To revisit:** `check-hidden-coverage.mjs` exempts `cdz-popover` on the
-  grounds that its visibility is governed by the popover API rather than a
-  `display` on `:host`. But `popover.styles.ts` does set `display` on
-  `:host(:popover-open)`. If that reading is right, the one component
-  exempted from the ADR-0025 check is the one carrying the hole it exists
-  to find — an exemption is a claim, and this one was never tested.
+- **~~To revisit~~ — confirmed and fixed the same day, see
+  [ADR-0025's amendment](0025-hidden-attribute-and-host-display.md):**
+  `check-hidden-coverage.mjs` exempted `cdz-popover` on the grounds that
+  its visibility is governed by the popover API rather than a `display` on
+  `:host`. It was wrong: an open `cdz-popover` carrying `hidden` rendered
+  at 62px, while a plain `div[popover][hidden]` stays `display: none`
+  through `showPopover()`. The one component exempted from the ADR-0025
+  check was the one carrying the hole it exists to find. Removing the
+  exemption was not sufficient either — the systemic test cannot fail for
+  a popover, because a closed one is `display: none` regardless.
 - **To revisit:** `cdz-button`'s icon-centring test asserts an offset
   `lessThan(0.5)` and currently measures exactly `0.5` under a different
   Chromium build than the project's. A sub-pixel assertion with zero slack

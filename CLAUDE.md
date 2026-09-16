@@ -285,7 +285,19 @@ before assuming why something non-obvious is the way it is:
   production. The methodological lesson completes ADR-0019's: **suspecting
   the measurement cuts both ways**; this suspicion had already been raised
   and was withdrawn on a badly done check that said "fine" when it was
-  broken.
+  broken. **Amendment (2026-09-16):** the 19th component, `cdz-popover`,
+  had been set aside because its `display` sits on `:host(:popover-open)`
+  rather than `:host` — and that reading hardened into a coded exemption in
+  `check-hidden-coverage.mjs`. It was wrong: an open `cdz-popover` carrying
+  `hidden` rendered at 62px, while a plain `div[popover][hidden]` stays
+  `display: none` through `showPopover()`, so the component was overriding
+  what the platform got right. Two things to carry: `:host([hidden])` must
+  come **last** in that one stylesheet (identical specificity to
+  `:host(:popover-open)`, so source order decides — in the conventional
+  spot it does nothing), and **listing a component in the systemic test
+  does not cover it** — a closed popover is `display: none` either way, so
+  the generic case passes on a broken component and only an open-state test
+  goes red. An exemption is a claim, filed where nobody re-reads it.
 
 - **0026** — documentation language: **English in the repository, Spanish
   on the site**, split by audience rather than by language. The repo was
@@ -383,4 +395,4 @@ actually on npm until the next `npm publish`. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 305 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 308 tests, 0 vulnerabilities. See [README.md](README.md).

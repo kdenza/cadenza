@@ -28,4 +28,23 @@ export const popoverStyles = css`
     flex-direction: column;
     gap: 2px;
   }
+
+  /* ADR-0025's mandatory counterpart, and the one component where it must
+     come LAST rather than sit at the top of the file with everything
+     else's. :host([hidden]) and :host(:popover-open) have identical
+     specificity (0,2,0), so source order alone decides the winner.
+     Placed in the conventional spot above, this rule parses fine, reads
+     correctly and does nothing at all -- measured, not reasoned: an open
+     popover carrying the hidden attribute still computed to display:
+     flex.
+
+     A popover is the only component here whose display is state-
+     dependent, which is why it is the only one with an ordering
+     constraint. The browser does honour hidden on a native [popover]
+     element -- verified against a plain div, which stays display: none
+     even through showPopover() -- so without this the component was
+     overriding behaviour the platform had got right. */
+  :host([hidden]) {
+    display: none;
+  }
 `;
