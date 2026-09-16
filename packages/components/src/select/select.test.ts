@@ -1,4 +1,5 @@
 import { html, fixture, expect, aTimeout } from '@open-wc/testing';
+import { sendMouse } from '@web/test-runner-commands';
 import './select.js';
 import type { CdzSelect } from './select.js';
 
@@ -323,5 +324,58 @@ describe('cdz-select', () => {
     await el.updateComplete;
 
     expect(trigger(el).getAttribute('aria-expanded')).to.equal('false');
+  });
+  /** A real pointer, because a synthetic click never triggers light dismiss. */
+  async function realClick(el: Element): Promise<void> {
+    const r = el.getBoundingClientRect();
+    await sendMouse({
+      type: 'click',
+      position: [Math.round(r.x + r.width / 2), Math.round(r.y + r.height / 2)]
+    });
+  }
+
+  it('closes on a second REAL click of the trigger', async () => {
+    // Light dismiss runs between pointerdown and click, so by the time the
+    // click handler saw it the panel was already closed and toggle()
+    // reopened it -- the trigger could never close the select. Only a
+    // trusted pointer reproduces it: .click() dispatches no pointer
+    // events, so every existing test passed over the bug.
+    const el = await fixture<CdzSelect>(
+      html`<cdz-select label="País" .options=${SAMPLE_OPTIONS}></cdz-select>`
+    );
+    const button = trigger(el);
+
+    await realClick(button);
+    await aTimeout(0);
+    await el.updateComplete;
+    expect(button.getAttribute('aria-expanded'), 'first click opens').to.equal('true');
+
+    await realClick(button);
+    await aTimeout(0);
+    await el.updateComplete;
+    expect(button.getAttribute('aria-expanded'), 'second click has to close').to.equal(
+      'false'
+    );
+  });
+
+  it('does not fire change when the option picked is the one already selected', async () => {
+    // Native <select> is silent here. This fired every time, so anything
+    // counting changes saw edits the user never made.
+    const el = await fixture<CdzSelect>(
+      html`<cdz-select label="País" .options=${SAMPLE_OPTIONS} value="ar"></cdz-select>`
+    );
+    let fired = 0;
+    el.addEventListener('change', () => {
+      fired++;
+    });
+
+    trigger(el).click();
+    await el.updateComplete;
+    options(el)[0].click();
+    await el.updateComplete;
+
+    expect(fired, 're-picking the current option is not a change').to.equal(0);
+    expect(el.value).to.equal('ar');
+    expect(trigger(el).getAttribute('aria-expanded'), 'but it still closes').to.equal('false');
   });
 });

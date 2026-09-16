@@ -201,8 +201,13 @@ export class CdzSelect extends LitElement {
   private _commit(index: number): void {
     const option = this.options[index];
     if (!option || option.disabled) return;
+    // A native <select> fires `change` only when the value actually
+    // changes -- re-picking the option already selected is silent there.
+    // This fired every time, so a consumer counting changes (dirty state,
+    // analytics, an autosave) saw edits the user never made.
+    const changed = this.value !== option.value;
     this.value = option.value;
-    this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    if (changed) this.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
     this._popoverEl?.hide();
     this._syncOpenState();
   }
@@ -219,8 +224,30 @@ export class CdzSelect extends LitElement {
     return -1;
   }
 
+  // Light dismiss runs between pointerdown and click -- measured: a
+  // pointerdown listener on the trigger still sees :popover-open, a click
+  // listener on the same element no longer does. So with a real pointer
+  // the browser had already closed the panel by the time click arrived,
+  // and toggle() promptly reopened it: **the trigger could never close
+  // the select.** Every test missed it because a synthetic .click()
+  // dispatches no pointer events and so never triggers light dismiss at
+  // all -- the same class of green-and-measuring-nothing test ADR-0029
+  // found with synthetic key events.
+  private _openAtPointerDown: boolean | null = null;
+
+  private _handleTriggerPointerDown(): void {
+    this._openAtPointerDown = this._popoverEl?.matches(':popover-open') ?? false;
+  }
+
   private _handleTriggerClick(): void {
-    this._popoverEl?.toggle();
+    // The snapshot when there was a pointer behind this click; the live
+    // state otherwise (a programmatic .click(), or activation from
+    // assistive technology), where light dismiss never ran and the
+    // current state is still the truthful one.
+    const wasOpen = this._openAtPointerDown ?? (this._popoverEl?.matches(':popover-open') ?? false);
+    this._openAtPointerDown = null;
+    if (wasOpen) this._popoverEl?.hide();
+    else this._popoverEl?.show();
     this._syncOpenState();
   }
 
@@ -296,6 +323,7 @@ export class CdzSelect extends LitElement {
             aria-describedby=${ifDefined(describedBy)}
             data-placeholder=${showPlaceholder ? '' : nothing}
             ?disabled=${this.disabled}
+            @pointerdown=${this._handleTriggerPointerDown}
             @click=${this._handleTriggerClick}
             @keydown=${this._handleTriggerKeydown}
           >
