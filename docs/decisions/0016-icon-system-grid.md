@@ -270,3 +270,50 @@ them, but as a second signal, never the only one (WCAG 1.4.1).
 This is the same class of finding as `external-link`'s optical weight:
 invisible at real size until you look with the right tool. The difference
 is that the earlier one was fixable by redrawing and this one is not.
+
+## Amendment (2026-09-16): an icon beside a label needs a flex container
+
+Reported from a phone: the menu icon in `cdz-page-nav`'s toggle looked
+slightly high against its label. Measured, it was — the icon's centre sat
+**3.2px above** the label's.
+
+The cause was not the icon. `cdz-button` rendered `<button><slot></slot>`
+with no layout of its own, so slotted content flowed as inline content and
+the icon, being `inline-flex` with `vertical-align: baseline`, rested its
+box bottom on the text baseline. A baseline is not an optical centre, and
+for a 16px icon against a 16px label the difference is a few pixels — small
+enough to look like a mistake rather than read as one.
+
+The fix is on `cdz-button`, not on `cdz-icon` or on the molecule, so it
+lands for **every** icon-plus-label button in the system at once:
+
+- `display: inline-flex` with `align-items: center` on the inner button.
+- `slot { display: contents }`, without which the slot would be the only
+  flex item and nothing inside it would align. That is the part that is
+  easy to miss: making the button a flex container alone changes nothing.
+
+Two things flex takes away that had to be paid back deliberately, both
+found by measuring rather than by reading the diff:
+
+- **Centring.** A native `<button>` centres its label with `text-align`.
+  A flex container ignores that, so `justify-content: center` restores it
+  — visible on any button wider than its label, such as the full-width
+  toggle.
+- **The space between icon and label.** It came from a whitespace text node
+  in the template, and a flex container does not render whitespace-only
+  nodes. Without an explicit `gap` the two would touch. New token,
+  `cdz-button.spacing.gap`, referencing the existing `spacing.2`.
+
+**The cost, stated plainly:** slotted content becomes flex items, so a
+label built from several inline elements would be split into separate items
+with a gap between them rather than flowing as one text run. Every button
+in this system is a plain label or an icon plus a label, and a button label
+is a short phrase rather than prose — checked across the site, the gallery
+and the components before committing to it.
+
+Three tests lock it in, and all three were run against the old CSS to
+confirm they fail on it: the icon-centre test reported "2.0px off the
+label's", and the gap test failed outright. The centring test passes under
+both, which is correct — it guards the regression flex introduces, not the
+bug flex fixes.
+

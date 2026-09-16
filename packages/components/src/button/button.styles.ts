@@ -17,7 +17,29 @@ export const buttonStyles = css`
   }
 
 
+  /* inline-flex, not the default block, so an icon beside the label lines
+     up by its centre rather than by its baseline. On a baseline the icon's
+     box bottom sits on the text's baseline, which lifted it 3.2px above the
+     label's optical centre -- measured, not guessed.
+
+     The slot is display: contents so the slotted nodes become this flex
+     container's items; otherwise the slot itself would be the only item and
+     nothing inside it would align.
+
+     Two consequences of flex that have to be paid back deliberately:
+     justify-content restores the centring a native button does with
+     text-align, and gap restores the space between icon and label, since a
+     flex container drops the whitespace text node that used to provide it.
+
+     The cost: slotted content is laid out as flex items, so a label built
+     from several inline elements would be split rather than flowing as one
+     text run. Every button in this system is a plain label or an icon plus
+     a label, and a button label is a short phrase, not prose. */
   button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cdz-button-spacing-gap, 0.5rem);
     font-family: var(--cdz-button-typography-font-family, system-ui, sans-serif);
     font-size: var(--cdz-button-typography-font-size, 1rem);
     font-weight: var(--cdz-button-typography-font-weight, 500);
@@ -30,6 +52,10 @@ export const buttonStyles = css`
     color: var(--cdz-button-color-text-default, #ffffff);
     cursor: pointer;
     transition: background-color 0.15s ease;
+  }
+
+  slot {
+    display: contents;
   }
 
   button:hover {

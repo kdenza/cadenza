@@ -1,6 +1,6 @@
 {
   "name": "@kdenza/tokens",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Cadenza design tokens (W3C DTCG) built with Style Dictionary",
   "type": "module",
   "main": "dist/css/tokens-light.css",

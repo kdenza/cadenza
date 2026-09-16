@@ -1,5 +1,6 @@
 import { html, fixture, expect } from '@open-wc/testing';
 import './button.js';
+import '../icon/icon.js';
 import type { CdzButton } from './button.js';
 
 describe('cdz-button', () => {
@@ -58,5 +59,69 @@ describe('cdz-button', () => {
     });
     button.click();
     expect(clicked).to.be.true;
+  });
+
+  it('centres an icon against the label rather than sitting it on the baseline', async () => {
+    const el = await fixture<CdzButton>(
+      html`<cdz-button><cdz-icon name="menu" size="sm"></cdz-icon>Ir a un componente</cdz-button>`
+    );
+    const icon = el.querySelector('cdz-icon')!;
+    const slot = el.shadowRoot!.querySelector('slot')!;
+    const label = slot
+      .assignedNodes({ flatten: true })
+      .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim().length > 0)!;
+
+    // A Range, so this measures the glyph box and not a wrapper.
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const text = range.getBoundingClientRect();
+    const box = icon.getBoundingClientRect();
+
+    const centreOf = (r: DOMRect) => (r.top + r.bottom) / 2;
+    const offset = Math.abs(centreOf(box) - centreOf(text));
+
+    // Before this was a flex container the icon sat on the text baseline,
+    // which put its centre 3.2px above the label's. Half a pixel of slack
+    // for sub-pixel rounding.
+    expect(offset, `icon centre is ${offset.toFixed(1)}px off the label's`).to.be.lessThan(0.5);
+  });
+
+  it('keeps a label centred, the way a native button does', async () => {
+    // Switching to flex drops the text-align a native button applies, so
+    // justify-content has to put it back. A wide button makes the
+    // difference visible at all.
+    const el = await fixture<CdzButton>(
+      html`<cdz-button style="width: 300px; display: block">Enviar</cdz-button>`
+    );
+    const button = el.shadowRoot!.querySelector('button')!;
+    const slot = el.shadowRoot!.querySelector('slot')!;
+    const label = slot
+      .assignedNodes({ flatten: true })
+      .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim().length > 0)!;
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const text = range.getBoundingClientRect();
+    const box = button.getBoundingClientRect();
+
+    const offset = Math.abs((text.left + text.right) / 2 - (box.left + box.right) / 2);
+    expect(offset, `label is ${offset.toFixed(1)}px off centre`).to.be.lessThan(1);
+  });
+
+  it('puts a real gap between icon and label, since flex drops the whitespace', async () => {
+    const el = await fixture<CdzButton>(
+      html`<cdz-button><cdz-icon name="menu" size="sm"></cdz-icon>Ir</cdz-button>`
+    );
+    const icon = el.querySelector('cdz-icon')!.getBoundingClientRect();
+    const slot = el.shadowRoot!.querySelector('slot')!;
+    const label = slot
+      .assignedNodes({ flatten: true })
+      .find((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim().length > 0)!;
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const text = range.getBoundingClientRect();
+
+    // A flex container does not render the whitespace text node that used
+    // to separate them, so without an explicit gap they would touch.
+    expect(text.left - icon.right).to.be.greaterThan(3);
   });
 });
