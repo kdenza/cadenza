@@ -78,6 +78,30 @@ to be considered compromised and rotated.
 - **The repository is written in English; the site is in Spanish.** Split
   by audience, not by language — see ADR-0026. This includes the runtime
   console messages, which ship inside the published package.
+- **No user-facing string may be un-overridable.** The default's language
+  is a convenience for this project's site and claims nothing beyond it —
+  the audience for a default string is the end user of whatever app
+  consumes the package, whose language is unknowable from inside it. What
+  has to be true is that every such string is a settable property. See
+  ADR-0026's amendment.
+- **A component must not report state it is not rendering.** Where the
+  platform holds the state, read the platform (`cdz-select` reads
+  `:popover-open`, not a mirrored flag); where a native control can be
+  changed without the binding, reassert it in `updated()` rather than
+  trusting lit-html's dirty check (`shared/checked-state.ts`); where a
+  native element clamps, clamp *and write back* (`shared/clamp.ts`) — the
+  reported value is part of the output. See ADR-0032.
+- **ARIA state belongs on the element that carries the role**, which for a
+  composed atom is inside its shadow root, not on the host. `aria-*` IDREFs
+  do not cross a shadow boundary; the `aria*Elements` element-reference
+  form does, outward only. `cdz-button` takes `expanded` and `controls`
+  for this. See ADR-0032 and ADR-0020.
+- **Four `pretest` guards run in Node before any browser starts**:
+  rAF-dependent fixtures (ADR-0028), `hidden` coverage (ADR-0025/0029),
+  lifecycle symmetry (ADR-0031) and `state: true` + `attribute: false`
+  (ADR-0032). Each exists because the rule was already known and got
+  re-broken by whoever had not hit it — a comment in two files is not
+  enforcement.
 
 ## Environment constraints
 
@@ -370,6 +394,24 @@ before assuming why something non-obvious is the way it is:
   Naming a pattern across instances is a hypothesis; generalising it is
   where you find out whether it holds.
 
+- **0032** — a per-component audit: **19 defects across 14 components, the
+  guard scripts and the site, every one of them under a green suite.**
+  They fell into three shapes. (1) *A component may not lie about its own
+  state* — an unclamped `cdz-range` whose `.value` disagreed with its own
+  thumb, a `cdz-checkbox` reporting false while ticked, a `cdz-popover`
+  whose `open` no call could repair. Where the platform holds the state,
+  read the platform; where a binding can be bypassed, do not trust the
+  binding. (2) *ADR-0029/0030's rule needed a clause*: a relation a shadow
+  root breaks for IDREFs can be restored with element references, outward
+  — measured — so `cdz-page-nav` kept composing `cdz-button` instead of
+  hand-rolling one. (3) *Tests that pass because they never do what a user
+  does*: a synthetic `.click()` skips light dismiss entirely, which is why
+  nothing caught that `cdz-select`'s trigger could never close it. The
+  question is not "does this test pass" but **"can it fail, and for the
+  reason I think?"** Every fix here was run against the unfixed source
+  first; five of 27 new tests would have passed either way and were
+  rewritten.
+
 ## Atom checklist
 
 See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
@@ -395,4 +437,4 @@ actually on npm until the next `npm publish`. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 308 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 327 tests, 0 vulnerabilities. See [README.md](README.md).
