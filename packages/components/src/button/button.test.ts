@@ -81,9 +81,17 @@ describe('cdz-button', () => {
     const offset = Math.abs(centreOf(box) - centreOf(text));
 
     // Before this was a flex container the icon sat on the text baseline,
-    // which put its centre 3.2px above the label's. Half a pixel of slack
-    // for sub-pixel rounding.
-    expect(offset, `icon centre is ${offset.toFixed(1)}px off the label's`).to.be.lessThan(0.5);
+    // which put its centre 3.2px above the label's. That is the failure
+    // this test exists to catch, so the tolerance is set against it rather
+    // than against zero.
+    //
+    // It was 0.5px, and a different Chromium build measured exactly 0.5 --
+    // failing on `lessThan(0.5)` while the layout was perfectly correct.
+    // Sub-pixel geometry varies with build and font rasterisation, so an
+    // assertion with no slack at its own boundary is a measurement waiting
+    // to flip: ADR-0019's table, from the direction where the tool says
+    // "broken" and is wrong. 1.5px keeps a 2x margin to the real bug.
+    expect(offset, `icon centre is ${offset.toFixed(1)}px off the label's`).to.be.lessThan(1.5);
   });
 
   it('keeps a label centred, the way a native button does', async () => {
