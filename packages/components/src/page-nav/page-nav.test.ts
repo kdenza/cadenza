@@ -1,5 +1,6 @@
 import { html, fixture, expect } from '@open-wc/testing';
 import './page-nav.js';
+import '../button/button.js';
 import type { CdzPageNav, CdzPageNavSection } from './page-nav.js';
 
 const SECTIONS: CdzPageNavSection[] = [
@@ -20,6 +21,11 @@ async function build(extra = ''): Promise<CdzPageNav> {
 const nav = (el: CdzPageNav) => el.shadowRoot!.querySelector('nav')!;
 const list = (el: CdzPageNav) => el.shadowRoot!.querySelector('ul')!;
 const toggle = (el: CdzPageNav) => el.shadowRoot!.querySelector('cdz-button')!;
+// The element assistive technology treats as the button, which is not the
+// host: the host carries no role. Asserting on the host is what let the
+// disclosure state be missing for AT while the suite stayed green.
+const toggleButton = (el: CdzPageNav) =>
+  toggle(el).shadowRoot!.querySelector('button')!;
 const links = (el: CdzPageNav) => Array.from(el.shadowRoot!.querySelectorAll('a'));
 
 describe('cdz-page-nav', () => {
@@ -56,11 +62,28 @@ describe('cdz-page-nav', () => {
     expect(links(el).filter((a) => a.hasAttribute('aria-current'))).to.be.empty;
   });
 
-  it('wires the disclosure: aria-expanded and aria-controls point at the list', async () => {
+  it('wires the disclosure on the element that carries role=button', async () => {
     const el = await build();
-    expect(toggle(el).getAttribute('aria-expanded')).to.equal('false');
-    expect(toggle(el).getAttribute('aria-controls')).to.equal(list(el).id);
-    expect(list(el).id).to.not.be.empty;
+    // Previously asserted on the <cdz-button> host, which has no role --
+    // so it passed while the real button inside had neither attribute and
+    // the disclosure state reached nobody.
+    expect(toggleButton(el).getAttribute('aria-expanded')).to.equal('false');
+
+    // aria-controls cannot be an id here: the list is in page-nav's shadow
+    // root and the button is in cdz-button's, and IDREFs resolve within one
+    // tree scope (ADR-0020). The element reference does cross, outward.
+    const controlled = (
+      toggleButton(el) as HTMLButtonElement & { ariaControlsElements?: readonly Element[] }
+    ).ariaControlsElements;
+    expect(controlled, 'the reference must survive the shadow boundary').to.have.lengthOf(1);
+    expect(controlled![0]).to.equal(list(el));
+  });
+
+  it('does not put aria-expanded on a cdz-button that expands nothing', async () => {
+    const plain = await fixture(html`<cdz-button>Guardar</cdz-button>`);
+    const inner = plain.shadowRoot!.querySelector('button')!;
+    expect(inner.hasAttribute('aria-expanded'), 'a plain button is not a disclosure').to.be
+      .false;
   });
 
   it('actually hides the list when collapsed', async () => {
@@ -114,12 +137,12 @@ describe('cdz-page-nav', () => {
 
     button.click();
     await el.updateComplete;
-    expect(toggle(el).getAttribute('aria-expanded')).to.equal('true');
+    expect(toggleButton(el).getAttribute('aria-expanded')).to.equal('true');
     expect(list(el).hasAttribute('hidden')).to.be.false;
 
     button.click();
     await el.updateComplete;
-    expect(toggle(el).getAttribute('aria-expanded')).to.equal('false');
+    expect(toggleButton(el).getAttribute('aria-expanded')).to.equal('false');
     expect(list(el).hasAttribute('hidden')).to.be.true;
   });
 

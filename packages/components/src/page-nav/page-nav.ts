@@ -3,6 +3,7 @@ import { ifDefined } from 'lit/directives/if-defined.js';
 import { pageNavStyles } from './page-nav.styles.js';
 import '../icon/icon.js';
 import '../button/button.js';
+import type { CdzButton } from '../button/button.js';
 
 export interface CdzPageNavSection {
   /** The `id` of the heading this item links to. */
@@ -94,6 +95,20 @@ export class CdzPageNav extends LitElement {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('sections') || changed.has('spy')) this._resetObserver();
+
+    // aria-expanded and aria-controls used to sit on the <cdz-button>
+    // host, which carries no role -- the element assistive technology
+    // actually treats as the button is the <button> inside its shadow
+    // root, and it got neither. The disclosure state never reached anyone.
+    // The test asserted on the host, so it passed the whole time.
+    //
+    // aria-controls cannot be forwarded as an id: IDREFs resolve within
+    // one tree scope and the list is in *this* shadow root (ADR-0020).
+    // The element reference does cross, outward, which is why this is a
+    // property assignment and not an attribute.
+    const toggle = this.shadowRoot?.querySelector('cdz-button');
+    const list = this.shadowRoot?.querySelector('ul');
+    if (toggle && list) (toggle as CdzButton).controls = list;
   }
 
   // updated() rebuilds the observer only when `sections` or `spy` change,
@@ -166,8 +181,7 @@ export class CdzPageNav extends LitElement {
           ? html`
               <cdz-button
                 class="toggle"
-                aria-expanded=${this._expanded ? 'true' : 'false'}
-                aria-controls=${this._listId}
+                expanded=${this._expanded ? 'true' : 'false'}
                 @click=${this._toggle}
               >
                 <cdz-icon name=${this._expanded ? 'x' : 'menu'} size="sm"></cdz-icon>
