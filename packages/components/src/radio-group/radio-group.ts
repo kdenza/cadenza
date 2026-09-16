@@ -4,6 +4,11 @@ import { radioGroupStyles } from './radio-group.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
 import { syncCheckedState } from '../shared/checked-state.js';
 
+// A module counter, matching cdz-tooltip and cdz-page-nav. This name ends
+// up on every radio's `name` attribute, so a non-deterministic value churns
+// the rendered markup between identical renders.
+let radioGroupIdCounter = 0;
+
 export interface CdzRadioGroupOption {
   value: string;
   label: string;
@@ -79,7 +84,7 @@ export class CdzRadioGroup extends LitElement {
    * own shadow root, and grouping is scoped to a tree. That is the same
    * boundary that breaks `<cdz-radio>` here, working in our favour.
    */
-  private readonly _fallbackName = `cdz-radio-group-${Math.random().toString(36).slice(2, 9)}`;
+  private readonly _fallbackName = `cdz-radio-group-${++radioGroupIdCounter}`;
 
   constructor() {
     super();

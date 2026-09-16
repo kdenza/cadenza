@@ -50,4 +50,27 @@ describe('cdz-text', () => {
     expect(heading).to.exist;
     expect(el.shadowRoot!.mode).to.equal('open');
   });
+  it('is loud about an unknown "as", and still renders something sane', async () => {
+    // It used to fall through the switch to <p> without a word, and
+    // produce class="text size-undefined" -- a class matching no rule, so
+    // the text rendered with no typographic style and nothing said why.
+    const originalError = console.error;
+    const calls: unknown[][] = [];
+    console.error = (...args: unknown[]) => {
+      calls.push(args);
+    };
+    let el: CdzText;
+    try {
+      el = await fixture<CdzText>(html`<cdz-text as="marquee">Hola</cdz-text>`);
+    } finally {
+      console.error = originalError;
+    }
+
+    expect(calls.length, 'a misused prop is loud, never silent').to.be.greaterThan(0);
+    expect(String(calls[0][0])).to.include('"as" must be one of');
+
+    const rendered = el!.shadowRoot!.querySelector('p')!;
+    expect(rendered, 'falls back to a real <p>').to.exist;
+    expect(rendered.className, 'and takes <p>\'s size with it').to.equal('text size-body-md');
+  });
 });

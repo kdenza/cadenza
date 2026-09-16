@@ -5,6 +5,12 @@ import '../icon/icon.js';
 import '../button/button.js';
 import type { CdzButton } from '../button/button.js';
 
+// A module counter, matching cdz-tooltip. Math.random() was unique but not
+// deterministic, which makes an id churn between otherwise identical
+// renders -- hostile to snapshot tests and to any server-rendered markup
+// having to match what the client produces.
+let pageNavIdCounter = 0;
+
 export interface CdzPageNavSection {
   /** The `id` of the heading this item links to. */
   id: string;
@@ -58,7 +64,12 @@ export class CdzPageNav extends LitElement {
     currentId: { type: String, attribute: 'current-id' },
     spy: { type: Boolean },
     toggleLabel: { type: String, attribute: 'toggle-label' },
-    _expanded: { state: true }
+    // `attribute: false` is explicit, not redundant: `state: true` implies
+    // it at runtime, but the manifest analyzer's static-properties plugin
+    // only looks for the literal flag. Verified by regenerating
+    // custom-elements.json -- without it, `_expanded` was published as a
+    // public attribute and the gallery drew a control for it.
+    _expanded: { state: true, attribute: false }
   };
 
   // `declare` — see button.ts for why these can't be plain class fields.
@@ -70,7 +81,7 @@ export class CdzPageNav extends LitElement {
   declare private _expanded: boolean;
 
   private _observer?: IntersectionObserver;
-  private readonly _listId = `cdz-page-nav-${Math.random().toString(36).slice(2, 9)}`;
+  private readonly _listId = `cdz-page-nav-${++pageNavIdCounter}`;
 
   constructor() {
     super();
