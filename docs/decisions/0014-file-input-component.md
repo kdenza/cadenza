@@ -61,6 +61,16 @@ while this component draws the trigger label and the filename itself.
 Both are configurable (`triggerText`, `placeholder`) and therefore
 translatable by the consumer.
 
+> **Correction (2026-09-16):** there were **three** visible strings, not
+> two. The multi-file summary — `"${n} archivos seleccionados"` — was
+> hardcoded, and this paragraph counted the two that were not. That made
+> it the one piece of copy no consumer could reach, in the component whose
+> entire justification above is taking copy back from a closed shadow root
+> the browser localises to *its own* language. For that one string the
+> component was worse than the native text it replaced: the browser would
+> at least have localised it. Now `multipleText`, substituting `{n}`. See
+> ADR-0026's amendment for the rule this turned out to be an instance of.
+
 **This is a cheaper version of the same trade-off as `<cdz-select>`'s
 rebuild (ADR-0010), and worth contrasting:** there, the native popup
 couldn't be styled *at all*, so the entire interaction had to be
