@@ -89,15 +89,35 @@ The guard was verified by planting two offending fixtures and confirming
 it fails on both while ignoring a correct `<cdz-icon>` root. A guard that
 has only ever passed has not been tested.
 
-### A test file that fails to import is currently invisible
+### ~~A test file that fails to import is currently invisible~~ — wrong, corrected 2026-09-16
 
-Worth recording, because it nearly hid the above: when the
-`import.meta.glob` test module threw on import, the full suite reported
-`265 passed, 0 failed` and said nothing. The file was skipped silently.
-The only reason it was caught is that the expected count was 266.
+**This section was false, and the way it was arrived at is the useful
+part.** It claimed that when the `import.meta.glob` test module threw on
+import, the suite skipped the file silently and still reported green.
 
-A suite that can quietly shrink is a suite whose green is worth less than
-it looks.
+It does not. Tested directly by planting a module that throws at import
+time and running the whole suite:
+
+```
+EXIT CODE: 1
+❌ Could not import your test module.
+Error while running tests.
+```
+
+The runner reports the failure and exits non-zero. CI would have caught
+it. The claim was never verified — it came from reading a `grep` that
+printed only the `265 passed, 0 failed` summary line, with the error
+lines and the exit code filtered out of view before anyone looked.
+
+What is true is narrower, and worth keeping: **the summary line is not
+the verdict.** It still reads `0 failed` on a run that failed, because an
+import error is not a test failure — no test existed to fail. The exit
+code is the verdict, and a grep that shows only the count is reading the
+wrong thing.
+
+Which makes this the fourth invalid measurement of that session, and the
+only one not caused by a browser: a filter that hid the evidence, and a
+conclusion drawn from what survived it.
 
 ## Consequences
 
@@ -113,9 +133,10 @@ it looks.
   is not `workflow_run` chaining, which was rejected then and is still
   more trigger complexity than a single-maintainer repo needs — it is that
   the failure class which caused it is now caught before CI.
-- **To revisit:** the suite does not fail when a test file cannot be
-  imported. Until that is fixed, the test count is load-bearing and
-  nobody is checking it.
+- **~~To revisit~~ — the premise was wrong, see the corrected section
+  above:** the suite *does* fail when a test file cannot be imported, with
+  a non-zero exit code. Nothing needed fixing. The test count is not
+  load-bearing.
 - **To revisit:** `requestAnimationFrame` is not banned, only the implicit
   dependency on it. A test that genuinely needs a painted frame is still
   possible and would still be fragile in CI; none exist today.
@@ -128,4 +149,6 @@ it looks.
    planting offenders.
 3. [x] Three consecutive full runs at 265/265 before pushing, to
    distinguish a fix from a lucky race.
-4. [ ] Make the runner fail when a test module cannot be imported.
+4. [x] ~~Make the runner fail when a test module cannot be imported.~~
+   Not needed: verified that it already does, exit code 1. The action item
+   existed because of an unverified claim.

@@ -307,9 +307,13 @@ before assuming why something non-obvious is the way it is:
   wait for a frame a headless runner never paints. It kept CI red for four
   commits while every local run passed. Four fixtures had the shape, not
   the two a first grep reported. Enforced now by
-  `scripts/check-test-fixtures.mjs` as `pretest`. Also records that a test
-  module which fails to import is **skipped silently** while the suite
-  still reports green.
+  `scripts/check-test-fixtures.mjs` as `pretest`. It also **corrects a claim
+  it originally made**: a test module that fails to import is *not* skipped
+  silently — the runner reports it and exits non-zero. That was asserted
+  from a `grep` showing only the summary count, with the error and exit
+  code filtered out. What holds is narrower: the `N passed, 0 failed` line
+  is not the verdict, since an import error is not a test failure. The exit
+  code is.
 
 - **0029** — `cdz-radio-group`: **composing the atoms would have broken
   the semantics the atom was chosen for.** Native radio grouping does not
