@@ -2,6 +2,7 @@ import { LitElement, html, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { progressStyles } from './progress.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { clamp } from '../shared/clamp.js';
 
 /**
  * `<cdz-progress>` — a determinate progress bar.
@@ -78,6 +79,12 @@ export class CdzProgress extends LitElement {
   // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-progress', this.label);
+    // Same as cdz-range: the native <progress> clamps and reports back
+    // (see ../shared/clamp.ts), this wrapper did neither, and value=150
+    // max=100 printed "150%" beside a bar the browser had drawn full.
+    const ceiling = this.max > 0 ? this.max : 0;
+    const clamped = clamp(this.value, 0, ceiling);
+    if (clamped !== this.value) this.value = clamped;
   }
 
   /** Rounded for display only — the underlying value is left untouched. */

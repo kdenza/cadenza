@@ -2,6 +2,7 @@ import { LitElement, html, nothing, type PropertyValues } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { rangeStyles } from './range.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { clamp } from '../shared/clamp.js';
 
 /**
  * `<cdz-range>` — a labeled slider for picking a numeric value in a range.
@@ -106,6 +107,13 @@ export class CdzRange extends LitElement {
   // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-range', this.label);
+    // The native input clamps and reports back (see ../shared/clamp.ts).
+    // This component did neither, so <output>, `.value` and the fill
+    // percentage could all disagree with the thumb the browser drew --
+    // min=0 max=10 value=50 rendered a full track, an output reading 50
+    // and a fill of 500%.
+    const clamped = clamp(this.value, this.min, this.max);
+    if (clamped !== this.value) this.value = clamped;
   }
 
   protected updated(changedProperties: PropertyValues<this>): void {

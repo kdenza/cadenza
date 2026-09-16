@@ -161,4 +161,20 @@ describe('cdz-progress', () => {
     }
     expect(calls.length).to.equal(0);
   });
+  it('clamps a value above max the way the native element does', async () => {
+    const el = await fixture<CdzProgress>(
+      html`<cdz-progress label="Carga" max="100" .value=${150} show-value></cdz-progress>`
+    );
+    expect(el.value, 'the reported value is part of the output').to.equal(100);
+    expect(el.shadowRoot!.querySelector('.value')!.textContent!.trim()).to.equal('100%');
+    expect(el.shadowRoot!.querySelector('progress')!.value).to.equal(100);
+  });
+
+  it('clamps a negative value to zero', async () => {
+    const el = await fixture<CdzProgress>(
+      html`<cdz-progress label="Carga" max="100" .value=${-10} show-value></cdz-progress>`
+    );
+    expect(el.value).to.equal(0);
+    expect(el.shadowRoot!.querySelector('.value')!.textContent!.trim()).to.equal('0%');
+  });
 });
