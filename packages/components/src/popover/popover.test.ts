@@ -112,4 +112,34 @@ describe('cdz-popover', () => {
     el.remove();
     trigger.remove();
   });
+  it('does not leave `open` true for a popover the browser already closed', async () => {
+    // Removing a showing popover from the document runs the spec's "hide
+    // popover" with fireEvents false, so no toggle event arrives. `open`
+    // then outlived the state it named, and hide()'s early return could
+    // not repair it -- measured, it stayed true through a removal, a
+    // re-insertion and a hide().
+    const el = await fixture<CdzPopover>(html`<cdz-popover>contenido</cdz-popover>`);
+    el.show();
+    expect(el.open).to.be.true;
+
+    const parent = el.parentElement!;
+    el.remove();
+    expect(el.matches(':popover-open'), 'the browser has closed it').to.be.false;
+    expect(el.open, 'and `open` has to say so').to.be.false;
+
+    parent.appendChild(el);
+    await el.updateComplete;
+    expect(el.open).to.be.false;
+  });
+
+  it('hide() reconciles a stale open flag instead of returning early', async () => {
+    const el = await fixture<CdzPopover>(html`<cdz-popover>contenido</cdz-popover>`);
+    // Force the disagreement directly: this is the state a removal used to
+    // leave behind.
+    el.open = true;
+    expect(el.matches(':popover-open')).to.be.false;
+
+    el.hide();
+    expect(el.open, 'hide() must be able to repair it').to.be.false;
+  });
 });

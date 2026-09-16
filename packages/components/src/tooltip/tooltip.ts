@@ -215,7 +215,7 @@ export class CdzTooltip extends LitElement {
 
     this._warnedNoTrigger = false;
     this._trigger = trigger;
-    trigger.setAttribute('aria-describedby', this._descriptionId);
+    this._describe(trigger);
     trigger.addEventListener('mouseenter', this._handleTriggerEnter);
     trigger.addEventListener('mouseleave', this._handleTriggerLeave);
     trigger.addEventListener('focusin', this._handleFocusIn);
@@ -229,16 +229,37 @@ export class CdzTooltip extends LitElement {
     trigger.removeEventListener('mouseleave', this._handleTriggerLeave);
     trigger.removeEventListener('focusin', this._handleFocusIn);
     trigger.removeEventListener('focusout', this._handleFocusOut);
-    // Only if it is still ours: a consumer may have set their own
-    // description since, and clearing the attribute outright would take
-    // that with it.
-    if (trigger.getAttribute('aria-describedby') === this._descriptionId) {
-      trigger.removeAttribute('aria-describedby');
-    }
+    this._undescribe(trigger);
     this._trigger = null;
     // A tooltip whose trigger just left cannot stay on screen: nothing
     // would be left to dismiss it.
     this._hide();
+  }
+
+  /**
+   * Adds this tooltip's description to the trigger's `aria-describedby`
+   * instead of replacing it — the same reasoning as `cdz-link` merging
+   * `noopener` into the consumer's `rel`. A trigger can already carry a
+   * description (a field's hint, an error message); overwriting it traded
+   * one accessible description for another and told nobody.
+   *
+   * Appended rather than prepended: `aria-describedby` is announced in
+   * order, and the consumer's own description is the more important of
+   * the two. A tooltip is supplementary by definition.
+   */
+  private _describe(trigger: HTMLElement): void {
+    const ids = (trigger.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    if (!ids.includes(this._descriptionId)) ids.push(this._descriptionId);
+    trigger.setAttribute('aria-describedby', ids.join(' '));
+  }
+
+  /** Removes only this tooltip's id, leaving any the consumer set. */
+  private _undescribe(trigger: HTMLElement): void {
+    const rest = (trigger.getAttribute('aria-describedby') ?? '')
+      .split(/\s+/)
+      .filter((id) => id.length > 0 && id !== this._descriptionId);
+    if (rest.length > 0) trigger.setAttribute('aria-describedby', rest.join(' '));
+    else trigger.removeAttribute('aria-describedby');
   }
 
   private _clearTimers(): void {

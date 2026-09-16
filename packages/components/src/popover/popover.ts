@@ -83,6 +83,11 @@ export class CdzPopover extends LitElement {
 
   disconnectedCallback(): void {
     this.removeEventListener('toggle', this._handleNativeToggle);
+    // Leaving the document hides the popover, silently. Recording that
+    // here is what keeps `open` honest for anything that reads it after
+    // the move -- cdz-select reads the pseudo-class instead precisely
+    // because this flag could not be trusted.
+    this.open = false;
     super.disconnectedCallback();
   }
 
@@ -109,7 +114,12 @@ export class CdzPopover extends LitElement {
   }
 
   show(): void {
-    if (this.matches(':popover-open')) return;
+    if (this.matches(':popover-open')) {
+      // Reconcile rather than return: `open` can be stale in either
+      // direction (see hide() and disconnectedCallback below).
+      this.open = true;
+      return;
+    }
     if (!this._supportsAnchorPositioning && this._anchorEl) {
       const rect = this._anchorEl.getBoundingClientRect();
       this.style.top = `${rect.bottom}px`;
@@ -126,8 +136,14 @@ export class CdzPopover extends LitElement {
   }
 
   hide(): void {
-    if (!this.matches(':popover-open')) return;
-    this.hidePopover();
+    // The flag is set unconditionally, not only when something was
+    // actually hidden. The browser can close a popover without telling
+    // this element -- removing a showing one from the document runs the
+    // spec's "hide popover" with fireEvents false, so no toggle event
+    // arrives and `open` outlives the state it names. The early return
+    // this used to take meant hide() could not repair that: measured,
+    // `open` stayed true through a removal, a re-insertion and a hide().
+    if (this.matches(':popover-open')) this.hidePopover();
     this.open = false;
   }
 

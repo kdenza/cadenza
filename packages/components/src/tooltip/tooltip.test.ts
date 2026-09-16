@@ -253,4 +253,44 @@ describe('cdz-tooltip', () => {
     await el.updateComplete;
     expect(isOpen(el), 'the replacement drives the tooltip').to.be.true;
   });
+  it('merges its description into an aria-describedby the trigger already had', async () => {
+    // Overwriting traded one accessible description for another silently.
+    // cdz-link merges noopener into the consumer's rel for the same
+    // reason; this had been the inconsistent one.
+    const el = await fixture<CdzTooltip>(
+      html`<cdz-tooltip text="Se envía a tu correo">
+        <button aria-describedby="hint-externo">Enviar</button>
+      </cdz-tooltip>`
+    );
+    fast(el);
+    const trigger = el.querySelector('button')!;
+    const ids = trigger.getAttribute('aria-describedby')!.split(/\s+/);
+
+    expect(ids, "the consumer's description survives").to.include('hint-externo');
+    expect(ids).to.have.lengthOf(2);
+    expect(ids[0], 'and is announced first -- a tooltip is supplementary').to.equal(
+      'hint-externo'
+    );
+    expect(document.getElementById(ids[1])!.textContent).to.equal('Se envía a tu correo');
+  });
+
+  it('removes only its own id when the trigger is replaced', async () => {
+    const el = await fixture<CdzTooltip>(
+      html`<cdz-tooltip text="Ayuda">
+        <button aria-describedby="hint-externo">Enviar</button>
+      </cdz-tooltip>`
+    );
+    fast(el);
+    const first = el.querySelector('button')!;
+
+    const second = document.createElement('button');
+    second.textContent = 'Otro';
+    first.replaceWith(second);
+    await aTimeout(0);
+
+    expect(
+      first.getAttribute('aria-describedby'),
+      "the old trigger keeps the consumer's description"
+    ).to.equal('hint-externo');
+  });
 });
