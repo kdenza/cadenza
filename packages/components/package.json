@@ -27,8 +27,9 @@
     "test:watch": "web-test-runner --watch",
     "prepublishOnly": "npm run build && npm run analyze",
     "check:fixtures": "node scripts/check-test-fixtures.mjs",
-    "pretest": "npm run check:fixtures && npm run check:hidden",
-    "check:hidden": "node scripts/check-hidden-coverage.mjs"
+    "pretest": "npm run check:fixtures && npm run check:hidden && npm run check:lifecycle",
+    "check:hidden": "node scripts/check-hidden-coverage.mjs",
+    "check:lifecycle": "node scripts/check-lifecycle-symmetry.mjs"
   },
   "dependencies": {
     "@kdenza/tokens": "^0.2.0",
