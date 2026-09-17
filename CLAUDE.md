@@ -89,8 +89,12 @@ to be considered compromised and rotated.
   `:popover-open`, not a mirrored flag); where a native control can be
   changed without the binding, reassert it in `updated()` rather than
   trusting lit-html's dirty check (`shared/checked-state.ts`); where a
-  native element clamps, clamp *and write back* (`shared/clamp.ts`) — the
-  reported value is part of the output. See ADR-0032.
+  native element clamps, clamp the way *that* native clamps
+  (`shared/clamp.ts`) — `<input type="range">` writes the clamp back and
+  `<progress>` clamps on read while keeping the value, so `cdz-range`
+  overwrites and `cdz-progress` does not. A set-then-read pair cannot tell
+  those apart; raise the ceiling afterwards. The reported value is part of
+  the output. See ADR-0032 and its correction.
 - **ARIA state belongs on the element that carries the role**, which for a
   composed atom is inside its shadow root, not on the host. `aria-*` IDREFs
   do not cross a shadow boundary; the `aria*Elements` element-reference
@@ -431,10 +435,17 @@ navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
 `cdz-avatar-stack` (ADR-0030).
 
 Published on the public npm registry: `@kdenza/tokens` and
-`@kdenza/components`. Both are at **0.2.1** in the repo, a minor bump for
-the three molecules and their token files; `0.2.0` is the last version
-actually on npm until the next `npm publish`. Note that on a 0.x
+`@kdenza/components`. `tokens` is at **0.2.1** and `components` at
+**0.3.0** in the repo; `0.2.0` is the last version of either actually on
+npm until the next `npm publish`. `components` took the minor rather than
+staying on the patch because `cdz-select` stopped firing `change` when the
+option picked is the one already selected — correct, matching native
+`<select>`, and still a behaviour a consumer could have been relying on.
+Removing an event is not a patch. It was free to do properly because
+`0.2.1` was never published; the alternative was a claim of "no breaking
+change" that would not survive being read closely. `tokens` did not change
+and `components`' `^0.2.0` dependency still accepts it. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 327 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 335 tests, 0 vulnerabilities. See [README.md](README.md).

@@ -226,26 +226,36 @@ export class CdzSelect extends LitElement {
 
   // Light dismiss runs between pointerdown and click -- measured: a
   // pointerdown listener on the trigger still sees :popover-open, a click
-  // listener on the same element no longer does. So with a real pointer
-  // the browser had already closed the panel by the time click arrived,
-  // and toggle() promptly reopened it: **the trigger could never close
-  // the select.** Every test missed it because a synthetic .click()
-  // dispatches no pointer events and so never triggers light dismiss at
-  // all -- the same class of green-and-measuring-nothing test ADR-0029
-  // found with synthetic key events.
-  private _openAtPointerDown: boolean | null = null;
+  // listener on the same element no longer does. So with a real pointer the
+  // browser has already closed the panel by the time click arrives, and a
+  // plain toggle() would reopen it: the trigger could never close the
+  // select.
+  //
+  // The snapshot is read only on the pointer path, and `detail` is what
+  // identifies it. Measured: a real pointer click carries detail 1, while a
+  // programmatic .click(), a synthetic MouseEvent and a trusted
+  // Enter/Space all carry 0. On the pointer path the snapshot is always
+  // fresh, because the pointerdown that produced this very click just wrote
+  // it.
+  //
+  // Reading it on the other paths was the bug. An abandoned press --
+  // pressed here, released somewhere else -- produces no click at all, so
+  // the snapshot survived and answered for whatever activation came next:
+  // a screen reader in browse mode, voice control, switch access, a
+  // consumer's .click(). None of those ran light dismiss, so the live state
+  // is the truthful one for them, and the first activation after an
+  // abandoned press was being swallowed.
+  private _openAtPointerDown = false;
 
   private _handleTriggerPointerDown(): void {
     this._openAtPointerDown = this._popoverEl?.matches(':popover-open') ?? false;
   }
 
-  private _handleTriggerClick(): void {
-    // The snapshot when there was a pointer behind this click; the live
-    // state otherwise (a programmatic .click(), or activation from
-    // assistive technology), where light dismiss never ran and the
-    // current state is still the truthful one.
-    const wasOpen = this._openAtPointerDown ?? (this._popoverEl?.matches(':popover-open') ?? false);
-    this._openAtPointerDown = null;
+  private _handleTriggerClick(event: MouseEvent): void {
+    const wasOpen =
+      event.detail > 0
+        ? this._openAtPointerDown
+        : (this._popoverEl?.matches(':popover-open') ?? false);
     if (wasOpen) this._popoverEl?.hide();
     else this._popoverEl?.show();
     this._syncOpenState();

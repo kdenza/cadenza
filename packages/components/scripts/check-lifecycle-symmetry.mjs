@@ -122,6 +122,34 @@ function methodBody(source, name) {
   return null;
 }
 
+/**
+ * A method body plus the bodies of the `this._method()` calls it makes,
+ * one level deep.
+ *
+ * Reading only `disconnectedCallback`'s own text was a real hole: moving
+ * the teardown into a helper — the ordinary refactor once a
+ * disconnectedCallback gets long, and something cdz-tooltip already does
+ * with `_clearTimers()` — matched none of the release patterns, and the
+ * component passed clean. Verified by planting exactly that shape: the
+ * guard printed a tick and exited 0 on a component with the very defect
+ * it exists to catch.
+ *
+ * One level rather than a full call graph: it covers the refactor that
+ * causes this in practice, and a guard that tries to be an interpreter
+ * acquires its own bugs. Deeper nesting is still a hole, and saying so
+ * here is better than implying otherwise.
+ */
+function bodyWithCallees(source, name) {
+  const own = methodBody(source, name);
+  if (own === null) return null;
+  let combined = own;
+  for (const call of own.matchAll(/this\.(_\w+)\s*\(/g)) {
+    const callee = methodBody(source, call[1]);
+    if (callee !== null) combined += '\n' + callee;
+  }
+  return combined;
+}
+
 function lineOf(source, needle) {
   const at = source.indexOf(needle);
   return at < 0 ? 1 : source.slice(0, at).split('\n').length;
@@ -143,6 +171,7 @@ async function* sources(dir) {
 
 const problems = [];
 let checked = 0;
+let skipped = 0;
 
 for await (const file of sources(SRC)) {
   const raw = await readFile(file, 'utf8');
@@ -150,11 +179,14 @@ for await (const file of sources(SRC)) {
   const name = relative(SRC, file);
   const exempt = (rule) => EXEMPT.has(`${name}#${rule}`);
 
-  const disconnected = methodBody(source, 'disconnectedCallback');
-  const connected = methodBody(source, 'connectedCallback');
+  const disconnected = bodyWithCallees(source, 'disconnectedCallback');
+  const connected = bodyWithCallees(source, 'connectedCallback');
   const readsSlot = /\.assigned(?:Elements|Nodes)\s*\(/.test(source);
 
-  if (disconnected === null && !readsSlot) continue;
+  if (disconnected === null && !readsSlot) {
+    skipped++;
+    continue;
+  }
   checked++;
 
   // Rule 1 -- a release needs a reconnect path that does something.
@@ -193,8 +225,11 @@ for await (const file of sources(SRC)) {
 
   // Rule 3 -- slotted content resolved once is slotted content read once.
   if (readsSlot && !exempt('slotchange') && !/@slotchange/.test(source)) {
+    // The stripped source, not `raw`: a comment mentioning the word earlier
+    // in the file would otherwise decide the line number, and the number in
+    // a guard's output is the part someone trusts.
     problems.push(
-      `  ${name}:${lineOf(raw, 'assigned')} reads its slotted children imperatively ` +
+      `  ${name}:${lineOf(source, '.assigned')} reads its slotted children imperatively ` +
         `but never listens for @slotchange`
     );
   }
@@ -212,7 +247,10 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
+// The skipped count is named rather than left out: "4 components, none
+// asymmetric" reads as "4 checked, all fine" when it means the other 18
+// were never eligible for a rule in the first place.
 console.log(
-  `✓ lifecycle symmetry: ${checked} component(s) with lifecycle hooks or imperative ` +
-    'slot reads, none asymmetric'
+  `✓ lifecycle symmetry: ${checked} file(s) eligible, none asymmetric ` +
+    `(${skipped} with no teardown and no imperative slot read were not checked)`
 );

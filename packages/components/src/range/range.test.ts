@@ -179,4 +179,19 @@ describe('cdz-range', () => {
     await el.updateComplete;
     expect(el.value, 'lowering max has to pull the value with it').to.equal(50);
   });
+  it('does not turn an unusable max into a NaN value', async () => {
+    // Every comparison with NaN is false, so a NaN bound slipped past the
+    // inverted-range check and came back NaN out of Math.min/Math.max --
+    // the clamp meant to stop the component reporting a wrong number made
+    // it report one that is not a number at all.
+    const el = await fixture<CdzRange>(
+      html`<cdz-range label="Vol" min="0" max="abc" value="5"></cdz-range>`
+    );
+    expect(Number.isNaN(el.value), '.value must stay a number').to.be.false;
+    expect(el.value).to.equal(5);
+    expect(el.shadowRoot!.querySelector('output')!.textContent).to.equal('5');
+    expect(
+      el.shadowRoot!.querySelector('input')!.style.getPropertyValue('--cdz-range-fill-percent')
+    ).to.not.contain('NaN');
+  });
 });

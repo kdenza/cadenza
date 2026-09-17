@@ -49,11 +49,9 @@ Two of those sources are worth naming:
 - **Where the platform holds the state, read the platform.** `cdz-select`
   reads `:popover-open` rather than `cdz-popover`'s mirrored `open`.
   `cdz-range` and `cdz-progress` clamp to match what the native controls
-  do — measured first, because the design question was whether to clamp
-  for display only or write the clamp back. Both natives write back, so
-  both wrappers now do. Clamping for display alone would have fixed the
-  visible half and left `.value` lying: **a component's reported value is
-  part of its output.**
+  do — and, as the correction below records, those two natives do not do
+  the same thing. What survives either way is the rule: **a component's
+  reported value is part of its output.**
 
 - **Where a binding can be bypassed, do not trust the binding.**
   lit-html skips a binding whose value has not changed since it last
@@ -127,6 +125,70 @@ test pass" but **"can this test fail, and for the reason I think?"**
 Every fix on this branch was verified by running the new test against the
 unfixed source first. Five of the 27 new tests would have passed either
 way on first draft, and were rewritten.
+
+## Correction (2026-09-17): the measurement behind the clamping fix could not tell two mechanisms apart
+
+Review of this branch caught a claim above, and it is the one this ADR
+leaned on hardest. The clamping section rested on *"Both natives clamp
+internally and report the clamped number back — measured, not assumed"*,
+with a table of set-then-read pairs.
+
+**The table is true of both mechanisms, which is exactly why it settles
+nothing.** Raising the ceiling afterwards separates them:
+
+```js
+const p = document.createElement('progress');   // max 1
+p.value = 500;   p.value;   // -> 1
+p.max = 1000;    p.value;   // -> 500    the value survived
+
+const i = document.createElement('input');      // type=range, max=100
+i.value = '500'; i.value;   // -> '100'
+i.max = '1000';  i.value;   // -> '100'   the value really was overwritten
+```
+
+So `<input type="range">` writes back and `<progress>` does not: its IDL
+getter clamps against the current `max` while the stored value survives.
+`cdz-progress` was made to write back on the strength of the weaker
+measurement, which **destroyed** a value the native would have given back
+— a value and its ceiling arriving from different sources (a fetch
+resolving, a parent passing props in whatever order it holds them)
+truncated permanently, and no later correction to `max` could recover it.
+
+`cdz-range` keeps the write-back; `cdz-progress` now clamps for display
+only. The divergence is real and each matches its own native.
+
+> **The lesson is this ADR's own, turned on itself.** Section 3 above asks
+> "can this test fail, and for the reason I think?". The same question
+> belongs on a measurement: *could this measurement have come out this way
+> for a different reason?* A set-then-read pair is consistent with "clamps
+> on set" and with "clamps on get", and nothing in the table distinguishes
+> them. It is ADR-0019's "suspect the measurement first" reaching a
+> measurement this ADR made in order to correct someone else's.
+
+Four more defects came from the same review, all in code this branch
+added: a `cdz-select` snapshot that went stale on an abandoned press and
+swallowed the next pointer-less activation (the accessibility path);
+`clamp()` guarding the value but not the bounds, so a NaN `max` produced
+a NaN `.value` — a new state-lie, in the section about state-lies; a bare
+`<cdz-button expanded>` silently reaching nobody, which is the
+`cdz-page-nav` bug this branch fixed arriving by another route; and the
+lifecycle guard going blind to a teardown moved one function call away,
+certifying a planted component that had exactly the defect it exists to
+catch. ADR-0031's own sentence applies: *worse than no guard, because a
+guard certifies.*
+
+### On the `ariaControlsElements` clause, and how much it is worth
+
+The clause in section 2 rests on measurements taken in **Chromium only** —
+this environment has no other engine, and `cdz-button` feature-detects
+with `'ariaControlsElements' in button`, whose silent branch leaves the
+button with no `aria-controls` at all where ARIA element reflection is
+missing. No regression (the id on the host reached nobody either), but
+"the relation is restored" is true for some users and not others, and the
+suite runs one engine. ADR-0013's amendment went to Firefox 153 and
+sampled painted pixels rather than trusting `getComputedStyle`; the same
+standard applied here would mean checking a second engine before the
+clause is stated as broadly as it is.
 
 ## Consequences
 

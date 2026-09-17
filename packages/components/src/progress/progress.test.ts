@@ -161,20 +161,60 @@ describe('cdz-progress', () => {
     }
     expect(calls.length).to.equal(0);
   });
-  it('clamps a value above max the way the native element does', async () => {
+  it('renders a value above max clamped, without overwriting it', async () => {
+    // Clamped for display only. <progress> clamps in its IDL getter and
+    // keeps the stored value; an earlier version of this test asserted the
+    // opposite, because the measurement behind it -- a set-then-read pair
+    // -- cannot tell the two mechanisms apart. See ADR-0032's correction.
     const el = await fixture<CdzProgress>(
       html`<cdz-progress label="Carga" max="100" .value=${150} show-value></cdz-progress>`
     );
-    expect(el.value, 'the reported value is part of the output').to.equal(100);
     expect(el.shadowRoot!.querySelector('.value')!.textContent!.trim()).to.equal('100%');
     expect(el.shadowRoot!.querySelector('progress')!.value).to.equal(100);
+    expect(el.value, 'the consumer\'s value is theirs, not ours to destroy').to.equal(150);
   });
 
-  it('clamps a negative value to zero', async () => {
+  it('renders a negative value as zero, without overwriting it', async () => {
     const el = await fixture<CdzProgress>(
       html`<cdz-progress label="Carga" max="100" .value=${-10} show-value></cdz-progress>`
     );
-    expect(el.value).to.equal(0);
     expect(el.shadowRoot!.querySelector('.value')!.textContent!.trim()).to.equal('0%');
+    expect(el.shadowRoot!.querySelector('progress')!.value).to.equal(0);
+    expect(el.value).to.equal(-10);
+  });
+  it('keeps the value when max later rises, the way native <progress> does', async () => {
+    // <progress> clamps in its IDL getter and keeps the stored value:
+    // set 500 under max 1 and it reads 1, raise max to 1000 and 500 is
+    // back. Writing the clamp back destroyed that, so a value and its
+    // ceiling arriving from different sources truncated permanently.
+    const el = await fixture<CdzProgress>(html`<cdz-progress label="Carga"></cdz-progress>`);
+    el.value = 500;
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelector('progress')!.value, 'drawn clamped').to.equal(100);
+
+    el.max = 1000;
+    await el.updateComplete;
+    expect(el.value, 'the value itself was never overwritten').to.equal(500);
+    expect(el.shadowRoot!.querySelector('progress')!.value).to.equal(500);
+  });
+
+  it('is loud about an unusable max instead of rendering "NaN%"', async () => {
+    const originalError = console.error;
+    const calls: unknown[][] = [];
+    console.error = (...args: unknown[]) => {
+      calls.push(args);
+    };
+    let el: CdzProgress;
+    try {
+      el = await fixture<CdzProgress>(
+        html`<cdz-progress label="Carga" max="abc" .value=${5} show-value></cdz-progress>`
+      );
+    } finally {
+      console.error = originalError;
+    }
+
+    expect(calls.some((c) => String(c[0]).includes('"max" must be a number'))).to.be.true;
+    const readout = el!.shadowRoot!.querySelector('.value')!.textContent!.trim();
+    expect(readout, 'never the string NaN on screen').to.not.contain('NaN');
   });
 });

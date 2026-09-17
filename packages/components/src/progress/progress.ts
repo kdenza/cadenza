@@ -79,18 +79,42 @@ export class CdzProgress extends LitElement {
   // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-progress', this.label);
-    // Same as cdz-range: the native <progress> clamps and reports back
-    // (see ../shared/clamp.ts), this wrapper did neither, and value=150
-    // max=100 printed "150%" beside a bar the browser had drawn full.
-    const ceiling = this.max > 0 ? this.max : 0;
-    const clamped = clamp(this.value, 0, ceiling);
-    if (clamped !== this.value) this.value = clamped;
+    // Loud on an unusable max, for the same reason cdz-text is loud on an
+    // unknown `as` (ADR-0003). `max="abc"` used to render the string
+    // "NaN%" on screen, which is worse than any fallback.
+    if (!(this.max > 0)) {
+      console.error(
+        `[cdz-progress] "max" must be a number greater than 0; received ` +
+          `${JSON.stringify(this.max)}. Falling back to 1, the same default a ` +
+          `native <progress> uses.`
+      );
+    }
+  }
+
+  /** Native `<progress>` falls back to 1 for a missing or unparseable max. */
+  private _effectiveMax(): number {
+    return this.max > 0 ? this.max : 1;
+  }
+
+  /**
+   * Clamped for rendering, **without** writing back to `this.value`.
+   *
+   * This is the opposite of what `cdz-range` does, and it matches what each
+   * one's native actually does — measured, see `../shared/clamp.ts`.
+   * `<progress>` clamps in its IDL getter and keeps the stored value, so a
+   * value of 500 under max 100 reappears as 500 once max rises to 1000.
+   * Overwriting `this.value` here destroyed that: a value arriving from one
+   * source and its ceiling from another — a fetch resolving, a parent
+   * passing props in whatever order it has them — truncated silently, and
+   * no later correction to `max` could recover it.
+   */
+  private _clampedValue(): number {
+    return clamp(this.value, 0, this._effectiveMax());
   }
 
   /** Rounded for display only — the underlying value is left untouched. */
   private _percent(): number {
-    if (this.max <= 0) return 0;
-    return Math.round((this.value / this.max) * 100);
+    return Math.round((this._clampedValue() / this._effectiveMax()) * 100);
   }
 
   render() {
@@ -108,8 +132,8 @@ export class CdzProgress extends LitElement {
         </div>
         <progress
           id="progress"
-          max=${this.max}
-          value=${this.value}
+          max=${this._effectiveMax()}
+          value=${this._clampedValue()}
           aria-valuetext=${ifDefined(hasValueText ? this.valueText : undefined)}
         ></progress>
       </div>

@@ -54,7 +54,10 @@ export class CdzButton extends LitElement {
     // with Lit's Boolean converter `expanded="false"` would read as true.
     // These are aria-expanded's own values, which also makes the intent
     // obvious at the call site.
-    expanded: { type: String, reflect: true },
+    // Not reflected: the constructor default is '' and Lit would write it
+    // back on first update, putting a disclosure-shaped expanded="" on
+    // every button in the system. Nothing styles :host([expanded]).
+    expanded: { type: String },
     // Element reference, never an id -- see the class comment.
     controls: { attribute: false }
   };
@@ -68,6 +71,30 @@ export class CdzButton extends LitElement {
   declare type: CdzButtonType;
   declare expanded: 'true' | 'false' | '';
   declare controls: HTMLElement | null;
+
+  protected willUpdate(): void {
+    // A bare `expanded` and an absent one both arrive as '', so the
+    // attribute itself is what tells them apart: present-and-empty is the
+    // consumer writing the natural HTML spelling and getting silence.
+    const bareAttribute = this.getAttribute('expanded') === '';
+    const invalidValue =
+      this.expanded !== '' && this.expanded !== 'true' && this.expanded !== 'false';
+    if (bareAttribute || invalidValue) {
+      // Loud rather than quiet, the same contract as every other misused
+      // prop here (ADR-0003). Two ways to get this wrong, and both used to
+      // pass silently: a bare `expanded` parses as '', which is the
+      // "not a disclosure" sentinel, so the state reached nobody -- the
+      // exact outcome this property was added to fix in cdz-page-nav,
+      // by a different route. And expanded="yes" reached aria-expanded
+      // unvalidated, which is invalid ARIA: assistive technology treats it
+      // as absent and axe flags it.
+      console.error(
+        `[cdz-button] "expanded" must be "true", "false", or absent; received ` +
+          `${JSON.stringify(this.expanded)}. Note that a bare \`expanded\` attribute ` +
+          `parses as "" — write expanded="true".`
+      );
+    }
+  }
 
   constructor() {
     super();
@@ -107,7 +134,9 @@ export class CdzButton extends LitElement {
       <button
         type=${this.type}
         aria-disabled=${this.disabled ? 'true' : 'false'}
-        aria-expanded=${this.expanded === '' ? nothing : this.expanded}
+        aria-expanded=${this.expanded === 'true' || this.expanded === 'false'
+          ? this.expanded
+          : nothing}
         @click=${this._handleClick}
       >
         <slot></slot>

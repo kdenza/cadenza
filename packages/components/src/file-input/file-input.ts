@@ -170,7 +170,10 @@ export class CdzFileInput extends LitElement {
   private _displayText(): string {
     if (this._selectedNames.length === 0) return this.placeholder;
     if (this._selectedNames.length === 1) return this._selectedNames[0];
-    return this.multipleText.replace('{n}', String(this._selectedNames.length));
+    // replaceAll, not replace: a string pattern substitutes only the first
+    // occurrence, so "{n} de {n} archivos" came back with one placeholder
+    // still in it.
+    return this.multipleText.replaceAll('{n}', String(this._selectedNames.length));
   }
 
   render() {

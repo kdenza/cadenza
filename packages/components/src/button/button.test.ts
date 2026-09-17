@@ -132,4 +132,44 @@ describe('cdz-button', () => {
     // to separate them, so without an explicit gap they would touch.
     expect(text.left - icon.right).to.be.greaterThan(3);
   });
+  it('is loud about a bare `expanded`, which parses as "" and reaches nobody', async () => {
+    // The natural HTML spelling. It parses as '', which is the
+    // "not a disclosure" sentinel, so aria-expanded was dropped -- the same
+    // outcome as the cdz-page-nav bug this property exists to fix, by a
+    // different route and just as quiet.
+    const originalError = console.error;
+    const calls: unknown[][] = [];
+    console.error = (...args: unknown[]) => {
+      calls.push(args);
+    };
+    try {
+      await fixture(html`<cdz-button expanded>Más</cdz-button>`);
+    } finally {
+      console.error = originalError;
+    }
+    expect(calls.some((c) => String(c[0]).includes('"expanded" must be'))).to.be.true;
+  });
+
+  it('never passes an invalid expanded through to aria-expanded', async () => {
+    // aria-expanded="yes" is invalid ARIA: AT treats it as absent and axe
+    // flags it. Dropping it is better than forwarding it, and saying so is
+    // better than either.
+    const originalError = console.error;
+    console.error = () => {};
+    let el: HTMLElement;
+    try {
+      el = await fixture(html`<cdz-button expanded="yes">Más</cdz-button>`);
+    } finally {
+      console.error = originalError;
+    }
+    expect(el!.shadowRoot!.querySelector('button')!.hasAttribute('aria-expanded')).to.be.false;
+  });
+
+  it('does not put a disclosure-shaped attribute on every button', async () => {
+    // `reflect: true` on a property defaulting to '' made Lit write it back
+    // on first update, so every button in the system serialised as
+    // <cdz-button expanded="">.
+    const el = await fixture(html`<cdz-button>Guardar</cdz-button>`);
+    expect(el.hasAttribute('expanded')).to.be.false;
+  });
 });
