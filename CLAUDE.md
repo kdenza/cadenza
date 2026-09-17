@@ -78,6 +78,34 @@ to be considered compromised and rotated.
 - **The repository is written in English; the site is in Spanish.** Split
   by audience, not by language — see ADR-0026. This includes the runtime
   console messages, which ship inside the published package.
+- **No user-facing string may be un-overridable.** The default's language
+  is a convenience for this project's site and claims nothing beyond it —
+  the audience for a default string is the end user of whatever app
+  consumes the package, whose language is unknowable from inside it. What
+  has to be true is that every such string is a settable property. See
+  ADR-0026's amendment.
+- **A component must not report state it is not rendering.** Where the
+  platform holds the state, read the platform (`cdz-select` reads
+  `:popover-open`, not a mirrored flag); where a native control can be
+  changed without the binding, reassert it in `updated()` rather than
+  trusting lit-html's dirty check (`shared/checked-state.ts`); where a
+  native element clamps, clamp the way *that* native clamps
+  (`shared/clamp.ts`) — `<input type="range">` writes the clamp back and
+  `<progress>` clamps on read while keeping the value, so `cdz-range`
+  overwrites and `cdz-progress` does not. A set-then-read pair cannot tell
+  those apart; raise the ceiling afterwards. The reported value is part of
+  the output. See ADR-0032 and its correction.
+- **ARIA state belongs on the element that carries the role**, which for a
+  composed atom is inside its shadow root, not on the host. `aria-*` IDREFs
+  do not cross a shadow boundary; the `aria*Elements` element-reference
+  form does, outward only. `cdz-button` takes `expanded` and `controls`
+  for this. See ADR-0032 and ADR-0020.
+- **Four `pretest` guards run in Node before any browser starts**:
+  rAF-dependent fixtures (ADR-0028), `hidden` coverage (ADR-0025/0029),
+  lifecycle symmetry (ADR-0031) and `state: true` + `attribute: false`
+  (ADR-0032). Each exists because the rule was already known and got
+  re-broken by whoever had not hit it — a comment in two files is not
+  enforcement.
 
 ## Environment constraints
 
@@ -285,7 +313,19 @@ before assuming why something non-obvious is the way it is:
   production. The methodological lesson completes ADR-0019's: **suspecting
   the measurement cuts both ways**; this suspicion had already been raised
   and was withdrawn on a badly done check that said "fine" when it was
-  broken.
+  broken. **Amendment (2026-09-16):** the 19th component, `cdz-popover`,
+  had been set aside because its `display` sits on `:host(:popover-open)`
+  rather than `:host` — and that reading hardened into a coded exemption in
+  `check-hidden-coverage.mjs`. It was wrong: an open `cdz-popover` carrying
+  `hidden` rendered at 62px, while a plain `div[popover][hidden]` stays
+  `display: none` through `showPopover()`, so the component was overriding
+  what the platform got right. Two things to carry: `:host([hidden])` must
+  come **last** in that one stylesheet (identical specificity to
+  `:host(:popover-open)`, so source order decides — in the conventional
+  spot it does nothing), and **listing a component in the systemic test
+  does not cover it** — a closed popover is `display: none` either way, so
+  the generic case passes on a broken component and only an open-state test
+  goes red. An exemption is a claim, filed where nobody re-reads it.
 
 - **0026** — documentation language: **English in the repository, Spanish
   on the site**, split by audience rather than by language. The repo was
@@ -342,6 +382,40 @@ before assuming why something non-obvious is the way it is:
   of every set of initials. No test would have caught it — both orders pass
   axe and produce the same a11y tree.
 
+- **0031** — lifecycle symmetry: **setup hooks and teardown hooks do not
+  run the same number of times.** `firstUpdated()` fires once per element;
+  `disconnectedCallback()` fires on every unmount. Three components
+  acquired in the first and released in the second, so any reparent left
+  them silently inert — `cdz-select` reporting `aria-expanded="true"` over
+  a closed listbox, `cdz-page-nav` losing its scroll spy. The suite missed
+  it because every test mounts an element and leaves it there, which is the
+  one history no real page has. Enforced now by
+  `scripts/check-lifecycle-symmetry.mjs` as `pretest`. The transferable
+  part is what writing that guard exposed: the three findings were **two**
+  shapes, not one — `cdz-tooltip` never released anything on unmount, it
+  re-read its slotted children never. A guard written to the framing that
+  produced the fixes would have caught two of three and printed a tick.
+  Naming a pattern across instances is a hypothesis; generalising it is
+  where you find out whether it holds.
+
+- **0032** — a per-component audit: **19 defects across 14 components, the
+  guard scripts and the site, every one of them under a green suite.**
+  They fell into three shapes. (1) *A component may not lie about its own
+  state* — an unclamped `cdz-range` whose `.value` disagreed with its own
+  thumb, a `cdz-checkbox` reporting false while ticked, a `cdz-popover`
+  whose `open` no call could repair. Where the platform holds the state,
+  read the platform; where a binding can be bypassed, do not trust the
+  binding. (2) *ADR-0029/0030's rule needed a clause*: a relation a shadow
+  root breaks for IDREFs can be restored with element references, outward
+  — measured — so `cdz-page-nav` kept composing `cdz-button` instead of
+  hand-rolling one. (3) *Tests that pass because they never do what a user
+  does*: a synthetic `.click()` skips light dismiss entirely, which is why
+  nothing caught that `cdz-select`'s trigger could never close it. The
+  question is not "does this test pass" but **"can it fail, and for the
+  reason I think?"** Every fix here was run against the unfixed source
+  first; five of 27 new tests would have passed either way and were
+  rewritten.
+
 ## Atom checklist
 
 See [docs/roadmap.md](docs/roadmap.md) — all five atom categories are
@@ -361,10 +435,17 @@ navigation, feedback, media and structure: `cdz-button`, `cdz-input`,
 `cdz-avatar-stack` (ADR-0030).
 
 Published on the public npm registry: `@kdenza/tokens` and
-`@kdenza/components`. Both are at **0.2.1** in the repo, a minor bump for
-the three molecules and their token files; `0.2.0` is the last version
-actually on npm until the next `npm publish`. Note that on a 0.x
+`@kdenza/components`. `tokens` is at **0.2.1** and `components` at
+**0.3.0** in the repo; `0.2.0` is the last version of either actually on
+npm until the next `npm publish`. `components` took the minor rather than
+staying on the patch because `cdz-select` stopped firing `change` when the
+option picked is the one already selected — correct, matching native
+`<select>`, and still a behaviour a consumer could have been relying on.
+Removing an event is not a patch. It was free to do properly because
+`0.2.1` was never published; the alternative was a claim of "no breaking
+change" that would not survive being read closely. `tokens` did not change
+and `components`' `^0.2.0` dependency still accepts it. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 300 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 338 tests, 0 vulnerabilities. See [README.md](README.md).

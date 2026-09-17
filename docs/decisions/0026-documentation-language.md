@@ -65,6 +65,58 @@ shipped inside a published library. They follow the repository, not the
 site — which means this change requires a `0.1.2` release rather than
 being purely internal.
 
+## Amendment (2026-09-16): the published package was never covered
+
+This ADR settled two audiences — the repository's (developers, English)
+and the site's (its readers, Spanish) — and explicitly extended the first
+to "the runtime console messages, which ship inside the published
+package". It never addressed the other strings in that package: the
+**user-facing** defaults `@kdenza/components` ships to public npm.
+
+`cdz-spinner`'s `label`, `cdz-link`'s `newTabLabel`, `cdz-page-nav`'s
+`toggleLabel` and `cdz-file-input`'s visible chrome are all Spanish. An
+audit asked the obvious question — should they be English, for the wider
+audience of a public package? — and the obvious question is the wrong one.
+
+### The audience of a default string is one the package cannot know
+
+Applying this ADR's own test rather than arguing about languages: the
+audience for a component's user-facing string is *the end user of whatever
+application consumes the package*. That person's language is not knowable
+from inside the package. English is not more correct than Spanish for
+someone reading a Japanese app; it is only more familiar to more
+developers, which is a different audience from the one being served.
+
+So the rule is not which language the default is written in. It is:
+
+> **No user-facing string may be un-overridable.** The default's language
+> is a convenience for the primary consumer — this project's site — and
+> carries no claim to being right for anyone else. What has to be true is
+> that every such string is a property a consumer can set.
+
+That reframes the finding. Five of the six strings were already
+properties, and `cdz-link`'s was already documented as "translatable".
+Exactly one was not: `cdz-file-input`'s multi-file summary, hardcoded.
+The defect was never the language — it was the one string that had no way
+out. See ADR-0014's correction.
+
+### Why the defaults are not being switched to English
+
+Changing them would be a breaking change for every existing consumer, in
+exchange for swapping one arbitrary default for another. The
+overridability is what carries the guarantee; the default is a starting
+value. A consumer serving any audience overrides it either way.
+
+### Not enforced, and worth being honest about that
+
+The other rules found in this audit became `pretest` guards, because each
+was a property of source text a script can read. This one is not: "is this
+string user-facing?" needs judgement a regex cannot supply, and a guard
+that guesses would either miss the real cases or cry wolf on every literal
+in a template. It stays a convention, which means it will be re-broken —
+that is what conventions do here, and it is the reason the other three
+became scripts.
+
 ## Consequences
 
 - **Easier:** anyone can read the reasoning behind the system. That

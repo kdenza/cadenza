@@ -115,7 +115,11 @@ export class CdzAvatar extends LitElement {
     fallback: { type: String, reflect: true },
     size: { type: String, reflect: true },
     decorative: { type: Boolean, reflect: true },
-    _imageFailed: { state: true }
+    // Explicit `attribute: false` -- see cdz-select for the full reason.
+    // The manifest analyzer does not special-case `state`, so without it
+    // `_imageFailed` shipped as a public attribute in
+    // custom-elements.json and the gallery drew a control for it.
+    _imageFailed: { state: true, attribute: false }
   };
 
   // `declare` — see button.ts for why these can't be plain class fields.

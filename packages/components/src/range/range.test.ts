@@ -145,4 +145,53 @@ describe('cdz-range', () => {
     }
     expect(calls.length).to.equal(0);
   });
+  it('clamps an out-of-range value the way the native input does', async () => {
+    // The native input clamps and reports back; this component reported
+    // the raw number, so the thumb, the output and the fill percentage
+    // could all disagree at once.
+    const el = await fixture<CdzRange>(
+      html`<cdz-range label="Volumen" min="0" max="10" .value=${50}></cdz-range>`
+    );
+    const input = el.shadowRoot!.querySelector('input')!;
+
+    expect(el.value, 'the reported value is part of the output').to.equal(10);
+    expect(el.shadowRoot!.querySelector('output')!.textContent).to.equal('10');
+    expect(input.value, 'and agrees with the thumb the browser drew').to.equal('10');
+    expect(input.style.getPropertyValue('--cdz-range-fill-percent')).to.equal('100%');
+  });
+
+  it('clamps below the minimum too', async () => {
+    const el = await fixture<CdzRange>(
+      html`<cdz-range label="Volumen" min="20" max="80" .value=${-5}></cdz-range>`
+    );
+    expect(el.value).to.equal(20);
+    expect(el.shadowRoot!.querySelector('input')!.style.getPropertyValue(
+      '--cdz-range-fill-percent'
+    )).to.equal('0%');
+  });
+
+  it('re-clamps when min/max move under a value that was in range', async () => {
+    const el = await fixture<CdzRange>(
+      html`<cdz-range label="Volumen" min="0" max="100" .value=${90}></cdz-range>`
+    );
+    expect(el.value).to.equal(90);
+    el.max = 50;
+    await el.updateComplete;
+    expect(el.value, 'lowering max has to pull the value with it').to.equal(50);
+  });
+  it('does not turn an unusable max into a NaN value', async () => {
+    // Every comparison with NaN is false, so a NaN bound slipped past the
+    // inverted-range check and came back NaN out of Math.min/Math.max --
+    // the clamp meant to stop the component reporting a wrong number made
+    // it report one that is not a number at all.
+    const el = await fixture<CdzRange>(
+      html`<cdz-range label="Vol" min="0" max="abc" value="5"></cdz-range>`
+    );
+    expect(Number.isNaN(el.value), '.value must stay a number').to.be.false;
+    expect(el.value).to.equal(5);
+    expect(el.shadowRoot!.querySelector('output')!.textContent).to.equal('5');
+    expect(
+      el.shadowRoot!.querySelector('input')!.style.getPropertyValue('--cdz-range-fill-percent')
+    ).to.not.contain('NaN');
+  });
 });

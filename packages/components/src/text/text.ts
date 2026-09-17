@@ -64,8 +64,24 @@ export class CdzText extends LitElement {
     this.size = '';
   }
 
+  // Loud on misuse, never throwing -- the same contract as every other
+  // component here (ADR-0003). An unknown `as` used to fall through the
+  // switch to <p> without a word, and produced `class="text
+  // size-undefined"`, which matches no rule: the text rendered with no
+  // typographic style at all and nothing said why.
+  protected willUpdate(): void {
+    if (!(this.as in DEFAULT_SIZE_FOR_TAG)) {
+      console.error(
+        `[cdz-text] "as" must be one of ${Object.keys(DEFAULT_SIZE_FOR_TAG).join(', ')}; ` +
+          `received ${JSON.stringify(this.as)}. Rendering a <p> instead.`
+      );
+    }
+  }
+
   private get _effectiveSize(): CdzTextSize {
-    return this.size || DEFAULT_SIZE_FOR_TAG[this.as];
+    // The second fallback is what keeps an unknown `as` from reaching the
+    // class name: it lands on <p>, so it takes <p>'s size too.
+    return this.size || DEFAULT_SIZE_FOR_TAG[this.as] || DEFAULT_SIZE_FOR_TAG.p;
   }
 
   render() {

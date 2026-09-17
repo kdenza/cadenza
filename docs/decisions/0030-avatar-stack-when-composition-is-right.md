@@ -34,6 +34,17 @@ elements and forwards `size`, `src` and `fallback` to them.
 Radio grouping is a relation between siblings. An accessible name is not.
 That single distinction decides both components, in opposite directions.
 
+> **Amendment (2026-09-16), see [ADR-0032](0032-component-audit-pass.md):**
+> the test needs one more clause. "The platform relates that element to
+> its siblings" is not a single mechanism — the same relation can be
+> expressed as an IDREF *or* as an element reference, and they do not stop
+> at the same boundary. `aria-controls` cannot cross a shadow root;
+> `ariaControlsElements` can, outward, measured. So a relation that looks
+> like grounds for *not* composing may survive after all, if the atom will
+> accept the reference. `cdz-page-nav` was about to be given a hand-rolled
+> button on the strength of the rule as stated here; it kept composing
+> `cdz-button` instead.
+
 ### A real `<ul>` of real `<li>`
 
 A stack of people is a list, and a list gives a screen reader the count and

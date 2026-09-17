@@ -208,4 +208,46 @@ describe('cdz-file-input', () => {
     }
     expect(calls.length).to.equal(0);
   });
+  it('lets the consumer translate the multi-file summary', async () => {
+    // It was hardcoded -- the one string in a component that exists to
+    // take copy back from the browser's own localisation, that no
+    // consumer could reach.
+    const el = await fixture<CdzFileInput>(
+      html`<cdz-file-input
+        label="Adjuntos"
+        multiple
+        multiple-text="{n} files selected"
+      ></cdz-file-input>`
+    );
+    const input = el.shadowRoot!.querySelector('input')!;
+    const data = new DataTransfer();
+    data.items.add(new File(['a'], 'a.txt', { type: 'text/plain' }));
+    data.items.add(new File(['b'], 'b.txt', { type: 'text/plain' }));
+    input.files = data.files;
+    input.dispatchEvent(new Event('change'));
+    await el.updateComplete;
+
+    const shown = el.shadowRoot!.querySelector('.filename')!.textContent!.trim();
+    expect(shown).to.equal('2 files selected');
+  });
+  it('substitutes every {n}, not just the first', async () => {
+    const el = await fixture<CdzFileInput>(
+      html`<cdz-file-input
+        label="Adjuntos"
+        multiple
+        multiple-text="{n} de {n} archivos"
+      ></cdz-file-input>`
+    );
+    const input = el.shadowRoot!.querySelector('input')!;
+    const data = new DataTransfer();
+    data.items.add(new File(['a'], 'a.txt', { type: 'text/plain' }));
+    data.items.add(new File(['b'], 'b.txt', { type: 'text/plain' }));
+    input.files = data.files;
+    input.dispatchEvent(new Event('change'));
+    await el.updateComplete;
+
+    expect(el.shadowRoot!.querySelector('.filename')!.textContent!.trim()).to.equal(
+      '2 de 2 archivos'
+    );
+  });
 });
