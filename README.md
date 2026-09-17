@@ -60,7 +60,7 @@ quietly edited out.
 | **Language** | TypeScript (strict, and deliberately without decorators) |
 | **Tokens** | W3C [DTCG](https://tr.designtokens.org/) JSON → [Style Dictionary](https://styledictionary.com) → CSS custom properties |
 | **Build** | Vite 8 · npm workspaces |
-| **Tests** | [@web/test-runner](https://modern-web.dev/docs/test-runner/overview/) in real Chrome, with [axe-core](https://github.com/dequelabs/axe-core) accessibility assertions — 335 tests |
+| **Tests** | [@web/test-runner](https://modern-web.dev/docs/test-runner/overview/) in real Chrome, with [axe-core](https://github.com/dequelabs/axe-core) accessibility assertions — 338 tests |
 | **API docs** | [custom-elements-manifest](https://custom-elements-manifest.open-wc.org/) analyzer |
 | **CI** | GitHub Actions: build, tests and `npm audit` on every push |
 

@@ -9,8 +9,8 @@
 
 A review of every component, looking for correctness, technical debt and
 anything that would be hard to read or change later. It returned 19
-distinct defects across 14 components, the gallery guard scripts and the
-site. All 300 tests were green the whole time.
+distinct defects across 14 components, the `@kdenza/components` guard
+scripts and the site. All 300 tests were green the whole time.
 
 That last fact is the finding. These were not exotic states. A range
 whose thumb and readout disagreed. A select that could not be closed by

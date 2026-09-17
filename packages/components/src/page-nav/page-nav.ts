@@ -4,12 +4,8 @@ import { pageNavStyles } from './page-nav.styles.js';
 import '../icon/icon.js';
 import '../button/button.js';
 import type { CdzButton } from '../button/button.js';
+import { nextId } from '../shared/next-id.js';
 
-// A module counter, matching cdz-tooltip. Math.random() was unique but not
-// deterministic, which makes an id churn between otherwise identical
-// renders -- hostile to snapshot tests and to any server-rendered markup
-// having to match what the client produces.
-let pageNavIdCounter = 0;
 
 export interface CdzPageNavSection {
   /** The `id` of the heading this item links to. */
@@ -81,7 +77,7 @@ export class CdzPageNav extends LitElement {
   declare private _expanded: boolean;
 
   private _observer?: IntersectionObserver;
-  private readonly _listId = `cdz-page-nav-${++pageNavIdCounter}`;
+  private readonly _listId = nextId('cdz-page-nav');
 
   constructor() {
     super();

@@ -149,9 +149,15 @@ synthesises the notification of a change instead of causing the change.**
   only clears timers stays silent, and a commented-out `addEventListener`
   does not satisfy rule 2. A guard that has only ever passed has not been
   tested (ADR-0028).
-- **`pretest` is now three checks**, all in Node, all before a browser
-  starts: fixtures (ADR-0028), `hidden` coverage (ADR-0029),
-  lifecycle symmetry.
+- **`pretest` is now four checks**, all in Node, all before a browser
+  starts: rAF-dependent fixtures (ADR-0028), `hidden` coverage
+  (ADR-0025's rule; the guard itself came out of ADR-0029, which found
+  that its *test* did not walk the registry as claimed), lifecycle
+  symmetry, and `state: true` + `attribute: false` (ADR-0032).
+  *(Corrected 2026-09-17: this said "three" and named ADR-0029 for the
+  `hidden` rule. The fourth guard landed later on the same branch, and
+  `CLAUDE.md` had it right while this did not — the two disagreed on the
+  day they were written.)*
 - **To revisit:** the comment stripper in the guard does not recognise
   regex literals, so a regex containing an escaped slash would desync it.
   There are none in `src/` today. If that changes it needs a real

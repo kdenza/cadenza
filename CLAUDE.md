@@ -448,4 +448,4 @@ and `components`' `^0.2.0` dependency still accepts it. Note that on a 0.x
 line a caret pins the minor — `^0.1.0` does **not** accept `0.2.0` — so
 `components`' dependency on `tokens` has to move with it. The site is live at
 <https://kdenza.github.io/cadenza/>, deployed by GitHub Actions on every
-push. 335 tests, 0 vulnerabilities. See [README.md](README.md).
+push. 338 tests, 0 vulnerabilities. See [README.md](README.md).

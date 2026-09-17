@@ -2,8 +2,7 @@ import { LitElement, html } from 'lit';
 import { tooltipStyles } from './tooltip.styles.js';
 import '../popover/popover.js';
 import type { CdzPopover } from '../popover/popover.js';
-
-let tooltipIdCounter = 0;
+import { nextId } from '../shared/next-id.js';
 
 /**
  * `<cdz-tooltip>` — a short description attached to a trigger.
@@ -95,7 +94,7 @@ export class CdzTooltip extends LitElement {
   declare text: string;
   private declare _open: boolean;
 
-  private readonly _descriptionId = `cdz-tooltip-${++tooltipIdCounter}`;
+  private readonly _descriptionId = nextId('cdz-tooltip');
   private _descriptionNode: HTMLElement | null = null;
   private _bubble: CdzPopover | null = null;
   private _trigger: HTMLElement | null = null;

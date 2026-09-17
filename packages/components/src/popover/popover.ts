@@ -1,9 +1,8 @@
 import { LitElement, html } from 'lit';
 import { popoverStyles } from './popover.styles.js';
+import { nextId } from '../shared/next-id.js';
 
 export type CdzPopoverType = 'auto' | 'manual';
-
-let anchorNameCounter = 0;
 
 /**
  * `<cdz-popover>` — a generic floating-panel primitive: trigger-anchored
@@ -57,7 +56,7 @@ export class CdzPopover extends LitElement {
   declare open: boolean;
 
   private _anchorEl: HTMLElement | null = null;
-  private readonly _anchorName = `--cdz-popover-anchor-${++anchorNameCounter}`;
+  private readonly _anchorName = nextId('--cdz-popover-anchor');
   private readonly _supportsAnchorPositioning =
     typeof CSS !== 'undefined' && CSS.supports('position-anchor', '--a');
 
