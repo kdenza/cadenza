@@ -106,6 +106,13 @@ to be considered compromised and rotated.
   (ADR-0032). Each exists because the rule was already known and got
   re-broken by whoever had not hit it — a comment in two files is not
   enforcement.
+- **The guards themselves are tested**, by `scripts/check-guards.mjs`,
+  which runs first in the chain. It drives each guard over
+  `scripts/__fixtures__/` — mostly the real sources that shipped broken,
+  pulled out of git history — and asserts the exit code *and the exact set
+  of rules that fired*, because a guard failing for the wrong reason is
+  still broken. A guard that has only ever passed has not been tested, and
+  all four had only ever passed.
 
 ## Environment constraints
 
