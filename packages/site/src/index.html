@@ -9,10 +9,16 @@
          main.ts's theme-toggle code for the rest of this mechanism. -->
     <script>
       (function () {
-        var stored = localStorage.getItem('cdz-theme');
-        if (stored === 'light' || stored === 'dark') {
-          document.documentElement.setAttribute('data-theme', stored);
-        }
+        // Reading storage can throw, not just return null: a browser with
+        // site data blocked raises on access. Uncaught here it would be an
+        // error in <head> on every page load. Falling through leaves
+        // prefers-color-scheme in charge, which needs no JavaScript.
+        try {
+          var stored = localStorage.getItem('cdz-theme');
+          if (stored === 'light' || stored === 'dark') {
+            document.documentElement.setAttribute('data-theme', stored);
+          }
+        } catch (e) {}
       })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

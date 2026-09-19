@@ -2,6 +2,7 @@ import { LitElement, html, nothing, type PropertyValues } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { rangeStyles } from './range.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { clamp } from '../shared/clamp.js';
 
 /**
  * `<cdz-range>` — a labeled slider for picking a numeric value in a range.
@@ -106,14 +107,40 @@ export class CdzRange extends LitElement {
   // See ../shared/required-label.ts for what this checks and why.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-range', this.label);
+    if (Number.isNaN(this.min) || Number.isNaN(this.max)) {
+      // Loud, like every other misused prop here (ADR-0003). An unusable
+      // bound used to reach the fill percentage and render "NaN%".
+      console.error(
+        `[cdz-range] "min" and "max" must be numbers; received ` +
+          `min=${JSON.stringify(this.min)} max=${JSON.stringify(this.max)}. ` +
+          `Falling back to the native defaults (0 and 100).`
+      );
+    }
+    // The native input clamps and reports back (see ../shared/clamp.ts).
+    // This component did neither, so <output>, `.value` and the fill
+    // percentage could all disagree with the thumb the browser drew --
+    // min=0 max=10 value=50 rendered a full track, an output reading 50
+    // and a fill of 500%.
+    const clamped = clamp(this.value, this._effectiveMin(), this._effectiveMax());
+    if (clamped !== this.value) this.value = clamped;
+  }
+
+  /** The native input falls back to 0 and 100 for unparseable bounds. */
+  private _effectiveMin(): number {
+    return Number.isNaN(this.min) ? 0 : this.min;
+  }
+
+  private _effectiveMax(): number {
+    return Number.isNaN(this.max) ? 100 : this.max;
   }
 
   protected updated(changedProperties: PropertyValues<this>): void {
     if (changedProperties.has('value') || changedProperties.has('min') || changedProperties.has('max')) {
       const input = this.shadowRoot?.querySelector('input');
       if (input) {
-        const range = this.max - this.min;
-        const percent = range === 0 ? 0 : ((this.value - this.min) / range) * 100;
+        const min = this._effectiveMin();
+        const range = this._effectiveMax() - min;
+        const percent = range === 0 ? 0 : ((this.value - min) / range) * 100;
         input.style.setProperty('--cdz-range-fill-percent', `${percent}%`);
       }
     }
@@ -152,8 +179,8 @@ export class CdzRange extends LitElement {
         <input
           id="range"
           type="range"
-          min=${this.min}
-          max=${this.max}
+          min=${this._effectiveMin()}
+          max=${this._effectiveMax()}
           step=${this.step}
           .value=${String(this.value)}
           ?disabled=${this.disabled}

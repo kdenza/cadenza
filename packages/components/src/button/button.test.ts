@@ -81,9 +81,17 @@ describe('cdz-button', () => {
     const offset = Math.abs(centreOf(box) - centreOf(text));
 
     // Before this was a flex container the icon sat on the text baseline,
-    // which put its centre 3.2px above the label's. Half a pixel of slack
-    // for sub-pixel rounding.
-    expect(offset, `icon centre is ${offset.toFixed(1)}px off the label's`).to.be.lessThan(0.5);
+    // which put its centre 3.2px above the label's. That is the failure
+    // this test exists to catch, so the tolerance is set against it rather
+    // than against zero.
+    //
+    // It was 0.5px, and a different Chromium build measured exactly 0.5 --
+    // failing on `lessThan(0.5)` while the layout was perfectly correct.
+    // Sub-pixel geometry varies with build and font rasterisation, so an
+    // assertion with no slack at its own boundary is a measurement waiting
+    // to flip: ADR-0019's table, from the direction where the tool says
+    // "broken" and is wrong. 1.5px keeps a 2x margin to the real bug.
+    expect(offset, `icon centre is ${offset.toFixed(1)}px off the label's`).to.be.lessThan(1.5);
   });
 
   it('keeps a label centred, the way a native button does', async () => {
@@ -123,5 +131,45 @@ describe('cdz-button', () => {
     // A flex container does not render the whitespace text node that used
     // to separate them, so without an explicit gap they would touch.
     expect(text.left - icon.right).to.be.greaterThan(3);
+  });
+  it('is loud about a bare `expanded`, which parses as "" and reaches nobody', async () => {
+    // The natural HTML spelling. It parses as '', which is the
+    // "not a disclosure" sentinel, so aria-expanded was dropped -- the same
+    // outcome as the cdz-page-nav bug this property exists to fix, by a
+    // different route and just as quiet.
+    const originalError = console.error;
+    const calls: unknown[][] = [];
+    console.error = (...args: unknown[]) => {
+      calls.push(args);
+    };
+    try {
+      await fixture(html`<cdz-button expanded>Más</cdz-button>`);
+    } finally {
+      console.error = originalError;
+    }
+    expect(calls.some((c) => String(c[0]).includes('"expanded" must be'))).to.be.true;
+  });
+
+  it('never passes an invalid expanded through to aria-expanded', async () => {
+    // aria-expanded="yes" is invalid ARIA: AT treats it as absent and axe
+    // flags it. Dropping it is better than forwarding it, and saying so is
+    // better than either.
+    const originalError = console.error;
+    console.error = () => {};
+    let el: HTMLElement;
+    try {
+      el = await fixture(html`<cdz-button expanded="yes">Más</cdz-button>`);
+    } finally {
+      console.error = originalError;
+    }
+    expect(el!.shadowRoot!.querySelector('button')!.hasAttribute('aria-expanded')).to.be.false;
+  });
+
+  it('does not put a disclosure-shaped attribute on every button', async () => {
+    // `reflect: true` on a property defaulting to '' made Lit write it back
+    // on first update, so every button in the system serialised as
+    // <cdz-button expanded="">.
+    const el = await fixture(html`<cdz-button>Guardar</cdz-button>`);
+    expect(el.hasAttribute('expanded')).to.be.false;
   });
 });

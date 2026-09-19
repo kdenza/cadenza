@@ -2,6 +2,9 @@ import { LitElement, html, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { radioGroupStyles } from './radio-group.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { syncCheckedState } from '../shared/checked-state.js';
+import { nextId } from '../shared/next-id.js';
+
 
 export interface CdzRadioGroupOption {
   value: string;
@@ -78,7 +81,7 @@ export class CdzRadioGroup extends LitElement {
    * own shadow root, and grouping is scoped to a tree. That is the same
    * boundary that breaks `<cdz-radio>` here, working in our favour.
    */
-  private readonly _fallbackName = `cdz-radio-group-${Math.random().toString(36).slice(2, 9)}`;
+  private readonly _fallbackName = nextId('cdz-radio-group');
 
   constructor() {
     super();
@@ -97,6 +100,15 @@ export class CdzRadioGroup extends LitElement {
   // label is the legend, which is what names the group for a screen reader.
   protected willUpdate(): void {
     warnIfLabelMissing('cdz-radio-group', this.label);
+  }
+
+  protected updated(): void {
+    // Same as the atoms (../shared/checked-state.ts), across the whole set:
+    // whichever input matches the current value is the checked one, and
+    // saying so here is not subject to lit-html's dirty check.
+    for (const input of this.shadowRoot?.querySelectorAll('input') ?? []) {
+      syncCheckedState(input, input.value === this.value);
+    }
   }
 
   private _handleChange(event: Event): void {

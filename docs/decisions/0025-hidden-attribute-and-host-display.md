@@ -69,6 +69,70 @@ A single file rather than 18 scattered cases: the rule belongs to the
 system, not to each component, so a new component that forgets it fails in
 one obvious place.
 
+## Amendment (2026-09-16): the 19th component, and the exemption that hid it
+
+The audit above closed with "19 components: 18 set `display` on `:host`
+and **none** had `:host([hidden])`". The nineteenth was `cdz-popover`, and
+it was set aside because its `display` is not on `:host` — it is on
+`:host(:popover-open)`. That reading then hardened into a coded
+exemption in `scripts/check-hidden-coverage.mjs`, carrying the same
+sentence as its justification: *its visibility is governed by the popover
+API, not by a display on `:host`, so the rule does not apply to it.*
+
+It does apply. Measured, a year of commits later:
+
+| | closed | open |
+|---|---|---|
+| `<cdz-popover hidden>` | `display: none` | **`display: flex`, 62px** |
+| plain `<div popover hidden>` | `display: none` | `display: none` |
+
+The second row is the part that settles it. **The browser honours `hidden`
+on a native `[popover]` element** — a plain div stays `display: none`
+straight through `showPopover()`. `cdz-popover` was not exercising a
+platform exemption; it was overriding behaviour the platform had got
+right, which is the same shape as the original bug and not a special case
+of anything.
+
+### The rule has an ordering constraint in exactly one place
+
+`:host([hidden])` and `:host(:popover-open)` have identical specificity
+(0,2,0), so source order alone decides. Written where every other
+component keeps it — near the top of the file, under `:host` — it parses,
+reads correctly, and does nothing: the open popover still computed to
+`display: flex`. It has to come **last**. Verified both ways round rather
+than derived from the specificity arithmetic.
+
+`cdz-popover` is the only component here whose `display` is
+state-dependent, so it is the only one that has this constraint. That is
+also why the original audit missed it: the criterion was "sets `display`
+on `:host`", and this sets it on a *functional* `:host()`. ADR-0027 had
+already had to restate the rule once, as being about any element given a
+`display` rather than about `:host` specifically. This is the same
+restatement arriving a second time, from the selector side.
+
+### Listing a component is not the same as testing it
+
+The sharpest part, and the reason the fix is not just deleting the
+exemption. Adding `cdz-popover` to `TAGS` does **not** catch this bug. A
+closed popover computes to `display: none` from the UA stylesheet whether
+or not the component honours `hidden`, so the systemic test's
+default-state assertion passes either way.
+
+Verified directly: with the stylesheet left broken, the generic
+`genuinely hides <cdz-popover>` case **passes**, and only a second test
+that opens the popover first goes red.
+
+> A coverage guard proves a component is on the list. It does not prove
+> the assertion reaching that component is capable of failing. For every
+> other component here those are the same thing, because their `display`
+> does not depend on state — which is precisely what made the exception
+> invisible.
+
+This completes the pair. The original bug was a check that said "fine"
+when things were broken. The exemption was a check that said nothing at
+all and looked deliberate doing it. **An exemption is a claim about a
+component, filed in the one place nobody re-reads.**
+
 ## Consequences
 
 - **Impact on what is already published:** `@kdenza/components@0.1.0`
@@ -91,3 +155,10 @@ one obvious place.
    per component — 253/253, stable across five runs.
 4. [x] Published `@kdenza/components@0.1.1` with the fix, verified against
    the published tarball in a clean project.
+5. [x] *(2026-09-16)* `:host([hidden])` added to `cdz-popover`, last in the
+   file, with the ordering constraint stated in the stylesheet. Exemption
+   removed from `check-hidden-coverage.mjs`, which now runs with an empty
+   `EXEMPT`; `cdz-popover` added to `TAGS`; and two tests that exercise the
+   **open** state, since the systemic one cannot fail for this component.
+   Verified against the unfixed stylesheet: the open-state test goes red,
+   the generic one does not.

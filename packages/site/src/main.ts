@@ -47,9 +47,28 @@ if (themeToggle) {
   themeToggle.addEventListener('click', () => {
     const next = getEffectiveTheme() === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem(THEME_STORAGE_KEY, next);
+    // Storage can throw rather than merely fail: a private window, or a
+    // browser with site data blocked, raises on setItem. Unguarded, it
+    // threw here -- *after* the theme had been applied -- so the label
+    // update below never ran and the button then described the opposite
+    // of what was on screen. Not persisting the preference across reloads
+    // is acceptable degradation; a wrong label is not.
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      // Preference not persisted. The override still holds for this page.
+    }
     updateThemeToggleLabel(themeToggle);
   });
+
+  // With no explicit override the effective theme follows the OS, and the
+  // OS can change while the page is open. The colours keep up on their
+  // own -- that is the whole point of the zero-JS prefers-color-scheme
+  // setup -- but nothing was telling the button, so it went on offering
+  // to switch to the mode already being displayed.
+  window
+    .matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', () => updateThemeToggleLabel(themeToggle));
 }
 
 // cdz-select's `options` is a JS property (an array), not an HTML

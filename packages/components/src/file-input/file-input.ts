@@ -55,6 +55,23 @@ import { warnIfLabelMissing } from '../shared/required-label.js';
  *
  * Same required-`label` enforcement as every other form atom — see
  * `../shared/required-label.ts`.
+ *
+ * ## All three visible strings are the consumer's
+ *
+ * `triggerText`, `placeholder` and `multipleText`. The third was
+ * hardcoded at first, which is the worst place for it to have been: this
+ * component draws its own chrome *specifically* to take the copy back
+ * from the browser's closed shadow root, which localises to the browser's
+ * language rather than the page's (ADR-0014). Leaving one string
+ * untranslatable made that one string worse than the native text it
+ * replaced — the browser would at least have localised it.
+ *
+ * `multipleText` substitutes `{n}`. Known limit: a single template
+ * handles languages with one plural form for n > 1, which covers Spanish
+ * and English but not languages with separate few/many forms. Only n >= 2
+ * ever reaches it — a single file shows its own name — so the gap is
+ * narrower than it looks, but it is real and a consumer needing true
+ * plural rules would have to render the count themselves.
  */
 export class CdzFileInput extends LitElement {
   static styles = fileInputStyles;
@@ -64,6 +81,11 @@ export class CdzFileInput extends LitElement {
     accept: { type: String },
     multiple: { type: Boolean },
     placeholder: { type: String },
+    // The third user-facing string. It was hardcoded, which made it the
+    // one piece of this component's copy no consumer could translate --
+    // in a component that exists precisely to take that copy back from
+    // the browser's own localisation. `{n}` is substituted with the count.
+    multipleText: { type: String, attribute: 'multiple-text' },
     triggerText: { type: String, attribute: 'trigger-text' },
     helperText: { type: String, attribute: 'helper-text' },
     errorMessage: { type: String, attribute: 'error-message' },
@@ -81,6 +103,7 @@ export class CdzFileInput extends LitElement {
   declare accept: string;
   declare multiple: boolean;
   declare placeholder: string;
+  declare multipleText: string;
   declare triggerText: string;
   declare helperText: string;
   declare errorMessage: string;
@@ -95,6 +118,7 @@ export class CdzFileInput extends LitElement {
     this.accept = '';
     this.multiple = false;
     this.placeholder = 'Sin archivos seleccionados';
+    this.multipleText = '{n} archivos seleccionados';
     this.triggerText = 'Elegir archivo';
     this.helperText = '';
     this.errorMessage = '';
@@ -146,7 +170,10 @@ export class CdzFileInput extends LitElement {
   private _displayText(): string {
     if (this._selectedNames.length === 0) return this.placeholder;
     if (this._selectedNames.length === 1) return this._selectedNames[0];
-    return `${this._selectedNames.length} archivos seleccionados`;
+    // replaceAll, not replace: a string pattern substitutes only the first
+    // occurrence, so "{n} de {n} archivos" came back with one placeholder
+    // still in it.
+    return this.multipleText.replaceAll('{n}', String(this._selectedNames.length));
   }
 
   render() {

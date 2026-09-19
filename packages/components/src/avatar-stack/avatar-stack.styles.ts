@@ -30,20 +30,26 @@ export const avatarStackStyles = css`
     margin-inline-start: calc(var(--_cdz-stack-overlap) * -1);
   }
 
+  /* These read cdz-avatar's own sizing tokens rather than repeating the
+     numbers. The +N chip sits in the same row as the avatars and has to
+     be the same diameter; hardcoding it meant any consumer overriding
+     --cdz-avatar-sizing-* got a chip that no longer matched the circles
+     beside it. The literal after the comma is the usual static fallback,
+     matching the token's resolved value. */
   :host([size='sm']) {
     --_cdz-stack-overlap: var(--cdz-avatar-stack-overlap-sm, 0.5rem);
-    --_cdz-stack-size: 1.5rem;
+    --_cdz-stack-size: var(--cdz-avatar-sizing-sm, 1.5rem);
   }
 
   :host,
   :host([size='md']) {
     --_cdz-stack-overlap: var(--cdz-avatar-stack-overlap-md, 0.75rem);
-    --_cdz-stack-size: 2rem;
+    --_cdz-stack-size: var(--cdz-avatar-sizing-md, 2rem);
   }
 
   :host([size='lg']) {
     --_cdz-stack-overlap: var(--cdz-avatar-stack-overlap-lg, 1rem);
-    --_cdz-stack-size: 3rem;
+    --_cdz-stack-size: var(--cdz-avatar-sizing-lg, 3rem);
   }
 
   /* The z-index that orders these is set per item in the template, not

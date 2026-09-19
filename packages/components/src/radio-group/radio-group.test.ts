@@ -256,4 +256,31 @@ describe('cdz-radio-group', () => {
     expect(dirOf(vertical)).to.equal('column');
     expect(dirOf(horizontal)).to.equal('row');
   });
+  it('keeps the native inputs in step when a listener reverts the value', async () => {
+    // Same dirty-check trap as the atoms, across a set: reverting to the
+    // previously committed value leaves every binding untouched while the
+    // browser has already moved the selection.
+    const el = await fixture<CdzRadioGroup>(
+      html`<cdz-radio-group
+        label="Plan"
+        .options=${[
+          { value: 'a', label: 'A' },
+          { value: 'b', label: 'B' }
+        ]}
+      ></cdz-radio-group>`
+    );
+    el.addEventListener('change', () => {
+      el.value = '';
+    });
+    const inputs = Array.from(el.shadowRoot!.querySelectorAll('input'));
+
+    inputs[1].click();
+    await el.updateComplete;
+
+    expect(el.value).to.equal('');
+    expect(
+      inputs.map((i) => i.checked),
+      'no radio should be checked when the value is empty'
+    ).to.eql([false, false]);
+  });
 });

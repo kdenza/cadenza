@@ -2,8 +2,7 @@ import { LitElement, html } from 'lit';
 import { tooltipStyles } from './tooltip.styles.js';
 import '../popover/popover.js';
 import type { CdzPopover } from '../popover/popover.js';
-
-let tooltipIdCounter = 0;
+import { nextId } from '../shared/next-id.js';
 
 /**
  * `<cdz-tooltip>` — a short description attached to a trigger.
@@ -95,12 +94,13 @@ export class CdzTooltip extends LitElement {
   declare text: string;
   private declare _open: boolean;
 
-  private readonly _descriptionId = `cdz-tooltip-${++tooltipIdCounter}`;
+  private readonly _descriptionId = nextId('cdz-tooltip');
   private _descriptionNode: HTMLElement | null = null;
   private _bubble: CdzPopover | null = null;
   private _trigger: HTMLElement | null = null;
   private _openTimer = 0;
   private _closeTimer = 0;
+  private _warnedNoTrigger = false;
 
   constructor() {
     super();
@@ -173,7 +173,15 @@ export class CdzTooltip extends LitElement {
     this._bubble = bubble;
   }
 
-  /** The trigger is the first slotted element that isn't one of ours. */
+  /**
+   * The trigger is the first slotted element that isn't one of ours.
+   *
+   * Re-run on every `slotchange`, not just at first render: a trigger can
+   * arrive later — a conditional branch, an awaited fetch, a framework
+   * that mounts the host before its children. Wiring only in
+   * `firstUpdated()` left every one of those permanently inert, and
+   * blamed the consumer's markup in the console on the way past.
+   */
   private _wireTrigger(): void {
     const slot = this.shadowRoot?.querySelector('slot');
     const assigned = (slot?.assignedElements() ?? []).filter(
@@ -181,24 +189,76 @@ export class CdzTooltip extends LitElement {
         !el.hasAttribute('data-cdz-tooltip-text') &&
         !el.hasAttribute('data-cdz-tooltip-bubble')
     );
-    const trigger = assigned[0] as HTMLElement | undefined;
+    const trigger = (assigned[0] as HTMLElement | undefined) ?? null;
+    // Only an unchanged *real* trigger is a no-op. Returning early on
+    // null === null too would swallow the "nothing to describe" error on
+    // the very first pass, which is the one case it exists to report.
+    if (trigger !== null && trigger === this._trigger) return;
+
+    if (this._trigger) this._unwireTrigger(this._trigger);
+
     if (!trigger) {
-      console.error(
-        '[cdz-tooltip] There is no element to describe. Put the trigger inside ' +
-          'the component, for example ' +
-          '<cdz-tooltip text="..."><cdz-button>Help</cdz-button></cdz-tooltip>.'
-      );
+      // Once per gap rather than once per slotchange: _ensureLightDomNodes()
+      // appends to the light DOM, so it fires a slotchange of its own, and
+      // the consumer would get the same error twice for one mistake.
+      if (!this._warnedNoTrigger) {
+        this._warnedNoTrigger = true;
+        console.error(
+          '[cdz-tooltip] There is no element to describe. Put the trigger inside ' +
+            'the component, for example ' +
+            '<cdz-tooltip text="..."><cdz-button>Help</cdz-button></cdz-tooltip>.'
+        );
+      }
       return;
     }
 
+    this._warnedNoTrigger = false;
     this._trigger = trigger;
-    trigger.setAttribute('aria-describedby', this._descriptionId);
+    this._describe(trigger);
     trigger.addEventListener('mouseenter', this._handleTriggerEnter);
     trigger.addEventListener('mouseleave', this._handleTriggerLeave);
     trigger.addEventListener('focusin', this._handleFocusIn);
     trigger.addEventListener('focusout', this._handleFocusOut);
 
     if (this._bubble) this._bubble.anchor = trigger;
+  }
+
+  private _unwireTrigger(trigger: HTMLElement): void {
+    trigger.removeEventListener('mouseenter', this._handleTriggerEnter);
+    trigger.removeEventListener('mouseleave', this._handleTriggerLeave);
+    trigger.removeEventListener('focusin', this._handleFocusIn);
+    trigger.removeEventListener('focusout', this._handleFocusOut);
+    this._undescribe(trigger);
+    this._trigger = null;
+    // A tooltip whose trigger just left cannot stay on screen: nothing
+    // would be left to dismiss it.
+    this._hide();
+  }
+
+  /**
+   * Adds this tooltip's description to the trigger's `aria-describedby`
+   * instead of replacing it — the same reasoning as `cdz-link` merging
+   * `noopener` into the consumer's `rel`. A trigger can already carry a
+   * description (a field's hint, an error message); overwriting it traded
+   * one accessible description for another and told nobody.
+   *
+   * Appended rather than prepended: `aria-describedby` is announced in
+   * order, and the consumer's own description is the more important of
+   * the two. A tooltip is supplementary by definition.
+   */
+  private _describe(trigger: HTMLElement): void {
+    const ids = (trigger.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    if (!ids.includes(this._descriptionId)) ids.push(this._descriptionId);
+    trigger.setAttribute('aria-describedby', ids.join(' '));
+  }
+
+  /** Removes only this tooltip's id, leaving any the consumer set. */
+  private _undescribe(trigger: HTMLElement): void {
+    const rest = (trigger.getAttribute('aria-describedby') ?? '')
+      .split(/\s+/)
+      .filter((id) => id.length > 0 && id !== this._descriptionId);
+    if (rest.length > 0) trigger.setAttribute('aria-describedby', rest.join(' '));
+    else trigger.removeAttribute('aria-describedby');
   }
 
   private _clearTimers(): void {
@@ -260,6 +320,10 @@ export class CdzTooltip extends LitElement {
     this._hide();
   };
 
+  private readonly _handleSlotChange = (): void => {
+    this._wireTrigger();
+  };
+
   private readonly _handleKeydown = (event: KeyboardEvent): void => {
     if (event.key === 'Escape' && this._open) {
       // Dismissible per WCAG 1.4.13, without moving pointer or focus.
@@ -271,7 +335,7 @@ export class CdzTooltip extends LitElement {
   // by _ensureLightDomNodes(), because neither ARIA references nor anchor
   // positioning cross the shadow boundary.
   render() {
-    return html`<slot></slot>`;
+    return html`<slot @slotchange=${this._handleSlotChange}></slot>`;
   }
 }
 

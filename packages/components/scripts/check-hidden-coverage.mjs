@@ -20,11 +20,20 @@ const SRC = new URL('../src/', import.meta.url).pathname;
 const COVERAGE_FILE = join(SRC, 'shared/hidden-attribute.test.ts');
 
 /**
- * cdz-popover is out on purpose: its visibility is governed by the popover
- * API (:host(:popover-open)), not by a display on :host, so the rule the
- * test enforces does not apply to it.
+ * Empty, and it has been wrong once. cdz-popover was exempted here on the
+ * grounds that "its visibility is governed by the popover API, not by a
+ * display on :host" -- but popover.styles.ts sets display on
+ * :host(:popover-open), so the rule applied to it like everything else.
+ * Measured: an open cdz-popover carrying `hidden` rendered at 62px while
+ * a plain div[popover][hidden] stays display: none through showPopover().
+ * The component was overriding behaviour the platform had got right, and
+ * the exemption is what kept anyone from looking.
+ *
+ * An exemption is a claim about a component, and this file is the one
+ * place nobody re-reads. Anything added here needs the measurement that
+ * justifies it, not just a reason that sounds right.
  */
-const EXEMPT = new Set(['cdz-popover']);
+const EXEMPT = new Set();
 
 async function* files(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {

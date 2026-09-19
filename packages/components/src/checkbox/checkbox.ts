@@ -2,6 +2,7 @@ import { LitElement, html, nothing, type PropertyValues } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { checkboxStyles } from './checkbox.styles.js';
 import { warnIfLabelMissing } from '../shared/required-label.js';
+import { syncCheckedState } from '../shared/checked-state.js';
 import { icons, ICON_GRID } from '../shared/icons.js';
 
 /**
@@ -74,6 +75,13 @@ export class CdzCheckbox extends LitElement {
   }
 
   protected updated(changedProperties: PropertyValues<this>): void {
+    // Unconditional, deliberately not gated on changedProperties: the case
+    // this exists for is precisely the one where the property ends the
+    // cycle holding the value lit-html already committed, so the binding
+    // does nothing while the clicked input stays checked. See
+    // ../shared/checked-state.ts.
+    syncCheckedState(this.shadowRoot?.querySelector('input'), this.checked);
+
     if (changedProperties.has('indeterminate')) {
       const input = this.shadowRoot?.querySelector('input');
       if (input) {

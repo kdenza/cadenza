@@ -99,4 +99,17 @@ describe('cdz-switch', () => {
     }
     expect(calls.length).to.equal(0);
   });
+  it('keeps the native input in step when a listener reverts checked', async () => {
+    const el = await fixture<CdzSwitch>(html`<cdz-switch label="Notificaciones"></cdz-switch>`);
+    el.addEventListener('change', () => {
+      el.checked = false;
+    });
+    const input = el.shadowRoot!.querySelector('input')!;
+
+    input.click();
+    await el.updateComplete;
+
+    expect(el.checked).to.be.false;
+    expect(input.checked, 'the control on screen has to agree with the property').to.be.false;
+  });
 });

@@ -151,4 +151,25 @@ describe('cdz-avatar-stack', () => {
       )
     ).to.be.accessible();
   });
+  it('sizes the +N chip from the avatar tokens, not a repeated literal', async () => {
+    // The chip sits in the same row as the avatars and has to be the same
+    // diameter. Hardcoded, any consumer overriding --cdz-avatar-sizing-*
+    // got a chip that no longer matched the circles beside it.
+    const el = await fixture<CdzAvatarStack>(
+      html`<cdz-avatar-stack
+        label="Equipo"
+        max="1"
+        .people=${[{ name: 'Ana' }, { name: 'Bruno' }]}
+      ></cdz-avatar-stack>`
+    );
+    el.style.setProperty('--cdz-avatar-sizing-md', '5rem');
+    await el.updateComplete;
+
+    const chip = el.shadowRoot!.querySelector('.overflow')!;
+    const avatar = el.shadowRoot!.querySelector('cdz-avatar')!;
+    expect(
+      getComputedStyle(chip).width,
+      'the chip has to follow the same token the avatars do'
+    ).to.equal(getComputedStyle(avatar).width);
+  });
 });
