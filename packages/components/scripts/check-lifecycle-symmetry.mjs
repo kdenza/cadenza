@@ -49,7 +49,11 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-const SRC = new URL('../src/', import.meta.url).pathname;
+// The scanned root, overridable so the guard can be run against a fixture
+// tree instead of the real sources. Nothing in normal use passes it; it
+// exists because a guard that has only ever passed has not been tested
+// (ADR-0028), and scripts/check-guards.mjs is what tests this one.
+const SRC = process.env.CDZ_GUARD_ROOT ?? new URL('../src/', import.meta.url).pathname;
 
 /**
  * Giving up a subscription. Deliberately excludes clearTimeout and
