@@ -1,0 +1,29 @@
+{
+  "cdz-logo": {
+    "color": {
+      "petal-primary": { "$value": "{color.brand.mark.petal-primary}", "$type": "color" },
+      "petal-secondary": { "$value": "{color.brand.mark.petal-secondary}", "$type": "color" },
+      "petal-tertiary": { "$value": "{color.brand.mark.petal-tertiary}", "$type": "color" },
+      "petal-accent": { "$value": "{color.brand.mark.petal-accent}", "$type": "color" },
+      "center": { "$value": "{color.brand.mark.center}", "$type": "color" },
+      "halo": { "$value": "{color.brand.mark.halo}", "$type": "color" }
+    },
+    "sizing": {
+      "sm": { "$value": "1.25rem", "$type": "dimension" },
+      "md": { "$value": "2rem", "$type": "dimension" },
+      "lg": { "$value": "2.75rem", "$type": "dimension" }
+    },
+    "typography": {
+      "font-family": { "$value": "{font.family.display}", "$type": "fontFamily" },
+      "font-weight": { "$value": "{font.weight.semibold}", "$type": "fontWeight" },
+      "letter-spacing": { "$value": "-0.01em", "$type": "dimension" },
+      "font-size-sm": { "$value": "{font.size.3}", "$type": "dimension" },
+      "font-size-md": { "$value": "{font.size.5}", "$type": "dimension" },
+      "font-size-lg": { "$value": "{font.size.7}", "$type": "dimension" }
+    },
+    "spacing": {
+      "gap": { "$value": "{spacing.2}", "$type": "dimension" }
+    },
+    "stroke-width": { "$value": "8", "$type": "number" }
+  }
+}
