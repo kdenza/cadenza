@@ -149,6 +149,13 @@ synthesises the notification of a change instead of causing the change.**
   only clears timers stays silent, and a commented-out `addEventListener`
   does not satisfy rule 2. A guard that has only ever passed has not been
   tested (ADR-0028).
+  *(Amendment 2026-10-01, see [ADR-0033](0033-testing-the-guards-and-sharing-their-plumbing.md):
+  this bullet asserts the principle and then does not satisfy it. Verifying
+  a guard by hand against sources that are fixed in the same commit
+  destroys the evidence as it collects it — nobody can re-run it, and the
+  guard is back to having only ever passed. All four were in that state
+  until `check-guards.mjs`. The planted-defect case in ADR-0033 is this
+  guard, exiting 0 on its own target defect.)*
 - **`pretest` is now four checks**, all in Node, all before a browser
   starts: rAF-dependent fixtures (ADR-0028), `hidden` coverage
   (ADR-0025's rule; the guard itself came out of ADR-0029, which found

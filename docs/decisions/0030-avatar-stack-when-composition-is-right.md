@@ -3,7 +3,7 @@
 **Status:** Accepted
 **Date:** 2026-09-08
 **Deciders:** Cadenza design system owner (UX Engineer)
-**Related:** [ADR-0022](0022-avatar-component.md), [ADR-0029](0029-radio-group-composition-that-breaks-semantics.md), [ADR-0017](0017-badge-and-status-palette.md)
+**Related:** [ADR-0022](0022-avatar-component.md), [ADR-0029](0029-radio-group-composition-that-breaks-semantics.md), [ADR-0017](0017-badge-status-palette.md)
 
 ## Context
 
