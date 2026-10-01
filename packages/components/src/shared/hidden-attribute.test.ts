@@ -30,7 +30,7 @@ import '../index.js';
  */
 const TAGS = [
   'cdz-avatar', 'cdz-avatar-stack', 'cdz-badge', 'cdz-button', 'cdz-checkbox', 'cdz-divider',
-  'cdz-file-input', 'cdz-icon', 'cdz-input', 'cdz-link', 'cdz-popover', 'cdz-progress',
+  'cdz-file-input', 'cdz-icon', 'cdz-input', 'cdz-link', 'cdz-logo', 'cdz-popover', 'cdz-progress',
   'cdz-page-nav', 'cdz-radio', 'cdz-radio-group', 'cdz-range', 'cdz-select',
   'cdz-spinner', 'cdz-switch', 'cdz-text', 'cdz-textarea', 'cdz-tooltip'
 ];

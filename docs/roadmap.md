@@ -73,6 +73,20 @@ single API (`as` + `size`), so there is no need for a component per tag.
       breaks. Same default as `cdz-icon` for the opposite reason — there
       the serious risk is silence, here it is noise.
 
+## Brand
+
+Not an atom and not a primitive either: a single fixed asset, not a
+building block other components consume, and not interchangeable the way
+form controls are. Its own category for that reason.
+
+- [x] Logo (`cdz-logo`) — [ADR-0034](decisions/0034-logo-component.md). The
+      jacaranda mark, plus an optional wordmark lockup. First component
+      whose colour does not fork by light/dark — given its own semantic
+      group (`color.brand.mark.*`) with identical values in both modes
+      rather than skipping the tier. Below 28 painted pixels the five
+      petals and centre are replaced by a reduced mark (a blue centre with
+      a lilac halo), not scaled down.
+
 ## Primitives
 
 Not atoms: they are not UI pieces used on their own, they are building

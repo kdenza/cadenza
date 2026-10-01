@@ -26,6 +26,16 @@
     "accent": {
       "decorative": { "$value": "{color.rose.500}", "$type": "color" }
     },
+    "brand": {
+      "mark": {
+        "petal-primary": { "$value": "{color.lilac.700}", "$type": "color" },
+        "petal-secondary": { "$value": "{color.lilac.500}", "$type": "color" },
+        "petal-tertiary": { "$value": "{color.lilac.400}", "$type": "color" },
+        "petal-accent": { "$value": "{color.rose.500}", "$type": "color" },
+        "center": { "$value": "{color.blue.500}", "$type": "color" },
+        "halo": { "$value": "{color.lilac.400}", "$type": "color" }
+      }
+    },
     "surface": {
       "hover": { "$value": "{color.neutral.100}", "$type": "color" }
     },
