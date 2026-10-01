@@ -127,8 +127,11 @@ What comes next are molecules — see [docs/roadmap.md](docs/roadmap.md).
 
 ## Documentation
 
-- [`docs/decisions/`](docs/decisions) — the 26 ADRs. The best place to
-  start if you want to know why something is the way it is.
+- [`docs/decisions/`](docs/decisions) — the ADRs, one per meaningful
+  decision. The best place to start if you want to know why something is
+  the way it is. (No count here on purpose: this line said 26 when there
+  were 33. A number a document cannot derive goes stale silently — see
+  ADR-0033.)
 - [`docs/roadmap.md`](docs/roadmap.md) — what exists, what is next.
 - [`docs/publishing.md`](docs/publishing.md) — releasing and consuming the
   packages.

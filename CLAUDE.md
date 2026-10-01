@@ -100,19 +100,32 @@ to be considered compromised and rotated.
   do not cross a shadow boundary; the `aria*Elements` element-reference
   form does, outward only. `cdz-button` takes `expanded` and `controls`
   for this. See ADR-0032 and ADR-0020.
-- **Four `pretest` guards run in Node before any browser starts**:
-  rAF-dependent fixtures (ADR-0028), `hidden` coverage (ADR-0025/0029),
-  lifecycle symmetry (ADR-0031) and `state: true` + `attribute: false`
-  (ADR-0032). Each exists because the rule was already known and got
-  re-broken by whoever had not hit it — a comment in two files is not
-  enforcement.
+- **Five `pretest` guards run in Node before any browser starts**: the
+  guard self-tests (below), rAF-dependent fixtures (ADR-0028), `hidden`
+  coverage (ADR-0025/0029), lifecycle symmetry (ADR-0031) and `state: true`
+  + `attribute: false` (ADR-0032). Each exists because the rule was already
+  known and got re-broken by whoever had not hit it — a comment in two
+  files is not enforcement.
 - **The guards themselves are tested**, by `scripts/check-guards.mjs`,
   which runs first in the chain. It drives each guard over
   `scripts/__fixtures__/` — mostly the real sources that shipped broken,
   pulled out of git history — and asserts the exit code *and the exact set
   of rules that fired*, because a guard failing for the wrong reason is
   still broken. A guard that has only ever passed has not been tested, and
-  all four had only ever passed.
+  all four had only ever passed. See ADR-0033.
+- **But the words a guard prints are not tested.** `check-guards.mjs`
+  identifies rules by marker and compares the set that fired, so remedy
+  prose is outside its reach — which is how `check-test-fixtures` went on
+  citing ADR-0027 for a rule that is ADR-0028's, in the one sentence a
+  developer reads at the moment it stops them. A baseline output diff found
+  it, not the self-tests. Naming what a green tick does *not* cover is part
+  of the test. See ADR-0033.
+- **One walker, not one per guard.** `scripts/lib/sources.mjs` holds
+  `walk`, `lineAt`, `lineOfFirst` and `report`; each guard keeps its own
+  rules and its own words. `walk()` takes `{ sources, tests, styles }`, so
+  what a guard reads is stated at its call site — the four private copies
+  had already drifted on whether `.styles.ts` counts, and guard five would
+  have inherited whichever one it was pasted from. See ADR-0033.
 
 ## Environment constraints
 
@@ -422,6 +435,30 @@ before assuming why something non-obvious is the way it is:
   reason I think?"** Every fix here was run against the unfixed source
   first; five of 27 new tests would have passed either way and were
   rewritten.
+
+- **0033** — testing the guards, and one walker underneath them. **All four
+  `pretest` guards had only ever passed**: each was hand-verified against
+  the defective sources it was written for, and those sources were fixed in
+  the same commit, so the evidence stopped existing the moment it was
+  collected. From then on a green tick was consistent with two different
+  worlds — no violations, or a guard that no longer fires. Not
+  hypothetical: review planted a component with
+  `check-lifecycle-symmetry`'s exact target defect, with the release moved
+  one call into a `_teardown()` helper, and the guard printed a tick and
+  exited 0. `check-guards.mjs` now drives all four over fixtures lifted out
+  of git history (a hand-written fixture can be wrong the same way a
+  hand-verification can) and asserts the exit code **and which rules
+  fired** — a guard that exits 1 for the wrong reason is still broken.
+  Second half: `scripts/lib/sources.mjs` replaces four drifted private
+  walkers, verified against a captured baseline across 16 invocations
+  rather than on "it passes", because the failure path is the output nobody
+  sees until something is already wrong. The order was a dependency, not a
+  preference — without failing cases on record there was no way to tell
+  whether the extraction changed a decision. **The transferable part is the
+  limit it found**: a test asserts over the dimension you chose, and the
+  ones you did not choose stay exactly as unverified as before. Here that
+  is the guards' prose, where a wrong ADR citation had been living since the
+  guard was written.
 
 ## Atom checklist
 
