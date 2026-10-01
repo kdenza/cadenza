@@ -46,8 +46,9 @@
  * it is a rule about source text, and the browser cannot read the
  * sources.
  */
-import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { walk, lineOfFirst, report } from './lib/sources.mjs';
 
 // The scanned root, overridable so the guard can be run against a fixture
 // tree instead of the real sources. Nothing in normal use passes it; it
@@ -154,30 +155,13 @@ function bodyWithCallees(source, name) {
   return combined;
 }
 
-function lineOf(source, needle) {
-  const at = source.indexOf(needle);
-  return at < 0 ? 1 : source.slice(0, at).split('\n').length;
-}
 
-async function* sources(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) yield* sources(full);
-    else if (
-      entry.name.endsWith('.ts') &&
-      !entry.name.endsWith('.test.ts') &&
-      !entry.name.endsWith('.styles.ts')
-    ) {
-      yield full;
-    }
-  }
-}
 
 const problems = [];
 let checked = 0;
 let skipped = 0;
 
-for await (const file of sources(SRC)) {
+for await (const file of walk(SRC)) {
   const raw = await readFile(file, 'utf8');
   const source = stripComments(raw);
   const name = relative(SRC, file);
@@ -200,7 +184,7 @@ for await (const file of sources(SRC)) {
       connected !== null && connected.replace(/super\.connectedCallback\(\s*\);?/, '').trim().length > 0;
     if (releases && !reconnects) {
       problems.push(
-        `  ${name}:${lineOf(raw, 'disconnectedCallback')} releases on unmount with no ` +
+        `  ${name}:${lineOfFirst(raw, 'disconnectedCallback')} releases on unmount with no ` +
           `connectedCallback to re-establish it`
       );
     }
@@ -220,7 +204,7 @@ for await (const file of sources(SRC)) {
     for (const event of [...removed].sort()) {
       if (!added.has(event)) {
         problems.push(
-          `  ${name}:${lineOf(raw, 'disconnectedCallback')} removes its "${event}" listener ` +
+          `  ${name}:${lineOfFirst(raw, 'disconnectedCallback')} removes its "${event}" listener ` +
             `on unmount but never adds it back in connectedCallback`
         );
       }
@@ -233,28 +217,25 @@ for await (const file of sources(SRC)) {
     // in the file would otherwise decide the line number, and the number in
     // a guard's output is the part someone trusts.
     problems.push(
-      `  ${name}:${lineOf(source, '.assigned')} reads its slotted children imperatively ` +
+      `  ${name}:${lineOfFirst(source, '.assigned')} reads its slotted children imperatively ` +
         `but never listens for @slotchange`
     );
   }
 }
 
-if (problems.length > 0) {
-  console.error(
-    `\nFound ${problems.length} lifecycle asymmetry/asymmetries.\n` +
-      'Setup that runs once and teardown that runs on every unmount leaves a\n' +
-      'component inert after any reparent, silently and without throwing.\n\n' +
-      problems.join('\n') +
-      '\n\nRe-establish it in connectedCallback (see cdz-popover for the shape),\n' +
-      'or add to EXEMPT in scripts/check-lifecycle-symmetry.mjs with a reason.\n'
-  );
-  process.exit(1);
-}
-
-// The skipped count is named rather than left out: "4 components, none
-// asymmetric" reads as "4 checked, all fine" when it means the other 18
-// were never eligible for a rule in the first place.
-console.log(
-  `✓ lifecycle symmetry: ${checked} file(s) eligible, none asymmetric ` +
+report({
+  problems,
+  header:
+    `Found ${problems.length} lifecycle asymmetry/asymmetries.\n` +
+    'Setup that runs once and teardown that runs on every unmount leaves a\n' +
+    'component inert after any reparent, silently and without throwing.',
+  remedy:
+    'Re-establish it in connectedCallback (see cdz-popover for the shape),\n' +
+    'or add to EXEMPT in scripts/check-lifecycle-symmetry.mjs with a reason.',
+  // The skipped count is named rather than left out: "4 components, none
+  // asymmetric" reads as "4 checked, all fine" when it means the other 18
+  // were never eligible for a rule in the first place.
+  ok:
+    `✓ lifecycle symmetry: ${checked} file(s) eligible, none asymmetric ` +
     `(${skipped} with no teardown and no imperative slot read were not checked)`
-);
+});

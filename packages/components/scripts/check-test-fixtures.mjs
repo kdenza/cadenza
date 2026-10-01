@@ -25,8 +25,9 @@
  * The fix in every case: `fixtureSync` for a non-component root, then
  * await the component's own `updateComplete`.
  */
-import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { walk, lineAt, report } from './lib/sources.mjs';
 
 // The scanned root, overridable so the guard can be run against a fixture
 // tree instead of the real sources. Nothing in normal use passes it; it
@@ -38,32 +39,27 @@ const ROOT = process.env.CDZ_GUARD_ROOT ?? new URL('../src/', import.meta.url).p
 // custom element.
 const OFFENDING = /await\s+fixture(?:<[^>]*>)?\s*\(\s*(?:\r?\n\s*)?html`\s*<(?!cdz-)([a-zA-Z-]+)/g;
 
-async function* testFiles(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) yield* testFiles(full);
-    else if (entry.name.endsWith('.test.ts')) yield full;
-  }
-}
-
 const offenders = [];
-for await (const file of testFiles(ROOT)) {
+// The only guard that walks tests rather than sources.
+for await (const file of walk(ROOT, { sources: false, tests: true })) {
   const source = await readFile(file, 'utf8');
   for (const match of source.matchAll(OFFENDING)) {
-    const line = source.slice(0, match.index).split('\n').length;
-    offenders.push(`  ${relative(ROOT, file)}:${line} mounts <${match[1]}>`);
+    offenders.push(
+      `  ${relative(ROOT, file)}:${lineAt(source, match.index)} mounts <${match[1]}>`
+    );
   }
 }
 
-if (offenders.length > 0) {
-  console.error(
-    `\nFound ${offenders.length} async fixture(s) mounted on a non-component root.\n` +
-      'These depend on requestAnimationFrame and time out in headless CI.\n\n' +
-      offenders.join('\n') +
-      '\n\nUse fixtureSync(...) and await the component\'s own updateComplete.\n' +
-      'See packages/components/scripts/check-test-fixtures.mjs and ADR-0027.\n'
-  );
-  process.exit(1);
-}
-
-console.log(`✓ no rAF-dependent fixtures (${offenders.length} offenders)`);
+report({
+  problems: offenders,
+  header:
+    `Found ${offenders.length} async fixture(s) mounted on a non-component root.\n` +
+    'These depend on requestAnimationFrame and time out in headless CI.',
+  // ADR-0028, not 0027: this said 0027 (cdz-page-nav, the first molecule)
+  // from the day it was written, in the one sentence someone reads when
+  // the guard stops them.
+  remedy:
+    "Use fixtureSync(...) and await the component's own updateComplete.\n" +
+    'See packages/components/scripts/check-test-fixtures.mjs and ADR-0028.',
+  ok: `✓ no rAF-dependent fixtures (${offenders.length} offenders)`
+});

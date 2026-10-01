@@ -13,8 +13,9 @@
  * must appear in that list. Same reasoning as check-test-fixtures.mjs — a
  * rule about source text, enforced in Node, before a browser starts.
  */
-import { readdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { walk, report } from './lib/sources.mjs';
 
 // The scanned root, overridable so the guard can be run against a fixture
 // tree instead of the real sources. Nothing in normal use passes it; it
@@ -39,16 +40,8 @@ const COVERAGE_FILE = join(SRC, 'shared/hidden-attribute.test.ts');
  */
 const EXEMPT = new Set();
 
-async function* files(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) yield* files(full);
-    else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) yield full;
-  }
-}
-
 const defined = new Set();
-for await (const file of files(SRC)) {
+for await (const file of walk(SRC)) {
   const source = await readFile(file, 'utf8');
   for (const match of source.matchAll(/customElements\.define\(\s*['"](cdz-[a-z-]+)['"]/g)) {
     defined.add(match[1]);
@@ -62,15 +55,12 @@ const listed = new Set(
 
 const missing = [...defined].filter((tag) => !EXEMPT.has(tag) && !listed.has(tag)).sort();
 
-if (missing.length > 0) {
-  console.error(
-    `\n${missing.length} component(s) define a custom element but are missing from\n` +
-      'the TAGS list in src/shared/hidden-attribute.test.ts, so nothing checks\n' +
-      'that they honour the hidden attribute (ADR-0025):\n\n' +
-      missing.map((tag) => `  ${tag}`).join('\n') +
-      '\n\nAdd them to that list, or add to EXEMPT here with a reason.\n'
-  );
-  process.exit(1);
-}
-
-console.log(`✓ hidden-attribute coverage: ${defined.size - EXEMPT.size} components, none missing`);
+report({
+  problems: missing.map((tag) => `  ${tag}`),
+  header:
+    `${missing.length} component(s) define a custom element but are missing from\n` +
+    'the TAGS list in src/shared/hidden-attribute.test.ts, so nothing checks\n' +
+    'that they honour the hidden attribute (ADR-0025):',
+  remedy: 'Add them to that list, or add to EXEMPT here with a reason.',
+  ok: `✓ hidden-attribute coverage: ${defined.size - EXEMPT.size} components, none missing`
+});

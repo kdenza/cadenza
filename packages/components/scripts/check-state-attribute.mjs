@@ -23,8 +23,9 @@
  * ahead of `cem analyze`, so the failure names the line rather than
  * appearing as a surprising entry in a generated artefact nobody reads.
  */
-import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { walk, lineAt, report } from './lib/sources.mjs';
 
 // The scanned root, overridable so the guard can be run against a fixture
 // tree instead of the real sources. Nothing in normal use passes it; it
@@ -35,35 +36,26 @@ const SRC = process.env.CDZ_GUARD_ROOT ?? new URL('../src/', import.meta.url).pa
 // A property declaration body: everything between `name: {` and its `}`.
 const DECLARATION = /(\w+)\s*:\s*\{([^}]*)\}/g;
 
-async function* sources(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) yield* sources(full);
-    else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.test.ts')) yield full;
-  }
-}
-
 const offenders = [];
-for await (const file of sources(SRC)) {
+for await (const file of walk(SRC)) {
   const source = await readFile(file, 'utf8');
   for (const match of source.matchAll(DECLARATION)) {
     const [whole, name, body] = match;
     if (!/\bstate\s*:\s*true\b/.test(body)) continue;
     if (/\battribute\s*:\s*false\b/.test(body)) continue;
-    const line = source.slice(0, match.index).split('\n').length;
-    offenders.push(`  ${relative(SRC, file)}:${line} — ${name} is \`state: true\` with no \`attribute: false\``);
+    offenders.push(
+      `  ${relative(SRC, file)}:${lineAt(source, match.index)} — ${name} is ` +
+        '`state: true` with no `attribute: false`'
+    );
   }
 }
 
-if (offenders.length > 0) {
-  console.error(
-    `\n${offenders.length} reactive state field(s) will be published as public\n` +
-      'attributes in custom-elements.json, because the manifest analyzer looks\n' +
-      'for a literal `attribute: false` and does not special-case `state`:\n\n' +
-      offenders.join('\n') +
-      '\n\nAdd `attribute: false` alongside `state: true`.\n'
-  );
-  process.exit(1);
-}
-
-console.log('✓ state/attribute flags: every `state: true` declares `attribute: false`');
+report({
+  problems: offenders,
+  header:
+    `${offenders.length} reactive state field(s) will be published as public\n` +
+    'attributes in custom-elements.json, because the manifest analyzer looks\n' +
+    'for a literal `attribute: false` and does not special-case `state`:',
+  remedy: 'Add `attribute: false` alongside `state: true`.',
+  ok: '✓ state/attribute flags: every `state: true` declares `attribute: false`'
+});
